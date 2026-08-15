@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const API = 'http://localhost:3001/api'
+const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 
 const C = {
   bg: '#0F0F0F',
