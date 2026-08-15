@@ -19,23 +19,42 @@ router.get('/search', (req, res) => {
 
 // Añadir alimento al catálogo
 router.post('/', (req, res) => {
-  const { name, kcal100, protein100, satfat100, carbs100 } = req.body;
+  const { name, unit, kcal100, protein100, satfat100, carbs100, sugar100, fiber100, salt100, vitamins } = req.body;
   if (!name || kcal100 === undefined) {
     return res.status(400).json({ error: 'Nombre y calorías son obligatorios' });
   }
-  const result = db.prepare(
-    'INSERT INTO foods (name, kcal100, protein100, satfat100, carbs100) VALUES (?, ?, ?, ?, ?)'
-  ).run(name, kcal100, protein100 || 0, satfat100 || 0, carbs100 || 0);
+  const result = db.prepare(`
+    INSERT INTO foods (name, unit, kcal100, protein100, satfat100, carbs100, sugar100, fiber100, salt100, vitamins)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    name,
+    unit || 'g',
+    kcal100,
+    protein100 || 0,
+    satfat100 || 0,
+    carbs100 || 0,
+    sugar100 || 0,
+    fiber100 || 0,
+    salt100 || 0,
+    vitamins || ''
+  );
   const food = db.prepare('SELECT * FROM foods WHERE id = ?').get(result.lastInsertRowid);
   res.status(201).json(food);
+});
+
+// Eliminar alimento del catálogo
+router.delete('/:id', (req, res) => {
+  db.prepare('DELETE FROM foods WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
 });
 
 // Obtener entradas de un día concreto
 router.get('/entries', (req, res) => {
   const { date } = req.query;
   const entries = db.prepare(`
-    SELECT e.id, e.grams, e.date, e.time,
-           f.name, f.kcal100, f.protein100, f.satfat100, f.carbs100
+    SELECT e.id, e.amount, e.date, e.time,
+           f.name, f.unit, f.kcal100, f.protein100, f.satfat100,
+           f.carbs100, f.sugar100, f.fiber100, f.salt100, f.vitamins
     FROM entries e
     JOIN foods f ON e.food_id = f.id
     WHERE e.date = ?
@@ -46,19 +65,35 @@ router.get('/entries', (req, res) => {
 
 // Registrar ingesta
 router.post('/entries', (req, res) => {
-  const { food_id, grams, date, time } = req.body;
-  if (!food_id || !grams || !date) {
-    return res.status(400).json({ error: 'food_id, grams y date son obligatorios' });
+  const { food_id, amount, date, time } = req.body;
+  if (!food_id || !amount || !date) {
+    return res.status(400).json({ error: 'food_id, amount y date son obligatorios' });
   }
   const result = db.prepare(
-    'INSERT INTO entries (food_id, grams, date, time) VALUES (?, ?, ?, ?)'
-  ).run(food_id, grams, date, time || new Date().toTimeString().slice(0, 5));
+    'INSERT INTO entries (food_id, amount, date, time) VALUES (?, ?, ?, ?)'
+  ).run(food_id, amount, date, time || new Date().toTimeString().slice(0, 5));
   res.status(201).json({ id: result.lastInsertRowid });
 });
 
 // Eliminar entrada
 router.delete('/entries/:id', (req, res) => {
   db.prepare('DELETE FROM entries WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+// Obtener o guardar objetivo calórico del día
+router.get('/goal', (req, res) => {
+  const { date } = req.query;
+  const goal = db.prepare('SELECT * FROM daily_goals WHERE date = ?').get(date);
+  res.json({ kcal_goal: goal ? goal.kcal_goal : 2500 });
+});
+
+router.post('/goal', (req, res) => {
+  const { date, kcal_goal } = req.body;
+  db.prepare(`
+    INSERT INTO daily_goals (date, kcal_goal) VALUES (?, ?)
+    ON CONFLICT(date) DO UPDATE SET kcal_goal = excluded.kcal_goal
+  `).run(date, kcal_goal);
   res.json({ ok: true });
 });
 
