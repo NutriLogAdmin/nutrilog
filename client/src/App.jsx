@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Login from './Login'
 import OcrScanner from './OcrScanner'
+import Profile from './Profile'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 
@@ -29,38 +30,22 @@ const CATEGORIES = [
   { key: 'otros', label: '📦 Otros', emoji: '📦' },
 ]
 
-const MACRO_GOALS = {
-  protein: 155,
-  carbs: 280,
-  satfat: 15,
-  salt: 5,
-  fiber: 30,
-}
+const PRESET_AVATARS = [
+  {id:'av1',e:'🧑‍💻'},{id:'av2',e:'🏋️'},{id:'av3',e:'🥗'},{id:'av4',e:'🧘'},
+  {id:'av5',e:'🚴'},{id:'av6',e:'🏃'},{id:'av7',e:'🎯'},{id:'av8',e:'💪'},
+  {id:'av9',e:'🌟'},{id:'av10',e:'🦁'}
+]
 
+const MACRO_GOALS = { protein: 155, carbs: 280, satfat: 15, salt: 5, fiber: 30 }
 const PLAN_USERS = ['Daniel', 'daniel']
 
 const C = {
-  bg: '#F7F7F5',
-  white: '#FFFFFF',
-  border: '#EBEBEB',
-  text: '#1A1A1A',
-  muted: '#888',
-  mutedLight: '#BBB',
-  accent: '#FF6B35',
-  accentLight: '#FFF0EB',
-  accentMid: '#FFB39A',
-  green: '#22C55E',
-  greenLight: '#DCFCE7',
-  blue: '#3B82F6',
-  blueLight: '#EFF6FF',
-  yellow: '#F59E0B',
-  yellowLight: '#FFFBEB',
-  red: '#EF4444',
-  redLight: '#FEF2F2',
-  purple: '#8B5CF6',
-  purpleLight: '#F5F3FF',
-  teal: '#14B8A6',
-  tealLight: '#F0FDFA',
+  bg: '#F7F7F5', white: '#FFFFFF', border: '#EBEBEB', text: '#1A1A1A',
+  muted: '#888', mutedLight: '#BBB', accent: '#FF6B35', accentLight: '#FFF0EB',
+  accentMid: '#FFB39A', green: '#22C55E', greenLight: '#DCFCE7',
+  blue: '#3B82F6', blueLight: '#EFF6FF', yellow: '#F59E0B', yellowLight: '#FFFBEB',
+  red: '#EF4444', redLight: '#FEF2F2', purple: '#8B5CF6', purpleLight: '#F5F3FF',
+  teal: '#14B8A6', tealLight: '#F0FDFA',
 }
 
 function getToken() { return localStorage.getItem('nutrilog_token') }
@@ -76,26 +61,32 @@ const EMPTY_FOOD = {
   carbs100: '', sugar100: '', fiber100: '', salt100: '', vitamins: ''
 }
 
+function AvatarDisplay({ avatarData, username, size = 32, fontSize = 12 }) {
+  const isPreset = avatarData && avatarData.startsWith('av')
+  const emoji = PRESET_AVATARS.find(a => a.id === avatarData)?.e
+  return (
+    <div style={{ width: size, height: size, borderRadius: '50%', background: C.accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: C.accent, overflow: 'hidden', border: `2px solid ${C.accent}`, flexShrink: 0 }}>
+      {!avatarData && <span style={{ fontSize }}>{username?.charAt(0).toUpperCase()}</span>}
+      {isPreset && <span style={{ fontSize: size * 0.55 }}>{emoji}</span>}
+      {avatarData && !isPreset && <img src={avatarData} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+    </div>
+  )
+}
+
 function CircleProgress({ value, max, size = 160 }) {
   const pct = Math.min(1, value / max)
-  const r = 68
-  const cx = size / 2
-  const cy = size / 2
-  const startAngle = -210
-  const endAngle = 30
-  const totalAngle = endAngle - startAngle
-  const currentAngle = startAngle + totalAngle * pct
+  const r = 68, cx = size / 2, cy = size / 2
+  const startAngle = -210, endAngle = 30
+  const currentAngle = startAngle + (endAngle - startAngle) * pct
 
   function polarToXY(angle, radius) {
     const rad = (angle * Math.PI) / 180
     return { x: cx + radius * Math.cos(rad), y: cy + radius * Math.sin(rad) }
   }
 
-  function describeArc(startAng, endAng) {
-    const s = polarToXY(startAng, r)
-    const e = polarToXY(endAng, r)
-    const largeArc = endAng - startAng > 180 ? 1 : 0
-    return `M ${s.x} ${s.y} A ${r} ${r} 0 ${largeArc} 1 ${e.x} ${e.y}`
+  function describeArc(s, e) {
+    const sp = polarToXY(s, r), ep = polarToXY(e, r)
+    return `M ${sp.x} ${sp.y} A ${r} ${r} 0 ${e - s > 180 ? 1 : 0} 1 ${ep.x} ${ep.y}`
   }
 
   const over = value > max
@@ -104,9 +95,7 @@ function CircleProgress({ value, max, size = 160 }) {
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <path d={describeArc(startAngle, endAngle)} fill="none" stroke={C.border} strokeWidth="12" strokeLinecap="round" />
-      {pct > 0 && (
-        <path d={describeArc(startAngle, currentAngle)} fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" style={{ transition: 'all 0.5s ease' }} />
-      )}
+      {pct > 0 && <path d={describeArc(startAngle, currentAngle)} fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" style={{ transition: 'all 0.5s ease' }} />}
       <text x={cx} y={cy - 8} textAnchor="middle" fontSize="30" fontWeight="700" fill={C.text}>{round(value)}</text>
       <text x={cx} y={cy + 14} textAnchor="middle" fontSize="11" fill={C.muted}>kcal</text>
       <text x={cx} y={cy + 30} textAnchor="middle" fontSize="10" fill={color} fontWeight="600">
@@ -138,6 +127,7 @@ function MacroBar({ label, value, goal, color, bg }) {
 export default function App() {
   const [token, setToken] = useState(getToken())
   const [username, setUsername] = useState(localStorage.getItem('nutrilog_user') || '')
+  const [avatarData, setAvatarData] = useState(null)
   const [date, setDate] = useState(todayISO())
   const [entries, setEntries] = useState([])
   const [foods, setFoods] = useState([])
@@ -150,6 +140,7 @@ export default function App() {
   const [activeMeal, setActiveMeal] = useState(null)
   const [showFoodForm, setShowFoodForm] = useState(false)
   const [showOcr, setShowOcr] = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
   const [savingGoal, setSavingGoal] = useState(false)
   const [editEntry, setEditEntry] = useState(null)
   const [editFood, setEditFood] = useState(null)
@@ -158,13 +149,38 @@ export default function App() {
   const [editGoal, setEditGoal] = useState(false)
 
   const canSeePlan = PLAN_USERS.includes(username)
+  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo'], ...(canSeePlan ? [['plan', 'Mi Plan']] : [])]
 
   function handleLogin(tkn, user) { setToken(tkn); setUsername(user) }
   function handleLogout() {
     localStorage.removeItem('nutrilog_token')
     localStorage.removeItem('nutrilog_user')
-    setToken(null); setUsername('')
+    setToken(null); setUsername(''); setAvatarData(null)
   }
+
+  // Auto-logout por inactividad — 30 minutos
+  useEffect(() => {
+    if (!token) return
+    let timer = setTimeout(() => { handleLogout() }, 30 * 60 * 1000)
+    const reset = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => { handleLogout() }, 30 * 60 * 1000)
+    }
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click']
+    events.forEach(e => window.addEventListener(e, reset))
+    return () => { clearTimeout(timer); events.forEach(e => window.removeEventListener(e, reset)) }
+  }, [token])
+
+  // Cargar avatar al iniciar sesión
+  useEffect(() => {
+    if (!token) return
+    async function loadAvatar() {
+      const res = await fetch(`${API}/profile`, { headers: getHeaders() })
+      const data = await res.json()
+      if (data.avatar) setAvatarData(data.avatar)
+    }
+    loadAvatar()
+  }, [token])
 
   useEffect(() => { if (token) loadEntries() }, [date, token])
   useEffect(() => { if (token) loadFoods() }, [token])
@@ -209,16 +225,13 @@ export default function App() {
       fiber100: parseFloat(newFood.fiber100) || 0,
       salt100: parseFloat(newFood.salt100) || 0,
     }
-
     if (editFood) {
       await fetch(`${API}/foods/${editFood.id}`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify(payload) })
       setEditFood(null)
     } else {
       await fetch(`${API}/foods`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) })
     }
-    setNewFood(EMPTY_FOOD)
-    setShowFoodForm(false)
-    loadFoods()
+    setNewFood(EMPTY_FOOD); setShowFoodForm(false); loadFoods()
   }
 
   async function addEntry(e) {
@@ -277,17 +290,14 @@ export default function App() {
       sugar100: String(f.sugar100), fiber100: String(f.fiber100),
       salt100: String(f.salt100), vitamins: f.vitamins || ''
     })
-    setShowFoodForm(true)
-    setShowOcr(false)
+    setShowFoodForm(true); setShowOcr(false)
     window.scrollTo(0, 0)
   }
 
   function startEdit(e) {
     setEditEntry(e)
     setSelectedFood({ id: e.food_id, name: e.name, unit: e.unit, kcal100: e.kcal100, protein100: e.protein100, satfat100: e.satfat100, carbs100: e.carbs100, sugar100: e.sugar100, fiber100: e.fiber100, salt100: e.salt100 })
-    setAmount(String(e.amount))
-    setSearch(e.name)
-    setActiveMeal(e.meal || 'comida')
+    setAmount(String(e.amount)); setSearch(e.name); setActiveMeal(e.meal || 'comida')
     window.scrollTo(0, 0)
   }
 
@@ -309,18 +319,11 @@ export default function App() {
 
   const totals = entries.reduce((acc, e) => {
     const f = calcFactor(e.amount)
-    acc.kcal += e.kcal100 * f
-    acc.protein += e.protein100 * f
-    acc.satfat += e.satfat100 * f
-    acc.carbs += e.carbs100 * f
-    acc.sugar += e.sugar100 * f
-    acc.fiber += e.fiber100 * f
-    acc.salt += e.salt100 * f
+    acc.kcal += e.kcal100 * f; acc.protein += e.protein100 * f
+    acc.satfat += e.satfat100 * f; acc.carbs += e.carbs100 * f
+    acc.sugar += e.sugar100 * f; acc.fiber += e.fiber100 * f; acc.salt += e.salt100 * f
     return acc
   }, { kcal: 0, protein: 0, satfat: 0, carbs: 0, sugar: 0, fiber: 0, salt: 0 })
-
-  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo']]
-  if (canSeePlan) tabs.push(['plan', 'Mi Plan'])
 
   if (!token) return <Login onLogin={handleLogin} />
 
@@ -336,8 +339,8 @@ export default function App() {
               style={{ border: 'none', background: 'none', fontSize: 15, fontWeight: 600, color: C.text, padding: 0, cursor: 'pointer' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: C.accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: C.accent }}>
-              {username.charAt(0).toUpperCase()}
+            <div onClick={() => setShowProfile(true)} style={{ cursor: 'pointer' }}>
+              <AvatarDisplay avatarData={avatarData} username={username} size={36} />
             </div>
             <button onClick={handleLogout} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.muted, padding: '5px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer' }}>Salir</button>
           </div>
@@ -416,9 +419,12 @@ export default function App() {
                   : filtered.map(f => (
                     <div key={f.id} onClick={() => { setSelectedFood(f); setSearch(f.name) }}
                       style={{ padding: '12px 14px', cursor: 'pointer', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{f.name}</div>
-                        <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{f.kcal100} kcal / 100{f.unit}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 20 }}>{CATEGORIES.find(c => c.key === f.category)?.emoji || '📦'}</span>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{f.name}</div>
+                          <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{f.kcal100} kcal / 100{f.unit}</div>
+                        </div>
                       </div>
                       <div style={{ fontSize: 11, background: C.accentLight, color: C.accent, padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>{f.unit}</div>
                     </div>
@@ -489,15 +495,13 @@ export default function App() {
                     const f = e.amount / 100
                     return (
                       <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: `1px solid ${C.border}` }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 20 }}>
-                            {CATEGORIES.find(c => c.key === e.category)?.emoji || '📦'}
-                          </span>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{e.name}</div>
-                        </div>
-                          <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
-                            {e.amount}{e.unit} · P:{round(e.protein100 * f)}g · H:{round(e.carbs100 * f)}g · Sal:{round(e.salt100 * f)}g
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+                          <span style={{ fontSize: 24, flexShrink: 0 }}>{CATEGORIES.find(c => c.key === e.category)?.emoji || '📦'}</span>
+                          <div>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{e.name}</div>
+                            <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
+                              {e.amount}{e.unit} · P:{round(e.protein100 * f)}g · H:{round(e.carbs100 * f)}g · Sal:{round(e.salt100 * f)}g
+                            </div>
                           </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -607,16 +611,16 @@ export default function App() {
                 </div>
               : catalogFiltered.map(f => (
                 <div key={f.id} style={{ background: C.white, borderRadius: 16, padding: '14px 16px', marginBottom: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{f.name}</div>
-                      <span style={{ fontSize: 10, background: C.accentLight, color: C.accent, padding: '2px 6px', borderRadius: 8, fontWeight: 600 }}>{f.unit}</span>
-                      <span style={{ fontSize: 13 }}>
-                        {CATEGORIES.find(c => c.key === f.category)?.emoji || '📦'}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: 11, color: C.muted, marginTop: 3 }}>
-                      {f.kcal100} kcal · P:{f.protein100}g · H:{f.carbs100}g · Az:{f.sugar100}g · Sat:{f.satfat100}g · Sal:{f.salt100}g
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+                    <span style={{ fontSize: 24, flexShrink: 0 }}>{CATEGORIES.find(c => c.key === f.category)?.emoji || '📦'}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{f.name}</div>
+                        <span style={{ fontSize: 10, background: C.accentLight, color: C.accent, padding: '2px 6px', borderRadius: 8, fontWeight: 600 }}>{f.unit}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: C.muted, marginTop: 3 }}>
+                        {f.kcal100} kcal · P:{f.protein100}g · H:{f.carbs100}g · Az:{f.sugar100}g · Sat:{f.satfat100}g · Sal:{f.salt100}g
+                      </div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 6, marginLeft: 8 }}>
@@ -629,30 +633,31 @@ export default function App() {
           </div>
         )}
 
-        {/* Vista Mi Plan — solo para Daniel */}
+        {/* Vista Mi Plan */}
         {view === 'plan' && canSeePlan && (
           <div style={{ padding: '12px 16px 0' }}>
             <div style={{ background: C.white, borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-              <iframe
-                src="/plan_trigliceridos.html"
-                style={{ width: '100%', height: '80vh', border: 'none' }}
-                title="Mi Plan de Vida"
-              />
+              <iframe src="/plan_trigliceridos.html" style={{ width: '100%', height: '80vh', border: 'none' }} title="Mi Plan de Vida" />
             </div>
           </div>
         )}
 
         {/* Footer */}
         <div style={{ textAlign: 'center', padding: '24px 16px', marginTop: 8 }}>
-          <div style={{ fontSize: 11, color: C.mutedLight }}>
-            © {new Date().getFullYear()} NutriLog · Todos los derechos reservados
-          </div>
-          <div style={{ fontSize: 10, color: C.mutedLight, marginTop: 2 }}>
-            Desarrollado por Daniel Ambrosio
-          </div>
+          <div style={{ fontSize: 11, color: C.mutedLight }}>© {new Date().getFullYear()} NutriLog · Todos los derechos reservados</div>
+          <div style={{ fontSize: 10, color: C.mutedLight, marginTop: 2 }}>Desarrollado por Daniel Ambrosio</div>
         </div>
 
       </div>
+
+      {/* Modal de perfil */}
+      {showProfile && (
+        <Profile
+          username={username}
+          onClose={() => setShowProfile(false)}
+          onAvatarUpdate={(av) => setAvatarData(av)}
+        />
+      )}
     </div>
   )
 }

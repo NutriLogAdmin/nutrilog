@@ -2,6 +2,8 @@ const express = require('express')
 const cors = require('cors')
 const db = require('./database')
 const foodsRouter = require('./routes/foods')
+const profileRouter = require('./routes/profile')
+app.use('/api/profile', authMiddleware, profileRouter)
 const authRouter = require('./routes/auth')
 const authMiddleware = require('./middleware/auth')
 
