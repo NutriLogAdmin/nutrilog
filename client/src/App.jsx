@@ -208,11 +208,29 @@ export default function App() {
     if (res.ok) { setNewFood(EMPTY_FOOD); setShowFoodForm(false); loadFoods() }
   }
 
-  function handleOcrResult(data) {
-  setNewFood(prev => ({ ...prev, ...data }))
-  setShowOcr(false)
-  setShowFoodForm(true)
+async function handleOcrResult(data) {
+  const { name, ...nutrition } = data
+  const res = await fetch(`${API}/foods`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      name,
+      unit: 'g',
+      category: 'otros',
+      kcal100: parseFloat(nutrition.kcal100) || 0,
+      protein100: parseFloat(nutrition.protein100) || 0,
+      satfat100: parseFloat(nutrition.satfat100) || 0,
+      carbs100: parseFloat(nutrition.carbs100) || 0,
+      sugar100: parseFloat(nutrition.sugar100) || 0,
+      fiber100: parseFloat(nutrition.fiber100) || 0,
+      salt100: parseFloat(nutrition.salt100) || 0,
+    })
+  })
+  if (res.ok) {
+    setShowOcr(false)
+    loadFoods()
   }
+}
 
   async function addEntry(e) {
     e.preventDefault()
