@@ -39,6 +39,14 @@ db.exec(`
     date TEXT UNIQUE NOT NULL,
     kcal_goal REAL NOT NULL DEFAULT 2500
   );
+
+    CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
 `);
 
 module.exports = db;
