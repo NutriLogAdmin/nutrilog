@@ -26,6 +26,14 @@ const CATEGORIES = [
   { key: 'otros', label: '📦 Otros' },
 ]
 
+const MACRO_GOALS = {
+  protein: 155,
+  carbs: 280,
+  satfat: 15,
+  salt: 5,
+  fiber: 30,
+}
+
 const C = {
   bg: '#F7F7F5',
   white: '#FFFFFF',
@@ -46,6 +54,8 @@ const C = {
   redLight: '#FEF2F2',
   purple: '#8B5CF6',
   purpleLight: '#F5F3FF',
+  teal: '#14B8A6',
+  tealLight: '#F0FDFA',
 }
 
 function getToken() { return localStorage.getItem('nutrilog_token') }
@@ -61,9 +71,9 @@ const EMPTY_FOOD = {
   carbs100: '', sugar100: '', fiber100: '', salt100: '', vitamins: ''
 }
 
-function CircleProgress({ value, max, size = 180 }) {
+function CircleProgress({ value, max, size = 160 }) {
   const pct = Math.min(1, value / max)
-  const r = 70
+  const r = 68
   const cx = size / 2
   const cy = size / 2
   const startAngle = -210
@@ -92,12 +102,31 @@ function CircleProgress({ value, max, size = 180 }) {
       {pct > 0 && (
         <path d={describeArc(startAngle, currentAngle)} fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" style={{ transition: 'all 0.5s ease' }} />
       )}
-      <text x={cx} y={cy - 10} textAnchor="middle" fontSize="32" fontWeight="700" fill={C.text}>{round(value)}</text>
-      <text x={cx} y={cy + 16} textAnchor="middle" fontSize="12" fill={C.muted}>kcal</text>
-      <text x={cx} y={cy + 34} textAnchor="middle" fontSize="11" fill={color} fontWeight="600">
-        {over ? `+${round(value - max)}` : `${round(max - value)} restantes`}
+      <text x={cx} y={cy - 8} textAnchor="middle" fontSize="30" fontWeight="700" fill={C.text}>{round(value)}</text>
+      <text x={cx} y={cy + 14} textAnchor="middle" fontSize="11" fill={C.muted}>kcal</text>
+      <text x={cx} y={cy + 30} textAnchor="middle" fontSize="10" fill={color} fontWeight="600">
+        {over ? `+${round(value - max)} exceso` : `${round(max - value)} restantes`}
       </text>
     </svg>
+  )
+}
+
+function MacroBar({ label, value, goal, color, bg }) {
+  const pct = Math.min(100, (value / goal) * 100)
+  const over = value > goal
+  return (
+    <div style={{ background: bg, borderRadius: 14, padding: '10px 12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+        <div style={{ fontSize: 9, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: over ? C.red : color }}>{round(value)}g</div>
+      </div>
+      <div style={{ height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 99, overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: over ? C.red : color, borderRadius: 99, transition: 'width 0.4s' }} />
+      </div>
+      <div style={{ fontSize: 9, color: C.muted, marginTop: 4 }}>
+        obj. {goal}g · {over ? <span style={{ color: C.red }}>+{round(value - goal)}g</span> : `${round(goal - value)}g restantes`}
+      </div>
+    </div>
   )
 }
 
@@ -274,17 +303,13 @@ export default function App() {
 
         {/* Tarjeta principal con círculo */}
         <div style={{ background: C.white, margin: '16px 16px 0', borderRadius: 24, padding: '24px 20px', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
-          
-          {/* Círculo + objetivo */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontSize: 11, color: C.muted, marginBottom: 2 }}>Consumidas</div>
               <div style={{ fontSize: 28, fontWeight: 800, color: C.text }}>{round(totals.kcal)}</div>
               <div style={{ fontSize: 11, color: C.muted }}>kcal</div>
             </div>
-
             <CircleProgress value={totals.kcal} max={goal} size={160} />
-
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 11, color: C.muted, marginBottom: 2 }}>Objetivo</div>
               {editGoal ? (
@@ -295,31 +320,35 @@ export default function App() {
               ) : (
                 <div onClick={() => setEditGoal(true)} style={{ fontSize: 28, fontWeight: 800, color: C.text, cursor: 'pointer' }}>{goal}</div>
               )}
-              <div style={{ fontSize: 11, color: C.muted }}>kcal · {savingGoal ? '💾' : <span onClick={() => setEditGoal(true)} style={{ color: C.accent, cursor: 'pointer' }}>editar</span>}</div>
+              <div style={{ fontSize: 11, color: C.muted }}>
+                {savingGoal ? '💾' : <span onClick={() => setEditGoal(true)} style={{ color: C.accent, cursor: 'pointer' }}>editar</span>}
+              </div>
             </div>
           </div>
 
-          {/* Macros */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-            {[
-              ['Proteína', totals.protein, C.blue, C.blueLight],
-              ['Hidratos', totals.carbs, C.yellow, C.yellowLight],
-              ['Grasas sat.', totals.satfat, C.red, C.redLight],
-              ['Sal', totals.salt, C.purple, C.purpleLight],
-            ].map(([label, val, color, bg]) => (
-              <div key={label} style={{ background: bg, borderRadius: 14, padding: '10px 6px', textAlign: 'center' }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color }}>{round(val)}g</div>
-                <div style={{ fontSize: 9, color: C.muted, marginTop: 2 }}>{label}</div>
-              </div>
-            ))}
+          {/* Macros con barras de progreso */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+            <MacroBar label="Proteína" value={totals.protein} goal={MACRO_GOALS.protein} color={C.blue} bg={C.blueLight} />
+            <MacroBar label="Hidratos" value={totals.carbs} goal={MACRO_GOALS.carbs} color={C.yellow} bg={C.yellowLight} />
+            <MacroBar label="Grasas sat." value={totals.satfat} goal={MACRO_GOALS.satfat} color={C.red} bg={C.redLight} />
+            <MacroBar label="Sal" value={totals.salt} goal={MACRO_GOALS.salt} color={C.purple} bg={C.purpleLight} />
+          </div>
+
+          {/* Fibra aparte — secundaria */}
+          <div style={{ marginTop: 8, background: C.tealLight, borderRadius: 14, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: 11, color: C.teal, fontWeight: 700 }}>Fibra</div>
+            <div style={{ flex: 1, margin: '0 10px', height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${Math.min(100, (totals.fiber / MACRO_GOALS.fiber) * 100)}%`, background: C.teal, borderRadius: 99, transition: 'width 0.4s' }} />
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.teal }}>{round(totals.fiber)}g <span style={{ fontSize: 10, fontWeight: 400, color: C.muted }}>/ {MACRO_GOALS.fiber}g</span></div>
           </div>
         </div>
 
         {/* Tabs */}
         <div style={{ display: 'flex', margin: '16px 16px 0', background: C.white, borderRadius: 16, padding: 4, gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-          {[['registro', 'Registro'], ['catalogo', 'Catálogo']].map(([key, label]) => (
+          {[['registro', 'Registro'], ['catalogo', 'Catálogo'], ['plan', 'Mi Plan']].map(([key, label]) => (
             <button key={key} onClick={() => setView(key)} style={{
-              flex: 1, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12,
+              flex: 1, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12,
               background: view === key ? C.accent : 'transparent',
               color: view === key ? '#fff' : C.muted, transition: 'all 0.2s'
             }}>{label}</button>
@@ -412,10 +441,10 @@ export default function App() {
                     </div>
                     <button onClick={() => openMealAdd(meal.key)} style={{
                       width: 32, height: 32, borderRadius: '50%', background: activeMeal === meal.key ? C.accent : C.accentLight,
-                      color: activeMeal === meal.key ? '#fff' : C.accent, border: 'none', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700
+                      color: activeMeal === meal.key ? '#fff' : C.accent, border: 'none', fontSize: 20, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700
                     }}>+</button>
                   </div>
-
                   {mealEntries.map(e => {
                     const f = e.amount / 100
                     return (
@@ -453,14 +482,12 @@ export default function App() {
             {showFoodForm && (
               <form onSubmit={addFood} style={{ background: C.white, borderRadius: 20, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 14 }}>Nuevo alimento — valores por 100g/ml</div>
-
                 <div style={{ marginBottom: 10 }}>
                   <Label>Nombre</Label>
                   <input type="text" value={newFood.name} placeholder="Ej: Leche entera"
                     onChange={e => setNewFood({ ...newFood, name: e.target.value })}
                     style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' }} />
                 </div>
-
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
                   <div>
                     <Label>Categoría</Label>
@@ -480,7 +507,6 @@ export default function App() {
                     </select>
                   </div>
                 </div>
-
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                   {[['Kcal / 100g·ml', 'kcal100'], ['Proteína (g)', 'protein100'], ['Hidratos (g)', 'carbs100'], ['Azúcares (g)', 'sugar100'], ['Grasas sat. (g)', 'satfat100'], ['Fibra (g)', 'fiber100'], ['Sal (g)', 'salt100']].map(([label, key]) => (
                     <div key={key}>
@@ -497,7 +523,6 @@ export default function App() {
                       style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' }} />
                   </div>
                 </div>
-
                 <button type="submit" style={{ width: '100%', marginTop: 14, padding: '13px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
                   Guardar alimento
                 </button>
@@ -543,6 +568,30 @@ export default function App() {
             }
           </div>
         )}
+
+        {/* Vista Mi Plan */}
+        {view === 'plan' && (
+          <div style={{ padding: '12px 16px 0' }}>
+            <div style={{ background: C.white, borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <iframe
+                src="/plan_trigliceridos.html"
+                style={{ width: '100%', height: '80vh', border: 'none' }}
+                title="Mi Plan de Vida"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div style={{ textAlign: 'center', padding: '24px 16px', marginTop: 8 }}>
+          <div style={{ fontSize: 11, color: C.mutedLight }}>
+            © {new Date().getFullYear()} NutriLog · Todos los derechos reservados
+          </div>
+          <div style={{ fontSize: 10, color: C.mutedLight, marginTop: 2 }}>
+            Desarrollado por Daniel Ambrosio
+          </div>
+        </div>
+
       </div>
     </div>
   )
