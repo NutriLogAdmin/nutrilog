@@ -13,19 +13,20 @@ const MEALS = [
 ]
 
 const CATEGORIES = [
-  { key: 'todos', label: '🔍 Todos' },
-  { key: 'frutas', label: '🍎 Frutas' },
-  { key: 'verduras', label: '🥦 Verduras' },
-  { key: 'carnes', label: '🥩 Carnes' },
-  { key: 'pescados', label: '🐟 Pescados' },
-  { key: 'lacteos', label: '🥛 Lácteos' },
-  { key: 'cereales', label: '🌾 Cereales' },
-  { key: 'legumbres', label: '🫘 Legumbres' },
-  { key: 'bebidas', label: '🥤 Bebidas' },
-  { key: 'snacks', label: '🍿 Snacks' },
-  { key: 'salsas', label: '🫙 Salsas' },
-  { key: 'platos', label: '🥘 Platos completos' },
-  { key: 'otros', label: '📦 Otros' },
+  { key: 'todos', label: '🔍 Todos', emoji: '🔍' },
+  { key: 'frutas', label: '🍎 Frutas', emoji: '🍎' },
+  { key: 'verduras', label: '🥦 Verduras', emoji: '🥦' },
+  { key: 'carnes', label: '🥩 Carnes', emoji: '🥩' },
+  { key: 'pescados', label: '🐟 Pescados', emoji: '🐟' },
+  { key: 'lacteos', label: '🥛 Lácteos', emoji: '🥛' },
+  { key: 'cereales', label: '🌾 Cereales', emoji: '🌾' },
+  { key: 'legumbres', label: '🫘 Legumbres', emoji: '🫘' },
+  { key: 'bebidas', label: '🥤 Bebidas', emoji: '🥤' },
+  { key: 'snacks', label: '🍿 Snacks', emoji: '🍿' },
+  { key: 'salsas', label: '🫙 Salsas', emoji: '🫙' },
+  { key: 'platos', label: '🥘 Platos completos', emoji: '🥘' },
+  { key: 'suplementos', label: '💊 Suplementos', emoji: '💊' },
+  { key: 'otros', label: '📦 Otros', emoji: '📦' },
 ]
 
 const MACRO_GOALS = {
@@ -489,7 +490,12 @@ export default function App() {
                     return (
                       <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: `1px solid ${C.border}` }}>
                         <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 20 }}>
+                            {CATEGORIES.find(c => c.key === e.category)?.emoji || '📦'}
+                          </span>
                           <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{e.name}</div>
+                        </div>
                           <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
                             {e.amount}{e.unit} · P:{round(e.protein100 * f)}g · H:{round(e.carbs100 * f)}g · Sal:{round(e.salt100 * f)}g
                           </div>
@@ -605,9 +611,9 @@ export default function App() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{f.name}</div>
                       <span style={{ fontSize: 10, background: C.accentLight, color: C.accent, padding: '2px 6px', borderRadius: 8, fontWeight: 600 }}>{f.unit}</span>
-                      {f.category && f.category !== 'otros' && (
-                        <span style={{ fontSize: 10, color: C.muted }}>{CATEGORIES.find(c => c.key === f.category)?.label}</span>
-                      )}
+                      <span style={{ fontSize: 13 }}>
+                        {CATEGORIES.find(c => c.key === f.category)?.emoji || '📦'}
+                      </span>
                     </div>
                     <div style={{ fontSize: 11, color: C.muted, marginTop: 3 }}>
                       {f.kcal100} kcal · P:{f.protein100}g · H:{f.carbs100}g · Az:{f.sugar100}g · Sat:{f.satfat100}g · Sal:{f.salt100}g

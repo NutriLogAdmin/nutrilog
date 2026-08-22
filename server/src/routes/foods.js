@@ -54,7 +54,7 @@ router.get('/entries', async (req, res) => {
   const userId = req.user.id
   const result = await pool.query(`
     SELECT e.id, e.amount, e.date, e.time, e.meal,
-           f.name, f.unit, f.kcal100, f.protein100, f.satfat100,
+           f.name, f.unit, f.category, f.kcal100, f.protein100, f.satfat100,
            f.carbs100, f.sugar100, f.fiber100, f.salt100, f.vitamins
     FROM entries e
     JOIN foods f ON e.food_id = f.id
