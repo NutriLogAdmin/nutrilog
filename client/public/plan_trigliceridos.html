@@ -1,0 +1,2125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Mi Plan de Vida</title>
+<style>
+:root {
+  --green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;
+  --blue:#378ADD;--blue-light:#E6F1FB;--blue-dark:#185FA5;
+  --amber:#BA7517;--amber-light:#FAEEDA;--amber-dark:#854F0B;
+  --purple:#7F77DD;--purple-light:#EEEDFE;--purple-dark:#534AB7;
+  --red:#E24B4A;--red-light:#FCEBEB;--red-dark:#A32D2D;
+  --coral:#D85A30;--coral-light:#FAECE7;
+  --gray-light:#F1EFE8;--text:#2C2C2A;--text2:#5F5E5A;
+  --bg:#ffffff;--bg2:#F1EFE8;--border:rgba(0,0,0,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg2);color:var(--text);font-size:14px;}
+header{background:var(--green);color:white;padding:14px 16px 10px;position:sticky;top:0;z-index:100;}
+header h1{font-size:17px;font-weight:600;}
+header p{font-size:11px;opacity:.85;margin-top:2px;}
+.tabs-wrap{background:var(--bg);border-bottom:.5px solid var(--border);position:sticky;top:58px;z-index:99;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;}
+.tabs{display:inline-flex;padding:0 8px;}
+.tab{padding:10px 13px;font-size:12px;font-weight:500;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;}
+.tab.active{color:var(--green);border-bottom-color:var(--green);}
+.section{display:none;padding:12px;}
+.section.visible{display:block;}
+.card{background:var(--bg);border-radius:12px;padding:14px;margin-bottom:10px;border:.5px solid var(--border);}
+.card-title{font-size:13px;font-weight:600;margin-bottom:10px;}
+.day-card{background:var(--bg);border-radius:12px;margin-bottom:10px;overflow:hidden;border:.5px solid var(--border);}
+.day-header{background:var(--green);color:white;padding:8px 14px;font-size:13px;font-weight:600;}
+.day-header.special{background:var(--purple);}
+.day-header.weekend{background:var(--blue);}
+.meal-row{display:flex;border-top:.5px solid var(--border);}
+.meal-label{width:82px;min-width:82px;padding:10px 7px;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:flex-start;line-height:1.3;}
+.meal-label.des{color:var(--green-dark);background:var(--green-light);}
+.meal-label.med{color:var(--amber-dark);background:var(--amber-light);}
+.meal-label.com{color:var(--blue-dark);background:var(--blue-light);}
+.meal-label.mer{color:var(--coral);background:var(--coral-light);}
+.meal-label.cen{color:var(--purple-dark);background:var(--purple-light);}
+.meal-text{flex:1;padding:10px;font-size:12px;line-height:1.5;}
+.meal-qty{font-size:10px;color:var(--text2);margin-top:3px;}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.stat{background:var(--bg);border-radius:10px;padding:10px 12px;border:.5px solid var(--border);}
+.stat-label{font-size:10px;color:var(--text2);}
+.stat-val{font-size:20px;font-weight:600;}
+.stat-unit{font-size:10px;color:var(--text2);}
+.tip{border-radius:10px;padding:12px;margin-bottom:8px;font-size:12px;line-height:1.6;}
+.tip.green{background:var(--green-light);color:var(--green-dark);border-left:3px solid var(--green);}
+.tip.red{background:var(--red-light);color:var(--red-dark);border-left:3px solid var(--red);}
+.tip.amber{background:var(--amber-light);color:var(--amber-dark);border-left:3px solid var(--amber);}
+.tip.blue{background:var(--blue-light);color:var(--blue-dark);border-left:3px solid var(--blue);}
+.tip.purple{background:var(--purple-light);color:var(--purple-dark);border-left:3px solid var(--purple);}
+.tip strong{font-weight:600;}
+.recipe-step{display:flex;gap:10px;margin-bottom:10px;}
+.step-n{width:24px;height:24px;border-radius:50%;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-n.purple{background:var(--purple-light);color:var(--purple-dark);}
+.step-n.blue{background:var(--blue-light);color:var(--blue-dark);}
+.step-n.amber{background:var(--amber-light);color:var(--amber-dark);}
+.step-n.green{background:var(--green-light);color:var(--green-dark);}
+.step-n.red{background:var(--red-light);color:var(--red-dark);}
+.step-text{flex:1;font-size:12px;line-height:1.6;}
+.shop-section{margin-bottom:16px;}
+.shop-title{font-size:12px;font-weight:600;padding:6px 10px;border-radius:8px;margin-bottom:8px;}
+.shop-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border);}
+.shop-item:last-child{border-bottom:none;}
+.shop-cb{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bg);transition:all .15s;}
+.shop-cb.done{background:var(--green);border-color:var(--green);color:white;font-size:13px;}
+.shop-name{flex:1;font-size:13px;}
+.shop-name.done{text-decoration:line-through;color:var(--text2);}
+.anx-block{border-radius:12px;padding:14px;margin-bottom:10px;}
+.anx-block.bad{background:var(--red-light);border:.5px solid #F09595;}
+.anx-block.good{background:var(--green-light);border:.5px solid #9FE1CB;}
+.anx-title{font-size:13px;font-weight:600;margin-bottom:8px;}
+.anx-block.bad .anx-title{color:var(--red-dark);}
+.anx-block.good .anx-title{color:var(--green-dark);}
+.anx-item{font-size:12px;line-height:1.7;}
+.anx-block.bad .anx-item{color:var(--red-dark);}
+.anx-block.good .anx-item{color:var(--green-dark);}
+.ex-block{margin-bottom:16px;}
+.ex-week-title{font-size:13px;font-weight:600;margin-bottom:8px;}
+.ex-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.ex-day{font-size:11px;font-weight:600;min-width:90px;color:var(--text2);}
+.ex-bar-bg{flex:1;background:var(--bg2);border-radius:99px;height:26px;overflow:hidden;}
+.ex-bar{height:100%;border-radius:99px;display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:500;}
+.fruit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.fruit-card{border-radius:12px;padding:12px;text-align:center;}
+.fruit-card.best{background:var(--green-light);border:1px solid #9FE1CB;}
+.fruit-card.good{background:var(--blue-light);border:1px solid #B5D4F4;}
+.fruit-card.limit{background:var(--amber-light);border:1px solid #FAC775;}
+.fruit-badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;display:inline-block;margin-bottom:5px;}
+.fruit-card.best .fruit-badge{background:#9FE1CB;color:var(--green-dark);}
+.fruit-card.good .fruit-badge{background:#B5D4F4;color:var(--blue-dark);}
+.fruit-card.limit .fruit-badge{background:#FAC775;color:var(--amber-dark);}
+.fruit-name{font-size:15px;font-weight:600;margin-bottom:4px;}
+.fruit-card.best .fruit-name{color:var(--green-dark);}
+.fruit-card.good .fruit-name{color:var(--blue-dark);}
+.fruit-card.limit .fruit-name{color:var(--amber-dark);}
+.fruit-note{font-size:10px;line-height:1.4;}
+.fruit-card.best .fruit-note{color:var(--green-dark);}
+.fruit-card.good .fruit-note{color:var(--blue-dark);}
+.fruit-card.limit .fruit-note{color:var(--amber-dark);}
+.reset-btn{background:var(--bg2);border:.5px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;color:var(--text2);cursor:pointer;margin-top:8px;}
+.emergency{background:var(--red);color:white;border-radius:14px;padding:16px;margin-bottom:12px;text-align:center;}
+.emergency h2{font-size:16px;font-weight:700;margin-bottom:6px;}
+.emergency p{font-size:13px;line-height:1.5;opacity:.95;}
+.horario-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:12px;}
+.horario-row{background:var(--bg);border-radius:10px;padding:12px 14px;border:.5px solid var(--border);display:flex;gap:12px;align-items:flex-start;}
+.horario-time{font-size:15px;font-weight:700;color:var(--green);min-width:60px;}
+.horario-time.blue{color:var(--blue);}
+.horario-info{flex:1;}
+.horario-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.horario-desc{font-size:11px;color:var(--text2);line-height:1.4;}
+.qty-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;}
+.qty-table th{background:var(--green-light);color:var(--green-dark);padding:7px 10px;text-align:left;font-weight:600;font-size:11px;}
+.qty-table td{padding:7px 10px;border-bottom:.5px solid var(--border);vertical-align:top;}
+.qty-table tr:last-child td{border-bottom:none;}
+.qty-table .food{font-weight:500;}
+.qty-table .qty{color:var(--blue-dark);font-weight:600;}
+.ex-tab{padding:8px 12px;border-radius:8px;border:.5px solid var(--border);cursor:pointer;font-size:12px;font-weight:500;background:var(--bg);color:var(--text2);transition:all .15s;}
+.ex-tab.active{background:var(--green-light);color:var(--green-dark);border-color:var(--green);}
+.ex-section{display:none;}
+.ex-section.visible{display:block;}
+.stretch-card{background:var(--bg);border-radius:12px;margin-bottom:10px;overflow:hidden;border:.5px solid var(--border);}
+.stretch-header{padding:10px 14px;font-size:13px;font-weight:600;color:white;}
+.stretch-item{padding:10px 14px;border-top:.5px solid var(--border);font-size:12px;line-height:1.5;}
+.stretch-item strong{font-weight:600;display:block;margin-bottom:2px;}
+.stretch-item .how{font-size:11px;color:var(--text2);}
+.trick-card{background:var(--bg);border-radius:12px;margin-bottom:10px;overflow:hidden;border:.5px solid var(--border);}
+.trick-header{padding:10px 14px;font-size:13px;font-weight:600;color:white;}
+.trick-body{padding:12px 14px;font-size:12px;line-height:1.6;}
+.trick-body strong{font-weight:600;}
+.weekend-note{background:var(--blue-light);border-radius:10px;padding:12px;margin-bottom:10px;font-size:12px;line-height:1.6;color:var(--blue-dark);border-left:3px solid var(--blue);}
+.accordion{border-radius:12px;margin-bottom:8px;overflow:hidden;border:.5px solid var(--border);}
+.accordion-btn{width:100%;background:var(--bg);border:none;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);text-align:left;}
+.accordion-btn:hover{background:var(--bg2);}
+.accordion-btn .icon{font-size:16px;transition:transform .2s;flex-shrink:0;}
+.accordion-btn.open .icon{transform:rotate(45deg);}
+.accordion-badge{font-size:10px;padding:2px 8px;border-radius:99px;margin-right:8px;flex-shrink:0;}
+.accordion-body{display:none;padding:0 14px 14px;background:var(--bg);}
+.accordion-body.open{display:block;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Mi Plan · Triglicéridos</h1>
+  <p>Plan personalizado · 2 semanas · Actualizado Abril 2026</p>
+</header>
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab active" onclick="show('ansiedad',this)">🚨 Ansiedad</button>
+    <button class="tab" onclick="show('horarios',this)">Horarios</button>
+    <button class="tab" onclick="show('cantidades',this)">Cantidades</button>
+    <button class="tab" onclick="show('a1',this)">Agosto S1</button>
+    <button class="tab" onclick="show('a2',this)">Agosto S2</button>
+    <button class="tab" onclick="show('a3',this)">Agosto S3</button>
+    <button class="tab" onclick="show('a4',this)">Agosto S4</button>
+    <button class="tab" onclick="show('frutas',this)">Frutas</button>
+    <button class="tab" onclick="show('recetas',this)">Recetas</button>
+    <button class="tab" onclick="show('trucos',this)">Trucos cocina</button>
+    <button class="tab" onclick="show('compra',this)">Compra</button>
+    <button class="tab" onclick="show('ejercicio',this)">Ejercicio</button>
+    <button class="tab" onclick="show('pesas',this)">💪 Pesas</button>
+    <button class="tab" onclick="show('tabla',this)">🏋️ Tabla</button>
+    <button class="tab" onclick="show('suplementos',this)">🥤 Suplementos</button>
+    <button class="tab" onclick="show('progreso',this)">📊 Progreso</button>
+    <button class="tab" onclick="show('macros',this)">🔢 Macros</button>
+  </div>
+</div>
+
+<!-- ANSIEDAD -->
+<div id="ansiedad" class="section visible">
+  <div class="emergency">
+    <h2>¿Te está entrando ahora?</h2>
+    <p>Vaso de agua fría grande. Espera 10 minutos. El pico pasa solo.<br>Si no pasa: 10 min en la elíptica a ritmo suave.</p>
+  </div>
+  <div class="anx-block bad">
+    <div class="anx-title">NO tocar esto</div>
+    <div class="anx-item">✕ Bolsas de patatas / snacks<br>✕ Bollería, galletas, chocolate con leche<br>✕ Refrescos o zumos industriales<br>✕ Embutido graso (chorizo, salchichón)<br>✕ Pan blanco con mantequilla</div>
+  </div>
+  <div class="anx-block good">
+    <div class="anx-title">SÍ coger esto</div>
+    <div class="anx-item">✓ Edamame al vapor con sal marina<br>✓ Puñado de nueces o almendras<br>✓ Yogur desnatado con canela<br>✓ Manzana o mandarina<br>✓ Palomitas sin mantequilla<br>✓ Chocolate negro +85% (2-3 onzas max)<br>✓ Zanahoria baby cruda</div>
+  </div>
+  <div class="tip blue"><strong>Por qué te pasa:</strong> el cuerpo pide azúcar y grasa porque lleva tiempo con ellos. No es falta de voluntad. Los picos duran 10-15 minutos.</div>
+  <div class="tip amber"><strong>La regla de oro:</strong> no tengas guarrerías en casa. La batalla se gana en el supermercado.</div>
+  <div class="tip green"><strong>El edamame es tu arma:</strong> cubre el mismo ritual que las patatas fritas — con las manos, salado, crujiente.</div>
+</div>
+
+<!-- HORARIOS -->
+<div id="horarios" class="section">
+
+  <div class="tip green" style="margin-bottom:12px;"><strong>Entre semana — horario fijo</strong></div>
+  <div class="horario-grid">
+    <div class="horario-row"><div class="horario-time">8:00–9:00</div><div class="horario-info"><div class="horario-name">Desayuno</div><div class="horario-desc">Café solo · Tostada pan integral con tomate y aceite · Manzana o mandarina</div></div></div>
+    <div class="horario-row"><div class="horario-time">11:30</div><div class="horario-info"><div class="horario-name">Media mañana</div><div class="horario-desc">Yogur desnatado + fruta · o queso fresco + 2 biscotes (o 1 rodaja pan integral)<br>Aunque no tengas hambre, tómatelo — previene el ataque de las 2.</div></div></div>
+    <div class="horario-row"><div class="horario-time">14:00–15:00</div><div class="horario-info"><div class="horario-name">Comida</div><div class="horario-desc">La comida más completa del día — legumbre, pasta o arroz + verdura + pan integral + fruta.</div></div></div>
+    <div class="horario-row"><div class="horario-time">16:00–16:30</div><div class="horario-info"><div class="horario-name">Merienda</div><div class="horario-desc">Frutos secos tostados sin sal (puñado 20–30g) o edamame al vapor</div></div></div>
+    <div class="horario-row"><div class="horario-time">17:00</div><div class="horario-info"><div class="horario-name">Plátano pre-elíptica</div><div class="horario-desc">Solo los días de elíptica. 20-30 min antes de subir.</div></div></div>
+    <div class="horario-row"><div class="horario-time">17:30–18:30</div><div class="horario-info"><div class="horario-name">Elíptica</div><div class="horario-desc">Cuando termines tu jornada laboral. Ducha después.</div></div></div>
+    <div class="horario-row"><div class="horario-time">20:30–21:30</div><div class="horario-info"><div class="horario-name">Cena</div><div class="horario-desc">Más ligera que la comida — verdura + proteína + pan integral + yogur o fruta.</div></div></div>
+  </div>
+
+  <div class="tip blue" style="margin-top:4px;margin-bottom:12px;"><strong>Fin de semana — horario flexible</strong><br>Si te despiertas más tarde, mueve todo 30-60 minutos sin problema. Lo importante es mantener las 5 tomas y los intervalos entre ellas.</div>
+  <div class="horario-grid">
+    <div class="horario-row"><div class="horario-time blue">9:00–10:00</div><div class="horario-info"><div class="horario-name">Desayuno</div><div class="horario-desc">Igual que entre semana. Si te despiertas a las 10, desayunas a las 10 — sin agobios.</div></div></div>
+    <div class="horario-row"><div class="horario-time blue">12:30–13:00</div><div class="horario-info"><div class="horario-name">Media mañana</div><div class="horario-desc">Unas 2-3 horas después del desayuno. Yogur + fruta o queso fresco + pan.</div></div></div>
+    <div class="horario-row"><div class="horario-time blue">15:00–16:00</div><div class="horario-info"><div class="horario-name">Comida</div><div class="horario-desc">Si comiste tarde, no pasa nada — el cuerpo se adapta. Ajusta el resto del día en consecuencia.</div></div></div>
+    <div class="horario-row"><div class="horario-time blue">18:00</div><div class="horario-info"><div class="horario-name">Merienda</div><div class="horario-desc">Frutos secos. Si toca elíptica: frutos secos a las 17:30 y plátano a las 18:00.</div></div></div>
+    <div class="horario-row"><div class="horario-time blue">18:30–19:30</div><div class="horario-info"><div class="horario-name">Elíptica (si toca)</div><div class="horario-desc">Sábado toca elíptica. Domingo es descanso — paseo con el perro es suficiente.</div></div></div>
+    <div class="horario-row" style="border:1px solid var(--green);border-radius:10px;">
+      <div class="horario-time blue" style="color:var(--green);">19:00–19:30</div>
+      <div class="horario-info">
+        <div class="horario-name" style="color:var(--green-dark);">🆕 Merienda-cena — solo días sin elíptica (mar · jue · dom)</div>
+        <div class="horario-desc">Para cortar la ansiedad de tarde. Rota entre estas opciones cada día:<br>
+        — <strong>Lunes/Martes:</strong> 2 tostadas integrales + 2-3 lonchas pavo + tomate en rodajas<br>
+        — <strong>Jueves:</strong> 1 tostada integral + pavo + queso fresco desnatado<br>
+        — <strong>Domingo:</strong> Yogur desnatado con canela + fruta<br>
+        — <strong>Cuando hay ansiedad fuerte:</strong> Edamame al vapor o manzana</div>
+      </div>
+    </div>
+    <div class="horario-row"><div class="horario-time blue">21:30</div><div class="horario-info"><div class="horario-name">Cena</div><div class="horario-desc">Más ligera los días que tomaste la merienda-cena de las 19:00 — ya llevas más calorías encima.</div></div></div>
+  </div>
+  <div class="tip amber"><strong>Regla de los 10 minutos:</strong> si a la hora de comer no tienes hambre, espera 10 min y vuelve a intentarlo. El cuerpo se adapta en 2-3 semanas.</div>
+</div>
+
+<!-- CANTIDADES -->
+<div id="cantidades" class="section">
+  <div class="tip blue"><strong>Estas son las cantidades del plan.</strong> No hace falta pesar todo exactamente — usa las referencias visuales.</div>
+  <table class="qty-table">
+    <tr><th>Alimento</th><th>Cantidad</th><th>Referencia visual</th></tr>
+    <tr><td class="food">Pasta (espaguetis, macarrones)</td><td class="qty">60–80g en seco</td><td>Un puñado grande con la mano</td></tr>
+    <tr><td class="food">Arroz</td><td class="qty">60–80g en seco</td><td>3–4 cucharadas soperas</td></tr>
+    <tr><td class="food">Legumbres (lentejas, garbanzos)</td><td class="qty">60–80g en seco / 150g cocidas</td><td>Medio bol</td></tr>
+    <tr><td class="food">Pan integral</td><td class="qty">40g</td><td>2 rebanadas finas de molde o 1 trozo de barra</td></tr>
+    <tr><td class="food">Pescado (merluza, bacalao)</td><td class="qty">125–150g</td><td>Tamaño de la palma de la mano</td></tr>
+    <tr><td class="food">Carne (pollo, pavo, lomo)</td><td class="qty">100–125g</td><td>Un poco más pequeño que la palma</td></tr>
+    <tr><td class="food">Huevos</td><td class="qty">1–2 medianos</td><td>Tortilla francesa = 2 huevos</td></tr>
+    <tr><td class="food">Verduras y ensalada</td><td class="qty">150–200g</td><td>Plato grande — sin límite si no llevan aceite extra</td></tr>
+    <tr><td class="food">Aceite de oliva</td><td class="qty">2–3 cucharadas/día</td><td>No más aunque sea saludable</td></tr>
+    <tr><td class="food">Frutos secos</td><td class="qty">20–30g</td><td>Un puñado que cabe en la mano cerrada</td></tr>
+    <tr><td class="food">Fruta</td><td class="qty">1 pieza mediana 120–200g</td><td>Una manzana, una pera, 2–3 mandarinas</td></tr>
+    <tr><td class="food">Yogur desnatado</td><td class="qty">125ml</td><td>1 yogur individual</td></tr>
+    <tr><td class="food">Queso fresco desnatado</td><td class="qty">60g</td><td>1 porción individual</td></tr>
+    <tr><td class="food">Espinacas (frescas o congeladas)</td><td class="qty">100–150g</td><td>Un buen puñado — reducen mucho al cocinar</td></tr>
+    <tr><td class="food">Edamame</td><td class="qty">80–100g</td><td>Un bol pequeño</td></tr>
+    <tr><td class="food">Migas de bacalao</td><td class="qty">125–150g</td><td>Una ración generosa en la sartén</td></tr>
+  </table>
+  <div class="tip green"><strong>Espinacas congeladas:</strong> perfectas para saltear, igual de nutritivas que las frescas. Se echan directamente a la sartén sin descongelar — en 3 minutos listas.</div>
+  <div class="tip amber"><strong>Si te dejas algo en el plato:</strong> sin problema. El cuerpo sabe cuándo tiene suficiente. Con el tiempo las raciones se ajustan solas.</div>
+</div>
+
+<!-- SEMANA 1 -->
+<div id="s1" class="section">
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Energía</div><div class="stat-val">~2.000</div><div class="stat-unit">kcal/día</div></div>
+    <div class="stat"><div class="stat-label">Colesterol</div><div class="stat-val">~165</div><div class="stat-unit">mg/día</div></div>
+    <div class="stat"><div class="stat-label">Fibra</div><div class="stat-val">>35</div><div class="stat-unit">g/día</div></div>
+    <div class="stat"><div class="stat-label">Sodio</div><div class="stat-val">&lt;1.500</div><div class="stat-unit">mg/día</div></div>
+  </div>
+  <div class="tip green"><strong>Desayuno todos los días (8:00–9:00):</strong> Café solo + Danacol · Tostada pan integral (40g) con tomate y aceite de oliva · Manzana, pera o batido de fresas</div>
+  <div class="tip amber"><strong>Merienda todos los días (16:00–16:30):</strong> Frutos secos tostados sin sal (puñado 20–30g) o edamame al vapor (80–100g)</div>
+
+  <div class="day-card"><div class="day-header">Lunes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Lentejas guisadas con zanahoria y pimentón ahumado (150g cocidas) · Pan integral (40g) · Manzana<div class="meal-qty">Truco: añade ajo, laurel y pimentón ahumado — sabe como con chorizo</div></div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Champiñones salteados con ajo (150g) · Pollo o pavo a la plancha (100–125g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Martes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales (o 1 rodaja pan integral)</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Guisantes con jamón magro (150g) · Tortilla francesa (2 huevos) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Ensalada tomate y zanahoria (200g) · Merluza a la plancha (125–150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Miércoles</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Ensalada tomate y zanahoria (200g) · Garbanzos con setas (150g cocidos) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Espinacas salteadas con ajo (100–150g, frescas o congeladas) · Pollo al limón (100–125g) · Pan integral (40g) · Fruta</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Jueves</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales (o 1 rodaja pan integral)</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Edamame al vapor (80–100g) · Arroz salteado con pimiento, champiñón y zanahoria (70g en seco) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Champiñones salteados con ajo (150g) · Merluza a la plancha (125–150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Viernes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Ensalada tomate y lechuga (200g) · Espaguetis boloñesa de pollo o pavo (70g pasta en seco) · Fruta<div class="meal-qty">Ver receta boloñesa en pestaña Recetas</div></div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Crema de verduras (zanahoria, puerro, patata — 200g) · Huevos cocidos o escalfados (2 huevos) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header special">⭐ Sábado — Garbanzos + elíptica</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:00</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes (o 1 rodaja pan integral)</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">Potaje de garbanzos con espinacas (1 bote garbanzos + 100g espinacas congeladas) · Pan integral (40g) · Fruta<div class="meal-qty">Ver receta en pestaña Recetas — modo cuchara los garbanzos 😄</div></div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda ~18:00</div><div class="meal-text">Frutos secos (puñado) → plátano 30 min antes de la elíptica</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Espinacas salteadas con ajo (100–150g) · Pollo al limón (100–125g) · Pan integral (40g) · Yogur desnatado<div class="meal-qty">Ver receta pollo al limón en pestaña Recetas</div></div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header weekend">Domingo — descanso</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">Ensalada lechuga y cebolla (200g) · Arroz salteado con guisantes, pimiento y zanahoria (70g en seco) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Espárragos en conserva con aceite y limón (150g) · Bacalao a la plancha con ajo y limón (125–150g) · Pan integral (40g) · Fruta</div></div>
+  </div>
+</div>
+
+<!-- SEMANA 2 -->
+<div id="s2" class="section">
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Energía</div><div class="stat-val">~2.000</div><div class="stat-unit">kcal/día</div></div>
+    <div class="stat"><div class="stat-label">Colesterol</div><div class="stat-val">~120</div><div class="stat-unit">mg/día</div></div>
+    <div class="stat"><div class="stat-label">Fibra</div><div class="stat-val">>33</div><div class="stat-unit">g/día</div></div>
+    <div class="stat"><div class="stat-label">Sodio</div><div class="stat-val">&lt;1.200</div><div class="stat-unit">mg/día</div></div>
+  </div>
+  <div class="tip green"><strong>Desayuno todos los días (8:00–9:00):</strong> Café solo + Danacol · Tostada pan integral (40g) con tomate y aceite de oliva · Manzana, pera o batido de fresas</div>
+  <div class="tip amber"><strong>Merienda todos los días (16:00–16:30):</strong> Frutos secos tostados sin sal o edamame al vapor</div>
+
+  <div class="day-card"><div class="day-header">Lunes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Ensalada tomate y lechuga (200g) · Lentejas estofadas con zanahoria y pimentón (150g cocidas) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes con ajo y aceite (150g) · Tortilla de espinacas (2 huevos + espinacas) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Martes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Ensalada tomate (150g) · Macarrones con salsa Orlando casera, pimiento y champiñón (70g en seco) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Ensalada zanahoria y tomate (200g) · Merluza a la plancha (125–150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Miércoles</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Ensalada lechuga (150g) · Potaje de garbanzos (150g cocidos) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Ensalada tomate y ajo (150g) · Lomo de cerdo a la plancha (100–125g) · Pan integral (40g) · Fruta<div class="meal-qty">Ver truco lomo en pestaña Trucos cocina — que no salga zapatilla 😄</div></div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Jueves</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Ensalada mixta (200g) · Arroz salteado con judías verdes, pimiento y zanahoria (70g en seco) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Migas de bacalao a la plancha (125–150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Viernes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Gazpacho (200ml) · Espaguetis con espinacas, ajo y pimiento (70g en seco) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Ensalada lechuga y zanahoria (200g) · Tortilla de espárragos (2 huevos) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header special">⭐ Sábado — Alubias + elíptica</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:00</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">Alubias blancas con pimiento y ajo (1 bote alubias + pimiento + ajo + cebolla) · Pan integral (40g) · Fruta<div class="meal-qty">Ver receta en pestaña Recetas</div></div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda ~18:00</div><div class="meal-text">Frutos secos (puñado) → plátano 30 min antes de la elíptica</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Ensalada mixta (200g) · Merluza al air fryer con ajo y limón (125–150g) · Pan integral (40g) · Yogur desnatado<div class="meal-qty">Ver receta merluza air fryer en pestaña Trucos cocina</div></div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header weekend">Domingo — descanso</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">Ensalada lechuga (150g) · Arroz salteado con setas, guisantes y zanahoria (70g en seco) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Espinacas salteadas con ajo (100–150g, congeladas ok) · Bacalao a la plancha (125–150g) · Pan integral (40g) · Fruta</div></div>
+  </div>
+</div>
+
+
+<!-- SEMANA 3 -->
+<div id="s3" class="section">
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Energía</div><div class="stat-val">~1.900</div><div class="stat-unit">kcal/día</div></div>
+    <div class="stat"><div class="stat-label">Colesterol</div><div class="stat-val">~150</div><div class="stat-unit">mg/día</div></div>
+    <div class="stat"><div class="stat-label">Fibra</div><div class="stat-val">>35</div><div class="stat-unit">g/día</div></div>
+    <div class="stat"><div class="stat-label">Sodio</div><div class="stat-val">&lt;1.200</div><div class="stat-unit">mg/día</div></div>
+  </div>
+  <div class="tip green"><strong>Desayuno todos los días (8:00–9:00):</strong> Café solo + Danacol · Tostada pan integral (40g) con tomate y aceite de oliva · Manzana, pera o batido de fresas</div>
+  <div class="tip amber"><strong>Merienda todos los días (16:00–16:30):</strong> Frutos secos tostados sin sal (puñado 20–30g) o edamame al vapor</div>
+  <div class="tip blue"><strong>Sin ensalada esta semana</strong> — verdura de acompañamiento en su lugar: tomate aliñado, pimientos asados, crema de verduras o verduras al horno.</div>
+
+  <div class="day-card"><div class="day-header">Lunes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado con ajo y perejil (200g) · Lentejas con zanahoria y pimentón ahumado (150g cocidas) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Pimientos asados (150g) · Merluza a la plancha (125–150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Martes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate en rodajas (150g) · Pasta con atún al natural (70g pasta + 1 lata atún) · Fruta<div class="meal-qty">Ver receta en pestaña Recetas</div></div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes salteadas con ajo (150g) · Pollo al limón (100–125g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Miércoles</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Arroz caldoso con pollo (70g arroz + 100g pollo) · Fruta<div class="meal-qty">Ver receta en pestaña Recetas</div></div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes con ajo (150g) · Merluza a la plancha (125–150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Jueves</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Crema de verduras (zanahoria, puerro, patata) · Garbanzos con pimiento y ajo (150g cocidos) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Pollo al limón (100–125g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Viernes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Pimientos asados (150g) · Tortilla de patata con cebolla (2 huevos + 150g patata) · Pan integral (40g) · Fruta<div class="meal-qty">Ver receta en pestaña Recetas</div></div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes con ajo (150g) · Bacalao a la plancha (125–150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header special">⭐ Sábado — Berenjena + elíptica</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:00</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">⭐ Berenjenas rellenas al horno con carne picada de pollo y bechamel casera · Pan integral (40g) · Fruta<div class="meal-qty">Ver receta en pestaña Recetas — plato especial de sábado</div></div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda ~18:00</div><div class="meal-text">Frutos secos (puñado) → plátano 30 min antes de la elíptica</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Tomate aliñado con ajo y perejil (200g) · Pollo al limón (100–125g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header weekend">Domingo — descanso</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">Tomate en rodajas (150g) · Potaje de garbanzos con espinacas (150g cocidos) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Pimientos asados (150g) · Merluza al air fryer con ajo y limón (125–150g) · Pan integral (40g) · Fruta</div></div>
+  </div>
+</div>
+
+<!-- SEMANA 4 -->
+<div id="s4" class="section">
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Energía</div><div class="stat-val">~1.900</div><div class="stat-unit">kcal/día</div></div>
+    <div class="stat"><div class="stat-label">Colesterol</div><div class="stat-val">~140</div><div class="stat-unit">mg/día</div></div>
+    <div class="stat"><div class="stat-label">Fibra</div><div class="stat-val">>35</div><div class="stat-unit">g/día</div></div>
+    <div class="stat"><div class="stat-label">Sodio</div><div class="stat-val">&lt;1.200</div><div class="stat-unit">mg/día</div></div>
+  </div>
+  <div class="tip green"><strong>Desayuno todos los días (8:00–9:00):</strong> Café solo + Danacol · Tostada pan integral (40g) con tomate y aceite de oliva · Manzana, pera o batido de fresas</div>
+  <div class="tip amber"><strong>Merienda todos los días (16:00–16:30):</strong> Frutos secos tostados sin sal o edamame al vapor</div>
+  <div class="tip blue"><strong>Sin ensalada esta semana</strong> — verdura de acompañamiento variada cada día.</div>
+
+  <div class="day-card"><div class="day-header">Lunes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Pollo al horno con patata (100–125g pollo + 150g patata) · Fruta<div class="meal-qty">Ver receta en pestaña Recetas</div></div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Pimientos asados (150g) · Merluza al air fryer con ajo y limón (125–150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Martes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Lentejas estofadas con zanahoria y pimentón (150g cocidas) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Espinacas salteadas con ajo (100–150g) · Tortilla de patata con cebolla (2 huevos + 150g patata) · Pan integral (40g) · Fruta</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Miércoles</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate en rodajas (150g) · Arroz caldoso con pollo (70g arroz + 100g pollo) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Pollo al limón (100–125g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Jueves</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Crema de verduras (200ml) · Pasta con atún al natural (70g pasta + 1 lata atún) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Pimientos asados (150g) · Bacalao a la plancha con ajo y limón (125–150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Viernes</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Alubias blancas con pimiento y ajo (1 bote) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes con ajo (150g) · Merluza al air fryer con ajo y limón (125–150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header special">⭐ Sábado — Pollo al horno + elíptica</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:00</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">⭐ Pollo al horno con patata y pimiento (125g pollo + 200g patata + pimiento) · Tomate aliñado · Fruta<div class="meal-qty">Ver receta en pestaña Recetas</div></div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda ~18:00</div><div class="meal-text">Frutos secos (puñado) → plátano 30 min antes de la elíptica</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Espinacas salteadas con ajo (100–150g) · Merluza a la plancha (125–150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header weekend">Domingo — descanso</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">Tomate en rodajas (150g) · Arroz salteado con guisantes, pimiento y zanahoria (70g en seco) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Bacalao a la plancha (125–150g) · Pan integral (40g) · Fruta</div></div>
+  </div>
+</div>
+
+
+<!-- SEMANA 5 — JUNIO -->
+
+<!-- JULIO SEMANA 1 — READAPTACIÓN -->
+
+<!-- AGOSTO SEMANA 1 — VUELTA A TOPE -->
+<div id="a1" class="section">
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Energía</div><div class="stat-val">~2.500</div><div class="stat-unit">kcal/día</div></div>
+    <div class="stat"><div class="stat-label">Proteína</div><div class="stat-val">↑↑ alta</div><div class="stat-unit">150-175g/día</div></div>
+    <div class="stat"><div class="stat-label">Intensidad</div><div class="stat-val">↑ sube</div><div class="stat-unit">más series y peso</div></div>
+    <div class="stat"><div class="stat-label">Pesaje</div><div class="stat-val">sábado</div><div class="stat-unit">en ayunas</div></div>
+  </div>
+  <div class="tip green"><strong>Desayuno todos los días (8:00–9:00):</strong> Café solo + Danacol · Tostada pan integral con tomate y aceite · Proteína rotando (lun·vie: 2 huevos / mar·jue: flan proteico / mié·sáb·dom: yogur proteico) · Fruta</div>
+  <div class="tip amber"><strong>Merienda todos los días (16:00–16:30):</strong> Frutos secos sin sal o edamame al vapor</div>
+  <div class="tip blue"><strong>Vuelta de vacaciones — semana 1:</strong> Retoma el ritmo progresivamente. Los 90,8 kg son normales tras vacaciones — en 2 semanas vuelves a los 87-88 kg con el plan.</div>
+
+  <div class="day-card"><div class="day-header">Lunes — TORSO 💪</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Lentejas con zanahoria y pimentón ahumado (150g) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Espinacas salteadas (150g) · Pollo al limón (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Martes — PIERNAS 🦵</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Pimientos asados (150g) · 🆕 Poke bowl de pollo (70g arroz + 100g pollo + aguacate) · Fruta<div class="meal-qty">Ver receta en pestaña Recetas</div></div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">2 tostadas integrales + pavo + tomate en rodajas</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes con ajo (150g) · Merluza a la plancha (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Miércoles — DESCANSO activo</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Garbanzos con champiñones (150g) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">1 tostada integral + pavo + queso fresco desnatado</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Bacalao a la plancha (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Jueves — TORSO 💪</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Pimientos asados (150g) · Arroz caldoso con pollo (70g arroz + 150g pollo) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">Yogur desnatado con canela + manzana</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Espinacas salteadas (150g) · Pollo mostaza y limón (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Viernes — PIERNAS 🦵</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · 🆕 Revuelto de guisantes con jamón (3 huevos + guisantes + jamón) · Pan integral (40g) · Fruta<div class="meal-qty">Ver receta en pestaña Recetas</div></div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes con ajo (150g) · Merluza al air fryer (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header special">⭐ Sábado — Día especial + CARDIO 🏃 + pesaje 📊</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:00</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">🎉 Hazte lo que más te apetezca — sin reglas ni culpa.</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda ~18:00</div><div class="meal-text">Frutos secos → plátano 30 min antes de la elíptica</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Bacalao a la plancha (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header weekend">Domingo — DESCANSO total</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">Tomate aliñado (150g) · 🆕 Hamburguesa casera de pollo con pan integral · Fruta<div class="meal-qty">Ver receta en pestaña Recetas</div></div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">Edamame al vapor (100g) + yogur desnatado</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Espinacas salteadas (150g) · Solomillo de cerdo con manzana (150g) · Pan integral (40g) · Fruta</div></div>
+  </div>
+</div>
+
+<!-- AGOSTO SEMANA 2 -->
+<div id="a2" class="section">
+  <div class="tip green"><strong>Desayuno todos los días (8:00–9:00):</strong> Café solo + Danacol · Tostada pan integral con tomate y aceite · Proteína rotando · Fruta</div>
+  <div class="tip amber"><strong>Merienda todos los días (16:00–16:30):</strong> Frutos secos sin sal o edamame al vapor</div>
+  <div class="tip purple"><strong>Semana 2 agosto:</strong> Si los pesos de la semana pasada salieron bien, súbelos esta semana. Press banca → 21kg · Curl bíceps → 7kg · Sentadillas → añade barra.</div>
+
+  <div class="day-card"><div class="day-header">Lunes — TORSO 💪</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Pimientos asados (150g) · Potaje garbanzos con espinacas (150g) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes con ajo (150g) · Merluza a la plancha (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Martes — PIERNAS 🦵</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Lentejas con zanahoria y pimentón (150g) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">Montadito: tostada integral + pavo + tomate + orégano</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Pollo al limón (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Miércoles — DESCANSO activo</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Poke bowl de pollo (70g arroz + 100g pollo + aguacate) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">2 tostadas integrales + pavo + mostaza suave</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Espinacas salteadas (150g) · Bacalao a la plancha (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Jueves — TORSO 💪</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Pimientos asados (150g) · Pasta con atún al natural (70g + 1 lata) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">Yogur desnatado con canela + manzana o pera</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes (150g) · Solomillo de cerdo con manzana (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Viernes — PIERNAS 🦵</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Arroz caldoso con pollo (70g + 150g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Merluza al air fryer (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header special">⭐ Sábado — Día especial + CARDIO 🏃</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:00</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">🎉 Hazte lo que más te apetezca.</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda ~18:00</div><div class="meal-text">Frutos secos → plátano 30 min antes de la elíptica</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Espinacas salteadas (150g) · Pollo mostaza y limón (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header weekend">Domingo — DESCANSO total</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">Tomate aliñado (150g) · Hamburguesa casera de pollo con pan integral · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">1 tostada integral + pavo + tomate en rodajas</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Judías verdes (150g) · Bacalao a la plancha (150g) · Pan integral (40g) · Fruta</div></div>
+  </div>
+</div>
+
+<!-- AGOSTO SEMANA 3 -->
+<div id="a3" class="section">
+  <div class="tip green"><strong>Desayuno todos los días (8:00–9:00):</strong> Café solo + Danacol · Tostada pan integral con tomate y aceite · Proteína rotando · Fruta</div>
+  <div class="tip amber"><strong>Merienda todos los días (16:00–16:30):</strong> Frutos secos sin sal o edamame al vapor</div>
+  <div class="tip blue"><strong>Semana 3 agosto:</strong> A estas alturas ya deberías estar de vuelta a los 87-88 kg. El cuerpo se resetea rápido cuando retomas el plan. 💪</div>
+
+  <div class="day-card"><div class="day-header">Lunes — TORSO 💪</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Alubias blancas con pimiento y ajo (1 bote) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Espinacas salteadas (150g) · Pollo al limón (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Martes — PIERNAS 🦵</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Pimientos asados (150g) · Revuelto de guisantes con jamón (3 huevos) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">2 tostadas integrales + pavo + queso fresco desnatado</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes (150g) · Merluza a la plancha (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Miércoles — DESCANSO activo</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Lentejas con zanahoria y pimentón (150g) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">Edamame al vapor (100g) + yogur desnatado</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Solomillo de cerdo con manzana (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Jueves — TORSO 💪</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Pimientos asados (150g) · Poke bowl de pollo (70g arroz + 100g pollo + aguacate) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">1 tostada integral + pavo + mostaza suave</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Espinacas salteadas (150g) · Bacalao a la plancha (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Viernes — PIERNAS 🦵</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Tortilla de patata con cebolla (3 huevos + 150g patata) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes (150g) · Pollo mostaza y limón (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header special">⭐ Sábado — Día especial + CARDIO 🏃</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:00</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">🎉 Hazte lo que más te apetezca.</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda ~18:00</div><div class="meal-text">Frutos secos → plátano 30 min antes de la elíptica</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Merluza al air fryer (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header weekend">Domingo — DESCANSO total</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">Tomate aliñado (150g) · Arroz caldoso con pollo (70g + 150g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">Yogur desnatado con canela + fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Espinacas salteadas (150g) · Pollo al limón (150g) · Pan integral (40g) · Fruta</div></div>
+  </div>
+</div>
+
+<!-- AGOSTO SEMANA 4 -->
+<div id="a4" class="section">
+  <div class="tip green"><strong>Desayuno todos los días (8:00–9:00):</strong> Café solo + Danacol · Tostada pan integral con tomate y aceite · Proteína rotando · Fruta</div>
+  <div class="tip amber"><strong>Merienda todos los días (16:00–16:30):</strong> Frutos secos sin sal o edamame al vapor</div>
+  <div class="tip red"><strong>Semana 4 agosto — cierre del mes.</strong> Pesaje el sábado. Revisión médica en diciembre — seguimos construyendo. 💪</div>
+
+  <div class="day-card"><div class="day-header">Lunes — TORSO 💪</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Garbanzos con champiñones (150g) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes (150g) · Merluza a la plancha (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Martes — PIERNAS 🦵</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Pimientos asados (150g) · Hamburguesa casera de pollo con pan integral · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">2 tostadas integrales + pavo + tomate en rodajas</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Espinacas salteadas (150g) · Pollo al limón (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Miércoles — DESCANSO activo</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Revuelto de guisantes con jamón (3 huevos) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">1 tostada integral + pavo + queso fresco desnatado</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Bacalao a la plancha (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Jueves — TORSO 💪</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Pimientos asados (150g) · Lentejas con zanahoria y pimentón (150g) · Pan integral (40g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">Yogur desnatado con canela + manzana</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Judías verdes (150g) · Solomillo de cerdo con manzana (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header">Viernes — PIERNAS 🦵</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana 11:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida 14:00–15:00</div><div class="meal-text">Tomate aliñado (150g) · Poke bowl de pollo (70g arroz + 100g pollo + aguacate) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena 20:30–21:30</div><div class="meal-text">Espinacas salteadas (150g) · Merluza al air fryer (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header special">⭐ Sábado — Día especial + CARDIO 🏃 + pesaje 📊</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:00</div><div class="meal-text">Queso fresco desnatado (60g) + 2 biscotes integrales</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">🎉 Hazte lo que más te apetezca — cierre de agosto.</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda ~18:00</div><div class="meal-text">Frutos secos → plátano 30 min antes de la elíptica</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Champiñones al ajillo (150g) · Pollo mostaza y limón (150g) · Pan integral (40g) · Yogur desnatado</div></div>
+  </div>
+
+  <div class="day-card"><div class="day-header weekend">Domingo — DESCANSO total</div>
+    <div class="meal-row"><div class="meal-label med">Media mañana ~12:30</div><div class="meal-text">Yogur desnatado (125ml) + Fruta</div></div>
+    <div class="meal-row"><div class="meal-label com">Comida ~15:00</div><div class="meal-text">Tomate aliñado (150g) · Arroz salteado con guisantes y pimiento (70g) · Fruta</div></div>
+    <div class="meal-row"><div class="meal-label mer">Merienda-cena 19:00</div><div class="meal-text">Edamame al vapor (100g) + yogur desnatado</div></div>
+    <div class="meal-row"><div class="meal-label cen">Cena ~21:30</div><div class="meal-text">Espinacas salteadas (150g) · Bacalao a la plancha (150g) · Pan integral (40g) · Fruta</div></div>
+  </div>
+</div>
+
+<!-- FRUTAS -->
+<div id="frutas" class="section">
+  <div class="tip amber" style="margin-bottom:10px;"><strong>⚠️ Mandarinas fuera de temporada</strong> de mayo a octubre. Sustitúyelas por fresas, manzana o pera en estos meses.</div>
+  <div class="fruit-grid">
+    <div class="fruit-card best"><div class="fruit-badge">⭐ Temporada ahora</div><div class="fruit-name">Fresas</div><div class="fruit-note">Mayo-junio. Muy baja en azúcar, mucha vitamina C. En batido con leche desnatada están espectaculares.</div></div>
+    <div class="fruit-card best"><div class="fruit-badge">Todo el año</div><div class="fruit-name">Manzana</div><div class="fruit-note">Pectina que atrapa grasas. Bajo IG. La mejor para el desayuno. Con piel, mejor.</div></div>
+    <div class="fruit-card good"><div class="fruit-badge">Todo el año</div><div class="fruit-name">Pera</div><div class="fruit-note">Alta en fibra soluble. Varía con ella cuando quieras.</div></div>
+    <div class="fruit-card good"><div class="fruit-badge">Invierno</div><div class="fruit-name">Mandarina</div><div class="fruit-note">Vitamina C + flavonoides. Bajo IG. Vuelve en octubre. Fuera de temporada ahora.</div></div>
+    <div class="fruit-card limit"><div class="fruit-badge">Pre-ejercicio</div><div class="fruit-name">Plátano</div><div class="fruit-note">Más azúcar. Solo antes de la elíptica — 20-30 min antes de empezar.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Desayuno definitivo</div>
+    <div class="tip green"><strong>Café solo</strong> sin azúcar (sacarina o stevia al principio si lo necesitas)</div>
+    <div class="tip green"><strong>Tostada pan integral (40g)</strong> con tomate natural rallado o de bote sin sal + aceite de oliva virgen extra. El pan de molde integral vale perfectamente.</div>
+    <div class="tip green"><strong>1 pieza de fruta:</strong> manzana o mandarina. Si te dejas la mitad, sin problema — el cuerpo se adapta en semanas.</div>
+  </div>
+</div>
+
+<!-- RECETAS -->
+<div id="recetas" class="section">
+  <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Toca cualquier receta para ver cómo hacerla. Toca de nuevo para cerrarla.</p>
+
+  <!-- BATIDO FRESAS -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍓 Batido de fresas con leche desnatada <span class="accordion-badge" style="background:var(--green-light);color:var(--green-dark);">2 min · Thermomix</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip green" style="margin-bottom:10px;">Perfecto para el desayuno o la media mañana. Sustituye la mandarina en verano.</div>
+      <div class="recipe-step"><div class="step-n green">1</div><div class="step-text">Lava 8-10 fresas (150g) y quítales el rabito.</div></div>
+      <div class="recipe-step"><div class="step-n green">2</div><div class="step-text">Pon las fresas + 200ml leche desnatada fría en el vaso.</div></div>
+      <div class="recipe-step"><div class="step-n green">3</div><div class="step-text">Opcional: media cucharadita de canela.</div></div>
+      <div class="recipe-step"><div class="step-n green">4</div><div class="step-text"><strong>Thermomix:</strong> 30 seg / vel 5-7-10. <strong>Batidora:</strong> 30 segundos.</div></div>
+      <div class="tip amber">Con yogur desnatado queda más espeso. Con gotita de miel más dulce.</div>
+    </div>
+  </div>
+
+  <!-- CREMA VERDURAS -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🥕 Crema de verduras <span class="accordion-badge" style="background:var(--green-light);color:var(--green-dark);">Thermomix · 30 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip green" style="margin-bottom:10px;">¡La primera sorpresa del plan — salió espectacular! 🌟 Congela en porciones para varios días.</div>
+      <div class="recipe-step"><div class="step-n green">1</div><div class="step-text">Puerro troceado + 1 ajo en el vaso. 5 seg / vel 5. Baja restos.</div></div>
+      <div class="recipe-step"><div class="step-n green">2</div><div class="step-text">Añade 1 cucharada aceite. 5 min / 120°C / vel 1 sin cubilete.</div></div>
+      <div class="recipe-step"><div class="step-n green">3</div><div class="step-text">Añade 2 zanahorias + 1 patata troceadas + 500ml caldo bajo en sal. 20 min / 100°C / vel 1 con cubilete.</div></div>
+      <div class="recipe-step"><div class="step-n green">4</div><div class="step-text">Espera 2 min. Luego 1 min / vel 5-7-10. Para textura sedosa: 15 seg / vel 10.</div></div>
+      <div class="recipe-step"><div class="step-n green">5</div><div class="step-text">Sal y pimienta al gusto.</div></div>
+      <div class="tip green">Para 4 personas: dobla ingredientes y programa 7 min en paso 2 y 25 min en paso 3.</div>
+    </div>
+  </div>
+
+  <!-- LENTEJAS -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🫘 Lentejas con pimentón ahumado <span class="accordion-badge" style="background:var(--green-light);color:var(--green-dark);">Thermomix · 35 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip green" style="margin-bottom:10px;">Con pimentón ahumado saben como si llevasen chorizo. Sin él. ✅</div>
+      <div class="recipe-step"><div class="step-n green">1</div><div class="step-text">Media cebolla + 2 ajos + 1 zanahoria en trozos. 5 seg / vel 5. Baja restos.</div></div>
+      <div class="recipe-step"><div class="step-n green">2</div><div class="step-text">1 cucharada aceite. 5 min / 120°C / vel 1 sin cubilete.</div></div>
+      <div class="recipe-step"><div class="step-n green">3</div><div class="step-text">150g lentejas pardinas + laurel + 500ml caldo. 30 min / 100°C / vel 1 con cubilete.</div></div>
+      <div class="recipe-step"><div class="step-n green">4</div><div class="step-text">Apaga y añade 1 cucharadita pimentón ahumado + comino. Remueve con espátula. Pimentón siempre fuera del calor.</div></div>
+      <div class="recipe-step"><div class="step-n green">5</div><div class="step-text">Sal al final. Si muy caldosas: 5 min / Varoma / vel 1 sin cubilete.</div></div>
+      <div class="tip amber">Para 4 personas: 300g lentejas + 1 litro caldo + 35 min. Sal sin miedo — las lentejas sin sal saben a cartón 😄</div>
+    </div>
+  </div>
+
+  <!-- GARBANZOS -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🫘 Garbanzos con champiñones <span class="accordion-badge" style="background:var(--blue-light);color:var(--blue-dark);">Thermomix · 20 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip red" style="margin-bottom:10px;"><strong>⚠️ Modo cuchara siempre</strong> — garbanzos de bote ya están cocidos. Si las cuchillas giran 15 min se deshacen y desaparecen. 😄</div>
+      <div class="recipe-step"><div class="step-n blue">1</div><div class="step-text">Media cebolla + 1 ajo + medio pimiento rojo. 5 seg / vel 5. Baja restos.</div></div>
+      <div class="recipe-step"><div class="step-n blue">2</div><div class="step-text">1 cucharada aceite. 5 min / 120°C / vel 1 sin cubilete.</div></div>
+      <div class="recipe-step"><div class="step-n blue">3</div><div class="step-text">150g champiñones laminados + 200ml caldo + orégano. 10 min / 100°C / vel 1 modo cuchara.</div></div>
+      <div class="recipe-step"><div class="step-n blue">4</div><div class="step-text">Escurre 1 bote garbanzos. Échalos. Modo cuchara + 5 min / 100°C. Solo calentar.</div></div>
+      <div class="recipe-step"><div class="step-n blue">5</div><div class="step-text">Sal y pimienta al final.</div></div>
+    </div>
+  </div>
+
+  <!-- POTAJE -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🥬 Potaje de garbanzos con espinacas <span class="accordion-badge" style="background:var(--amber-light);color:var(--amber-dark);">Thermomix · 20 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n amber">1</div><div class="step-text">Media cebolla + 2 ajos + media zanahoria. 5 seg / vel 5. Baja restos.</div></div>
+      <div class="recipe-step"><div class="step-n amber">2</div><div class="step-text">1 cucharada aceite. 5 min / 120°C / vel 1 sin cubilete.</div></div>
+      <div class="recipe-step"><div class="step-n amber">3</div><div class="step-text">1 bote garbanzos escurridos + 100g espinacas congeladas directas + 400ml caldo + laurel + pimentón. Modo cuchara + 20 min / 100°C con cubilete.</div></div>
+      <div class="recipe-step"><div class="step-n amber">4</div><div class="step-text">Sal al final. Las espinacas se descongelan solas.</div></div>
+      <div class="tip green">Espinacas congeladas van directas al vaso — sin descongelar. 😊</div>
+    </div>
+  </div>
+
+  <!-- ALUBIAS -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🫘 Alubias blancas con pimiento y ajo <span class="accordion-badge" style="background:var(--green-light);color:var(--green-dark);">Thermomix · 20 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n green">1</div><div class="step-text">Media cebolla + 2 ajos + medio pimiento rojo. 5 seg / vel 5. Baja restos.</div></div>
+      <div class="recipe-step"><div class="step-n green">2</div><div class="step-text">1 cucharada aceite. 5 min / 120°C / vel 1 sin cubilete.</div></div>
+      <div class="recipe-step"><div class="step-n green">3</div><div class="step-text">200ml caldo + orégano + laurel. Modo cuchara + 10 min / 100°C con cubilete.</div></div>
+      <div class="recipe-step"><div class="step-n green">4</div><div class="step-text">Escurre 1 bote alubias blancas. Modo cuchara + 5 min / 100°C. Solo calentar.</div></div>
+      <div class="recipe-step"><div class="step-n green">5</div><div class="step-text">Sal al final. Opcional: pizca pimentón dulce fuera del calor.</div></div>
+    </div>
+  </div>
+
+  <!-- ARROZ CALDOSO -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍚 Arroz caldoso con pollo <span class="accordion-badge" style="background:var(--green-light);color:var(--green-dark);">Thermomix · 25 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip green" style="margin-bottom:10px;">Más reconfortante que el arroz salteado — absorbe todo el sabor del pollo.</div>
+      <div class="recipe-step"><div class="step-n green">1</div><div class="step-text">Media cebolla + 2 ajos + medio pimiento. 5 seg / vel 5. Baja restos.</div></div>
+      <div class="recipe-step"><div class="step-n green">2</div><div class="step-text">1 cucharada aceite + 200g pechuga pollo troceada. 5 min / 120°C / vel 1 sin cubilete.</div></div>
+      <div class="recipe-step"><div class="step-n green">3</div><div class="step-text">140g arroz + 700ml caldo + pimentón + laurel + sal. 18 min / 100°C / vel 1 modo cuchara con cubilete.</div></div>
+      <div class="recipe-step"><div class="step-n green">4</div><div class="step-text">Reposa 2 min tapado. Debe quedar caldoso — si seco añade agua caliente.</div></div>
+    </div>
+  </div>
+
+  <!-- ARROZ SALTEADO -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍳 Arroz salteado base <span class="accordion-badge" style="background:var(--amber-light);color:var(--amber-dark);">Sartén · 20 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip amber" style="margin-bottom:10px;">La Thermomix no saltea bien el arroz — siempre sartén para este plato.</div>
+      <div class="recipe-step"><div class="step-n amber">1</div><div class="step-text">Cuece 60-80g arroz integral. O usa vasito de basmati integral calentado en micro.</div></div>
+      <div class="recipe-step"><div class="step-n amber">2</div><div class="step-text">Sofríe ajo + pimiento + zanahoria en rodajas. 5 min a fuego medio.</div></div>
+      <div class="recipe-step"><div class="step-n amber">3</div><div class="step-text">Añade champiñones o guisantes congelados directos. 2 min más.</div></div>
+      <div class="recipe-step"><div class="step-n amber">4</div><div class="step-text">Incorpora el arroz, mezcla, sal y pimentón. Listo.</div></div>
+    </div>
+  </div>
+
+  <!-- PASTA ATUN -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🐟 Pasta con atún al natural <span class="accordion-badge" style="background:var(--blue-light);color:var(--blue-dark);">Sartén · 15 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n blue">1</div><div class="step-text">Cuece 70g pasta integral al dente. Reserva un poco del agua de cocción.</div></div>
+      <div class="recipe-step"><div class="step-n blue">2</div><div class="step-text">Sofríe 2 ajos laminados + medio pimiento rojo. 4 min.</div></div>
+      <div class="recipe-step"><div class="step-n blue">3</div><div class="step-text">Añade 1 lata atún al natural bien escurrida. 1 min.</div></div>
+      <div class="recipe-step"><div class="step-n blue">4</div><div class="step-text">Incorpora la pasta + chorrito agua cocción. Mezcla 1 min. Sal, pimienta y orégano.</div></div>
+      <div class="tip blue">Atún al natural, no en aceite — menos grasa y igual de rico.</div>
+    </div>
+  </div>
+
+  <!-- BOLOGNESA -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍝 Boloñesa de pollo o pavo <span class="accordion-badge" style="background:var(--amber-light);color:var(--amber-dark);">Sartén · 30 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n amber">1</div><div class="step-text">Sofríe cebolla pequeña + 2 ajos picados finos. 5 min.</div></div>
+      <div class="recipe-step"><div class="step-n amber">2</div><div class="step-text">Opcional: zanahoria rallada, 2 min. Da dulzor y espesa la salsa.</div></div>
+      <div class="recipe-step"><div class="step-n amber">3</div><div class="step-text">200g carne picada pollo o pavo. Dora y suelta — 5 min.</div></div>
+      <div class="recipe-step"><div class="step-n amber">4</div><div class="step-text">Tomate triturado + laurel + orégano. Fuego mínimo tapado 20-25 min.</div></div>
+      <div class="recipe-step"><div class="step-n amber">5</div><div class="step-text">Sal al final. Con 70g espaguetis integrales al dente.</div></div>
+      <div class="tip amber">Carne picada de cerdo: escurre la grasa inclinando la sartén antes de añadir el tomate.</div>
+    </div>
+  </div>
+
+  <!-- MIGAS BACALAO -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🐠 Migas de bacalao al ajillo <span class="accordion-badge" style="background:var(--blue-light);color:var(--blue-dark);">Sartén · 10 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n blue">1</div><div class="step-text">Descongela en agua fría 20-30 min. Seca MUY bien con papel — clave para que doren y no se hiervan.</div></div>
+      <div class="recipe-step"><div class="step-n blue">2</div><div class="step-text">Sartén caliente con aceite. Ajo laminado dorado 1 min.</div></div>
+      <div class="recipe-step"><div class="step-n blue">3</div><div class="step-text">Migas a fuego medio-alto. Sin moverlas — 3-4 min por cada lado.</div></div>
+      <div class="recipe-step"><div class="step-n blue">4</div><div class="step-text">Chorrito de limón al final. Prueba antes de añadir sal.</div></div>
+    </div>
+  </div>
+
+  <!-- MERLUZA AIR FRYER -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🐟 Merluza al air fryer con ajo y limón <span class="accordion-badge" style="background:var(--blue-light);color:var(--blue-dark);">Air fryer · 10 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n blue">1</div><div class="step-text">Descongela en agua fría 20-30 min. Seca MUY bien con papel.</div></div>
+      <div class="recipe-step"><div class="step-n blue">2</div><div class="step-text">Mezcla: 1 cucharadita aceite + 1 ajo picado fino + zumo medio limón + sal + orégano. Embadurna los filetes.</div></div>
+      <div class="recipe-step"><div class="step-n blue">3</div><div class="step-text">Air fryer 180°C, 8-10 min sin darles la vuelta.</div></div>
+      <div class="tip blue">Sin voltear — los filetes son delicados y se rompen. Filetes gruesos: 2 min más.</div>
+    </div>
+  </div>
+
+  <!-- POLLO AL LIMON -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍋 Pollo al limón <span class="accordion-badge" style="background:var(--green-light);color:var(--green-dark);">Sartén · 15 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip green" style="margin-bottom:10px;">¡El plato estrella del plan! Fácil, rápido y espectacular. 🌟</div>
+      <div class="recipe-step"><div class="step-n green">1</div><div class="step-text">Saca el pollo del frigo 5 min antes. Sal + ajo en polvo + orégano por ambos lados.</div></div>
+      <div class="recipe-step"><div class="step-n green">2</div><div class="step-text">Sartén muy caliente con unas gotas aceite. 3-4 min por cada lado sin moverlo.</div></div>
+      <div class="recipe-step"><div class="step-n green">3</div><div class="step-text">Baja el fuego. Exprime el limón encima. Tapa 2 min.</div></div>
+      <div class="recipe-step"><div class="step-n green">4</div><div class="step-text">Sirve con el jugo de la sartén por encima.</div></div>
+    </div>
+  </div>
+
+  <!-- LOMO PLANCHA -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🥩 Lomo de cerdo a la plancha <span class="accordion-badge" style="background:var(--red-light);color:var(--red-dark);">Sartén · 10 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n red">1</div><div class="step-text">Saca del frigo 10 min antes.</div></div>
+      <div class="recipe-step"><div class="step-n red">2</div><div class="step-text">Sartén MUY caliente con unas gotas aceite. Sal por ambos lados.</div></div>
+      <div class="recipe-step"><div class="step-n red">3</div><div class="step-text"><strong>2 min por lado</strong> si es fino · <strong>3 min máximo</strong> si es grueso. Sin moverlo.</div></div>
+      <div class="recipe-step"><div class="step-n red">4</div><div class="step-text">Chorrito limón al retirar. Reposa 2 min antes de comer.</div></div>
+      <div class="tip red">4 minutos por lado = zapatilla. 2 minutos = jugoso. 😄</div>
+    </div>
+  </div>
+
+  <!-- POLLO AL HORNO -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍗 Pollo al horno con patata y pimiento <span class="accordion-badge" style="background:var(--purple-light);color:var(--purple-dark);">Horno/Air fryer · 40 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip purple" style="margin-bottom:10px;">Perfecto para sábado — se hace solo mientras haces otra cosa.</div>
+      <div class="recipe-step"><div class="step-n purple">1</div><div class="step-text">300g patata en gajos + 1 pimiento rojo en tiras + 1 cebolla en gajos en bandeja.</div></div>
+      <div class="recipe-step"><div class="step-n purple">2</div><div class="step-text">Aliña con aceite + sal + ajo en polvo + orégano + pimentón. Mezcla con las manos.</div></div>
+      <div class="recipe-step"><div class="step-n purple">3</div><div class="step-text">Coloca 2 pechugas o contramuslos sin piel (200-250g) encima.</div></div>
+      <div class="recipe-step"><div class="step-n purple">4</div><div class="step-text"><strong>Horno:</strong> 200°C, 35-40 min. <strong>Air fryer:</strong> 180°C, 20-25 min dando vuelta a mitad.</div></div>
+      <div class="recipe-step"><div class="step-n purple">5</div><div class="step-text">Chorrito limón al sacar. El jugo de la bandeja es para mojar el pan.</div></div>
+    </div>
+  </div>
+
+  <!-- TORTILLA PATATA -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🥚 Tortilla de patata con cebolla <span class="accordion-badge" style="background:var(--amber-light);color:var(--amber-dark);">Sartén · 25 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n amber">1</div><div class="step-text">150g patata en láminas finas + media cebolla en juliana.</div></div>
+      <div class="recipe-step"><div class="step-n amber">2</div><div class="step-text">Sartén con 2 cucharadas aceite a fuego medio-bajo. Pocha 15 min tapado. Tienen que quedar blandas, no doradas.</div></div>
+      <div class="recipe-step"><div class="step-n amber">3</div><div class="step-text">Escurre el aceite. Mezcla con 2 huevos batidos y sal. Reposa 2 min.</div></div>
+      <div class="recipe-step"><div class="step-n amber">4</div><div class="step-text">Sartén antiadherente con unas gotas aceite. Cuando los bordes cuajen, dale la vuelta con un plato. 2 min más.</div></div>
+      <div class="tip amber">El secreto: pochado lento. Si la patata está dura la tortilla queda dura.</div>
+    </div>
+  </div>
+
+  <!-- TORTILLA ESPINACAS -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🥬 Tortilla de espinacas o espárragos <span class="accordion-badge" style="background:var(--amber-light);color:var(--amber-dark);">Sartén · 10 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n amber">1</div><div class="step-text">Espinacas: saltéalas 2 min sin aceite hasta que se reduzcan. Escurre bien el agua.</div></div>
+      <div class="recipe-step"><div class="step-n amber">2</div><div class="step-text">Bate 2 huevos con sal. Añade las espinacas o espárragos troceados y mezcla.</div></div>
+      <div class="recipe-step"><div class="step-n amber">3</div><div class="step-text">Sartén antiadherente con unas gotas aceite a fuego medio. Vierte la mezcla.</div></div>
+      <div class="recipe-step"><div class="step-n amber">4</div><div class="step-text">Cuando los bordes cuajen, dale la vuelta con un plato. 1 min más. Mejor jugosita.</div></div>
+    </div>
+  </div>
+
+  <!-- BERENJENAS RELLENAS -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍆 ⭐ Berenjenas rellenas al horno <span class="accordion-badge" style="background:var(--red-light);color:var(--red-dark);">Horno · Sábado especial</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n red">1</div><div class="step-text">Parte 2 berenjenas por la mitad. Marca la pulpa en cuadrícula. Hornea 20 min a 200°C.</div></div>
+      <div class="recipe-step"><div class="step-n red">2</div><div class="step-text">Vacía la pulpa y pícala muy fina. Reserva las pieles.</div></div>
+      <div class="recipe-step"><div class="step-n red">3</div><div class="step-text">Sofríe cebolla + ajo + pulpa picada. 5 min. Añade 200g carne picada pollo o pavo. Dora bien.</div></div>
+      <div class="recipe-step"><div class="step-n red">4</div><div class="step-text">2 cucharadas tomate triturado + sal + orégano. Cocina 10 min a fuego lento.</div></div>
+      <div class="recipe-step"><div class="step-n red">5</div><div class="step-text"><strong>Bechamel:</strong> 1 cucharada aceite + 1 cucharada harina. Tuesta 1 min. Añade 300ml leche desnatada poco a poco removiendo sin parar. Sal y nuez moscada.</div></div>
+      <div class="recipe-step"><div class="step-n red">6</div><div class="step-text">Rellena las pieles con la carne. Cubre con bechamel. Hornea 15 min a 200°C.</div></div>
+      <div class="tip red">Remover sin parar en la bechamel = sin grumos. Leche desnatada en vez de mantequilla = mucho más sana.</div>
+    </div>
+  </div>
+
+  <!-- GAZPACHO -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍅 Gazpacho casero <span class="accordion-badge" style="background:var(--red-light);color:var(--red-dark);">Thermomix · 5 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip red" style="margin-bottom:10px;">Haz 4 raciones y congela el resto en vasos individuales — gazpacho para toda la semana.</div>
+      <div class="recipe-step"><div class="step-n red">1</div><div class="step-text">En el vaso: 1kg tomates maduros + 1 pepino pelado + 1 pimiento verde + 1 ajo + 2 cucharadas aceite + 1 cucharada vinagre manzana + sal.</div></div>
+      <div class="recipe-step"><div class="step-n red">2</div><div class="step-text">30 seg / vel 5-7-10. Baja restos.</div></div>
+      <div class="recipe-step"><div class="step-n red">3</div><div class="step-text">30 seg / vel 10 para textura muy fina. Ajusta sal y vinagre.</div></div>
+      <div class="recipe-step"><div class="step-n red">4</div><div class="step-text">Si muy espeso: 100ml agua fría + 10 seg / vel 5. Mínimo 1 hora en nevera antes de servir.</div></div>
+    </div>
+  </div>
+
+  <!-- ESPAGUETIS ESPINACAS -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍝 Espaguetis con espinacas y pimiento <span class="accordion-badge" style="background:var(--purple-light);color:var(--purple-dark);">Sartén · 15 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n purple">1</div><div class="step-text">Cuece 70g espaguetis integrales. Reserva un poco del agua de cocción.</div></div>
+      <div class="recipe-step"><div class="step-n purple">2</div><div class="step-text">Sofríe 2 ajos laminados + pimiento rojo en tiras. 5 min.</div></div>
+      <div class="recipe-step"><div class="step-n purple">3</div><div class="step-text">Añade espinacas congeladas directas. 3 min hasta que se deshagan.</div></div>
+      <div class="recipe-step"><div class="step-n purple">4</div><div class="step-text">Incorpora espaguetis + chorrito agua cocción. Mezcla 1 min. Sal y pimienta.</div></div>
+      <div class="tip purple">El agua de cocción liga todo — no la tires antes de probar.</div>
+    </div>
+  </div>
+
+  <!-- JUDIAS VERDES -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🫛 Judías verdes salteadas con ajo <span class="accordion-badge" style="background:var(--blue-light);color:var(--blue-dark);">Sartén · 10 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="recipe-step"><div class="step-n blue">1</div><div class="step-text">Si son frescas: cuécelas 5 min en agua con sal. Si son congeladas: directas a la sartén.</div></div>
+      <div class="recipe-step"><div class="step-n blue">2</div><div class="step-text">Sartén con aceite y 2 ajos laminados. Dora 1 min.</div></div>
+      <div class="recipe-step"><div class="step-n blue">3</div><div class="step-text">Añade las judías. Saltea 5 min a fuego medio-alto. Sal al gusto.</div></div>
+      <div class="tip blue">Chorrito de limón al final — da un toque muy bueno.</div>
+    </div>
+  </div>
+
+  <!-- KEBAB CASERO -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🌯 ⭐ Kebab casero saludable <span class="accordion-badge" style="background:var(--purple-light);color:var(--purple-dark);">Sábado especial · 20 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip purple" style="margin-bottom:10px;">Con tu nivel de actividad tienes margen para platos más completos y sabrosos. Una vez a la semana sin romper nada. 😄</div>
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;">Ingredientes (1 persona):</div>
+      <div class="recipe-step"><div class="step-n purple">·</div><div class="step-text">1 tortilla de avena (o integral) · Pechuga de pollo (125g) · Lechuga · Tomate en rodajas · 150g patata para air fryer</div></div>
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin:10px 0 8px;">Preparación:</div>
+      <div class="recipe-step"><div class="step-n purple">1</div><div class="step-text"><strong>Patatas air fryer:</strong> corta la patata en bastones finos, sécalas bien con papel, una gotita de aceite y sal. Air fryer 200°C, 15-18 min agitando a mitad. Sin aceite extra — quedan crujientes solas.</div></div>
+      <div class="recipe-step"><div class="step-n purple">2</div><div class="step-text"><strong>Pollo:</strong> pechuga en tiras finas. Sartén muy caliente con unas gotas aceite. Sal + ajo en polvo + orégano + pimentón. 3-4 min removiendo hasta doradas.</div></div>
+      <div class="recipe-step"><div class="step-n purple">3</div><div class="step-text"><strong>Salsa tzatziki casera:</strong> mezcla en un bol — 1 yogur desnatado + 1 ajo picado muy fino + pepino rallado escurrido + sal + orégano. Listo en 2 minutos. Guarda en nevera mientras haces lo demás.</div></div>
+      <div class="recipe-step"><div class="step-n purple">4</div><div class="step-text"><strong>Montaje:</strong> calienta la tortilla 30 seg en sartén sin aceite. Pon lechuga + tomate + pollo + salsa tzatziki. Enrolla y sirve con las patatas al lado.</div></div>
+      <div class="tip purple"><strong>La salsa tzatziki</strong> sustituye perfectamente a la salsa de kebab normal — sin la grasa, con todo el sabor. Pruébala y no querrás otra.</div>
+      <div class="tip green"><strong>Criterio para productos del súper:</strong> grasas saturadas &lt;1g por cada 100g. Con ese filtro casi todo vale. 😊</div>
+    </div>
+  </div>
+
+  <!-- POLLO MOSTAZA LIMON -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍋 Pollo en salsa de mostaza y limón <span class="accordion-badge" style="background:var(--green-light);color:var(--green-dark);">Sartén · 15 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip green" style="margin-bottom:10px;">Variante del pollo al limón de siempre — mismo proceso, un ingrediente extra que cambia todo. 🌟</div>
+      <div class="recipe-step"><div class="step-n green">1</div><div class="step-text">Saca el pollo del frigo 5 min antes (175g). Sal + ajo en polvo + orégano por ambos lados.</div></div>
+      <div class="recipe-step"><div class="step-n green">2</div><div class="step-text">Mezcla en un bol: zumo de medio limón + 1 cucharadita de mostaza suave. Reserva.</div></div>
+      <div class="recipe-step"><div class="step-n green">3</div><div class="step-text">Sartén muy caliente con unas gotas aceite. 3-4 min por cada lado sin moverlo.</div></div>
+      <div class="recipe-step"><div class="step-n green">4</div><div class="step-text">Baja el fuego. Vierte la mezcla de mostaza y limón por encima. Tapa 2 min.</div></div>
+      <div class="recipe-step"><div class="step-n green">5</div><div class="step-text">Sirve con la salsa de la sartén por encima — queda espesita y muy sabrosa.</div></div>
+      <div class="tip green">La mostaza no pica — solo da un sabor diferente y más profundo que el limón solo.</div>
+    </div>
+  </div>
+
+  <!-- SOLOMILLO CON MANZANA -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍎 Solomillo de cerdo con manzana <span class="accordion-badge" style="background:var(--amber-light);color:var(--amber-dark);">Sartén · 20 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip amber" style="margin-bottom:10px;">La manzana se deshace en la salsa y da una cremosidad dulce-salada espectacular. Pruébalo y repites. 🍎</div>
+      <div class="recipe-step"><div class="step-n amber">1</div><div class="step-text">Solomillo (175g) entero. Sartén caliente con unas gotas aceite. Dóralo 2 min por cada lado sellando bien. Saca y reserva.</div></div>
+      <div class="recipe-step"><div class="step-n amber">2</div><div class="step-text">En la misma sartén sofríe media cebolla en juliana a fuego medio — 5 min hasta que ablande.</div></div>
+      <div class="recipe-step"><div class="step-n amber">3</div><div class="step-text">Añade 1 manzana golden pelada en gajos. 3 min removiendo hasta que empiece a ablandar.</div></div>
+      <div class="recipe-step"><div class="step-n amber">4</div><div class="step-text">Incorpora 100ml caldo bajo en sal + 1 cucharadita mostaza suave + pizca de romero. Mezcla bien.</div></div>
+      <div class="recipe-step"><div class="step-n amber">5</div><div class="step-text">Vuelve a meter el solomillo. Tapa y cocina 8-10 min a fuego bajo girándolo a mitad.</div></div>
+      <div class="recipe-step"><div class="step-n amber">6</div><div class="step-text">Sal al final — el caldo ya lleva. Sirve con la salsa y los gajos de manzana por encima.</div></div>
+      <div class="tip amber">El solomillo de cerdo tiene muy poca grasa saturada — más magro que el lomo. Perfecto para el plan.</div>
+    </div>
+  </div>
+
+  <!-- HUEVOS REVUELTOS PROTEICOS -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🥚 Huevos revueltos para el desayuno <span class="accordion-badge" style="background:var(--blue-light);color:var(--blue-dark);">Sartén · 5 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip blue" style="margin-bottom:10px;">La forma más fácil de meter proteína en el desayuno. 2 huevos = 12-14g de proteína. Rápido y saciante.</div>
+      <div class="recipe-step"><div class="step-n blue">1</div><div class="step-text">Bate 2 huevos con sal y pimienta. Opcional: añade orégano o ajo en polvo.</div></div>
+      <div class="recipe-step"><div class="step-n blue">2</div><div class="step-text">Sartén antiadherente a fuego medio-bajo con unas gotas aceite.</div></div>
+      <div class="recipe-step"><div class="step-n blue">3</div><div class="step-text">Vierte los huevos y remueve despacio con espátula sin parar — fuego bajo es la clave.</div></div>
+      <div class="recipe-step"><div class="step-n blue">4</div><div class="step-text">Cuando empiecen a cuajar pero aún estén jugosos — apaga el fuego. El calor residual termina la cocción.</div></div>
+      <div class="tip blue">Quitar del fuego antes de que estén del todo hechos — quedan cremosos. Si esperan demasiado quedan secos y gomosos.</div>
+    </div>
+  </div>
+
+  <!-- POKE BOWL -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🥗 Poke bowl de pollo con arroz y aguacate <span class="accordion-badge" style="background:var(--blue-light);color:var(--blue-dark);">Sin cocinar · 15 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip blue" style="margin-bottom:10px;">Plato fresco de verano — frío, saciante y con todos los nutrientes. Perfecto para los días de calor.</div>
+      <div class="recipe-step"><div class="step-n blue">1</div><div class="step-text">Cuece 70g de arroz integral o usa vasito de basmati calentado en micro. Deja enfriar.</div></div>
+      <div class="recipe-step"><div class="step-n blue">2</div><div class="step-text">Pechuga de pollo (100g) a la plancha con sal, ajo en polvo y orégano. Deja enfriar y corta en tiras.</div></div>
+      <div class="recipe-step"><div class="step-n blue">3</div><div class="step-text">En un bol: arroz de base + pollo encima + medio aguacate en trozos + tomate cherry + pepino en rodajas.</div></div>
+      <div class="recipe-step"><div class="step-n blue">4</div><div class="step-text">Aliño: 1 cucharadita aceite de oliva + zumo de limón + sal + sésamo si tienes. Por encima de todo.</div></div>
+      <div class="tip blue">El aguacate aporta grasas buenas — no pases de medio aguacate por ración para controlar las calorías.</div>
+    </div>
+  </div>
+
+  <!-- HAMBURGUESA CASERA POLLO -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍔 Hamburguesa casera de pollo <span class="accordion-badge" style="background:var(--green-light);color:var(--green-dark);">Sartén · 15 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip green" style="margin-bottom:10px;">Hamburguesa saludable de verdad — sin conservantes, sin grasa extra y con toda la proteína.</div>
+      <div class="recipe-step"><div class="step-n green">1</div><div class="step-text">Mezcla 150g carne picada de pollo + 1 ajo picado fino + sal + orégano + pimienta + 1 cucharada pan rallado integral. Forma la hamburguesa con las manos.</div></div>
+      <div class="recipe-step"><div class="step-n green">2</div><div class="step-text">Sartén muy caliente con unas gotas aceite. 4 min por cada lado sin moverla — que quede bien dorada por fuera.</div></div>
+      <div class="recipe-step"><div class="step-n green">3</div><div class="step-text">Pan integral tostado. Monta con lechuga + tomate en rodajas + la hamburguesa + mostaza suave o yogur con ajo.</div></div>
+      <div class="tip green">Sin mayonesa normal — usa mostaza suave o el tzatziki de yogur que ya conoces. Igual de rico y mucho más sano.</div>
+    </div>
+  </div>
+
+  <!-- REVUELTO GUISANTES JAMON -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🍳 Revuelto de guisantes con jamón <span class="accordion-badge" style="background:var(--amber-light);color:var(--amber-dark);">Sartén · 10 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip amber" style="margin-bottom:10px;">Plato rápido, rico y muy proteico — 3 huevos + guisantes + jamón es una combinación ganadora.</div>
+      <div class="recipe-step"><div class="step-n amber">1</div><div class="step-text">Saltea en sartén con unas gotas aceite: 100g guisantes congelados directos + 2-3 lonchas jamón bajo en sal troceado. 3 min a fuego medio.</div></div>
+      <div class="recipe-step"><div class="step-n amber">2</div><div class="step-text">Bate 3 huevos con sal y pimienta. Vierte sobre los guisantes y el jamón.</div></div>
+      <div class="recipe-step"><div class="step-n amber">3</div><div class="step-text">Remueve despacio con espátula a fuego medio-bajo hasta que cuaje pero quede jugoso. Apaga antes de que esté del todo hecho — el calor residual termina la cocción.</div></div>
+      <div class="tip amber">Jamón bajo en sal — revisa la etiqueta. Con 3 huevos tienes casi 20g de proteína solo en los huevos.</div>
+    </div>
+  </div>
+
+  <!-- SANDWICH VEGETAL -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span>🥪 Sándwich vegetal completo <span class="accordion-badge" style="background:var(--green-light);color:var(--green-dark);">Merienda-cena · 5 min</span></span>
+      <span class="icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <div class="tip green" style="margin-bottom:10px;">Perfecto para la merienda-cena de las 19:00 los días de descanso. Rico, saciante y dentro del plan.</div>
+      <div class="recipe-step"><div class="step-n green">1</div><div class="step-text">Tuesta 2 rebanadas de pan integral.</div></div>
+      <div class="recipe-step"><div class="step-n green">2</div><div class="step-text">Unta mahonesa light 0/0 en ambas rebanadas — poca cantidad.</div></div>
+      <div class="recipe-step"><div class="step-n green">3</div><div class="step-text">Monta: hoja de lechuga + tomate en rodajas + 2 tiras pavo + 2 tiras queso light + atún al natural escurrido.</div></div>
+      <div class="recipe-step"><div class="step-n green">4</div><div class="step-text">Cierra, corta en diagonal y listo.</div></div>
+      <div class="tip green"><strong>Criterio:</strong> grasas saturadas &lt;1g/100g en todos los ingredientes procesados.</div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- TRUCOS DE COCINA -->
+<div id="trucos" class="section">
+  <div class="tip blue" style="margin-bottom:12px;">Trucos aprendidos durante el plan — para que no vuelva a pasar lo mismo 😄</div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--red);">🥩 El lomo zapatilla — cómo evitarlo</div>
+    <div class="trick-body">
+      <strong>El problema:</strong> 4 minutos por cada lado = suela de zapato reseca.<br><br>
+      <strong>La solución:</strong><br>
+      — Saca el lomo del frigo 10 min antes<br>
+      — Plancha MUY caliente antes de poner la carne<br>
+      — <strong>2 minutos por lado</strong> si es fino · <strong>3 minutos máximo</strong> si es grueso<br>
+      — Tócalo con el dedo: si cede un poco = jugoso · si está duro = se pasó<br>
+      — Al retirar, tapa con un plato 2 minutos — los jugos se redistribuyen<br>
+      — Sin sal extra si es adobado — ya lleva suficiente<br><br>
+      <strong>Chorrito de limón al final</strong> siempre, realza el sabor sin añadir nada malo.
+    </div>
+  </div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--amber);">🍅 Salsa Orlando casera — el truco del tomate</div>
+    <div class="trick-body">
+      <strong>El problema:</strong> el tomate triturado natural crudo sabe ácido y queda líquido.<br><br>
+      <strong>La solución — en Thermomix:</strong><br>
+      — Sofríe pimiento + champiñón + ajo: 5 min / 120°C / vel 1<br>
+      — Añade tomate triturado: <strong>25 min / 100°C / vel 1</strong> con cubilete ladeado<br>
+      — Al final: pizca de azúcar o gotita de miel + 10 seg / vel 3<br><br>
+      <strong>La clave:</strong> esos 25 minutos concentran y suavizan el tomate. No lo acortes.<br><br>
+      <strong>Resultado:</strong> salsa espesa, suave y sin acidez — mucho mejor que el Orlando de bote y sin azúcar industrial. ✅
+    </div>
+  </div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--blue);">🐟 Migas de bacalao — el secreto del dorado</div>
+    <div class="trick-body">
+      <strong>El problema:</strong> quedan grises y hervidas en vez de doradas y crujientes.<br><br>
+      <strong>La solución:</strong><br>
+      — Descongela en agua fría 20-30 min, nunca en microondas<br>
+      — <strong>Sécalas MUY bien con papel</strong> — este paso es el más importante<br>
+      — Sartén muy caliente antes de echarlas<br>
+      — Sin moverlas — déjalas quietas 3-4 min por cada lado<br>
+      — Prueba antes de añadir sal — el bacalao ya lleva bastante
+    </div>
+  </div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--green);">🥚 Huevos sin escalfar — alternativas fáciles</div>
+    <div class="trick-body">
+      <strong>Si no te apetece complicarte con los escalfados:</strong><br><br>
+      — <strong>Huevo cocido:</strong> 10 min en agua hirviendo. Lo partes encima de la crema.<br>
+      — <strong>Huevo a la plancha:</strong> sartén antiadherente sin aceite + tapa. Clara cuajada, yema blandita.<br>
+      — <strong>Huevo en microondas:</strong> casca en bol con 3 cucharadas agua, tapa con film, 1 min.<br><br>
+      <strong>Todos valen igual</strong> — el nutriente es el mismo sea cual sea la preparación.
+    </div>
+  </div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--purple);">🥗 La ensalada — no es solo tomate y lechuga</div>
+    <div class="trick-body">
+      <strong>Base:</strong> tomate + lechuga<br><br>
+      <strong>Puedes añadir siempre:</strong> cebolla · pepino · zanahoria rallada · pimiento crudo · maíz (poco) · aceitunas (4-5 máx)<br><br>
+      <strong>Especias y aliño:</strong> orégano · albahaca · comino · ajo en polvo · vinagre de manzana o módena · aceite de oliva + sal<br><br>
+      <strong>No añadir:</strong> salsas tipo césar, mayonesa, croutons o picatostes
+    </div>
+  </div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--coral);">🍝 Lentejas sin chorizo — que sepan igual</div>
+    <div class="trick-body">
+      <strong>Añade al sofrito:</strong><br>
+      — <strong>Pimentón ahumado</strong> — da exactamente ese sabor a embutido sin la grasa<br>
+      — Ajo + laurel + un poco de comino<br>
+      — La zanahoria en rodajas da dulzor y cuerpo<br><br>
+      Apaga el fuego antes de añadir el pimentón para que no amargue.
+    </div>
+  </div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--text2);">🍌 El orden correcto del plátano y las nueces</div>
+    <div class="trick-body">
+      <strong>Días de elíptica:</strong><br>
+      — 16:00–16:30 → Frutos secos (merienda)<br>
+      — 17:00 → Plátano (pre-ejercicio, 30 min antes)<br>
+      — 17:30–18:00 → Elíptica<br><br>
+      <strong>Si el orden se invierte:</strong> no pasa nada, ajusta el resto del día. Una hora de diferencia no rompe el plan.
+    </div>
+  </div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--blue);">🫘 Garbanzos en Thermomix — el truco del modo cuchara</div>
+    <div class="trick-body">
+      <strong>El problema:</strong> los garbanzos de bote ya están cocidos y blandos — si las cuchillas giran aunque sea a vel 1 durante 15 min se deshacen y desaparecen en el caldo. 😄<br><br>
+      <strong>La solución:</strong><br>
+      — Usar siempre <strong>modo cuchara</strong> (símbolo de cuchara en el panel) para legumbres enteras<br>
+      — O echarlos los <strong>últimos 5 minutos</strong> solo para calentarlos — no necesitan más porque ya están cocidos<br><br>
+      <strong>Lentejas secas:</strong> estas sí aguantan 30 min a vel 1 sin problema — son más densas y se cocinan desde cero.<br><br>
+      <strong>Regla fácil:</strong> legumbre de bote = últimos 5 min · legumbre seca = tiempo completo con modo cuchara.
+    </div>
+  </div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--green);">🐟 Merluza al air fryer con ajo y limón</div>
+    <div class="trick-body">
+      <strong>Mucho mejor que al horno</strong> — más jugosa por dentro y con toque crujiente por fuera.<br><br>
+      — Descongela en agua fría 20-30 min. Seca MUY bien con papel.<br>
+      — Mezcla en bol: aceite + ajo picado fino + zumo de limón + sal + orégano<br>
+      — Embadurna los filetes por ambos lados<br>
+      — <strong>Air fryer 180°C, 8-10 minutos</strong> sin darles la vuelta — son delicados y se rompen<br>
+      — Filetes gruesos: añade 2 minutos más<br><br>
+      <strong>Truco:</strong> no los muevas ni los toques durante la cocción — déjalos hacer su trabajo solos.
+    </div>
+  </div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--purple);">🍄 Champiñones perfectos — el truco del dorado</div>
+    <div class="trick-body">
+      <strong>El problema:</strong> quedan grises y aguados en vez de dorados.<br><br>
+      <strong>La solución:</strong><br>
+      — Limpia con papel húmedo, <strong>nunca bajo el grifo</strong> — el agua los empapa<br>
+      — Sartén muy caliente antes de echarlos<br>
+      — <strong>En una sola capa</strong> — si los amontonas sueltan agua y se hierven<br>
+      — Si no caben todos, hazlos en dos tandas<br>
+      — Sin moverlos 2-3 min hasta que doren por abajo<br>
+      — El ajo se añade al final bajando el fuego — si lo pones al principio se quema<br><br>
+      <strong>Toque especial:</strong> chorrito de vino blanco al final y deja evaporar 1 min. Queda espectacular.
+    </div>
+  </div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--amber);">🥖 Pan integral — cómo elegir el correcto</div>
+    <div class="trick-body">
+      <strong>Mira siempre el primer ingrediente de la etiqueta:</strong><br><br>
+      ✅ <strong>"Harina integral de trigo"</strong> como primer ingrediente — este es el bueno<br>
+      ✅ <strong>65% harina integral</strong> mejor que 59%<br>
+      ✅ <strong>Centeno integral con sésamo</strong> — los biscotes tipo Wasa son perfectos<br><br>
+      ❌ "Harina de trigo" a secas = pan blanco disfrazado<br>
+      ❌ Pan toast normal = no vale aunque lo tuestes<br>
+      ❌ Picos o colines = harina blanca y sal<br><br>
+      <strong>Si no hay pan integral bajo en sal:</strong> caldo normal diluido a mitad con agua — el sodio queda a la mitad y no se nota la diferencia.
+    </div>
+  </div>
+
+  <div class="trick-card">
+    <div class="trick-header" style="background:var(--coral);">🧂 Caldo bajo en sal — alternativas</div>
+    <div class="trick-body">
+      <strong>Si no encuentras caldo bajo en sal en el súper:</strong><br><br>
+      — Caldo normal + misma cantidad de agua = sodio a la mitad<br>
+      — Agua + 1 hoja laurel + 1 ajo + pizca de sal = caldo casero express<br>
+      — Agua + chorrito vino blanco — evaporar el alcohol, da sabor<br><br>
+      <strong>Sodio orientativo:</strong> busca menos de 200-250mg por 100ml en la etiqueta.<br><br>
+      <strong>Marca recomendada:</strong> Aneto bajo en sal — si no lo encuentras en el súper lo tienen en Amazon.
+    </div>
+  </div>
+</div>
+
+<!-- LISTA DE COMPRA -->
+<div id="compra" class="section">
+  <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Toca cada ítem para marcarlo. Los congelados ya los tienes.</p>
+  <div class="shop-section">
+    <div class="shop-title" style="background:var(--green-light);color:var(--green-dark);">Verduras y hortalizas frescas</div>
+    <div id="list-verduras"></div>
+  </div>
+  <div class="shop-section">
+    <div class="shop-title" style="background:var(--blue-light);color:var(--blue-dark);">Frutas</div>
+    <div id="list-frutas"></div>
+  </div>
+  <div class="shop-section">
+    <div class="shop-title" style="background:var(--purple-light);color:var(--purple-dark);">Proteínas frescas</div>
+    <div id="list-proteinas"></div>
+  </div>
+  <div class="shop-section">
+    <div class="shop-title" style="background:var(--amber-light);color:var(--amber-dark);">Lácteos</div>
+    <div id="list-lacteos"></div>
+  </div>
+  <div class="shop-section">
+    <div class="shop-title" style="background:var(--coral-light);color:var(--coral);">Legumbres, pasta y cereales</div>
+    <div id="list-despensa"></div>
+  </div>
+  <div class="shop-section">
+    <div class="shop-title" style="background:var(--gray-light);color:var(--text2);">Básicos de despensa</div>
+    <div id="list-basicos"></div>
+  </div>
+  <div class="shop-section">
+    <div class="shop-title" style="background:var(--green-light);color:var(--green-dark);">Congelados — ya tienes ✓</div>
+    <div id="list-congelados"></div>
+  </div>
+  <button class="reset-btn" onclick="resetAll()">Resetear lista</button>
+</div>
+
+<!-- EJERCICIO -->
+<div id="ejercicio" class="section">
+  <div class="tip green"><strong>Regla de la conversación:</strong> el ritmo correcto es aquel en el que puedes hablar mientras haces ejercicio. Si no puedes, baja el ritmo.</div>
+
+  <!-- Pestañas internas ejercicio -->
+  <div style="display:flex;gap:6px;margin:10px 0;flex-wrap:wrap;">
+    <button class="ex-tab active" onclick="showEx('plan',this)">📅 Plan semanal</button>
+    <button class="ex-tab" onclick="showEx('entreno',this)">🏋️ Día de entreno</button>
+    <button class="ex-tab" onclick="showEx('descanso',this)">🧘 Día de descanso</button>
+    <button class="ex-tab" onclick="showEx('comba',this)">🪢 Comba</button>
+  </div>
+
+  <!-- PLAN SEMANAL -->
+  <div id="ex-plan" class="ex-section visible">
+    <div class="ex-block">
+      <div class="ex-week-title" style="color:var(--green);">Semanas 1-2 · Arranque</div>
+      <div class="ex-row"><div class="ex-day">Lun · Mié · Vie</div><div class="ex-bar-bg"><div class="ex-bar" style="width:30%;background:#9FE1CB;color:#0F6E56;">Elíptica 15 min suave</div></div></div>
+      <div class="ex-row"><div class="ex-day">Sábado</div><div class="ex-bar-bg"><div class="ex-bar" style="width:40%;background:#9FE1CB;color:#0F6E56;">Elíptica 20 min + estirar</div></div></div>
+      <div class="ex-row"><div class="ex-day">Mar · Jue · Dom</div><div class="ex-bar-bg"><div class="ex-bar" style="width:12%;background:var(--bg2);color:var(--text2);">Descanso</div></div></div>
+    </div>
+    <div class="ex-block">
+      <div class="ex-week-title" style="color:var(--blue);">Semanas 3-4 · Progresión</div>
+      <div class="ex-row"><div class="ex-day">Lun · Mié · Vie</div><div class="ex-bar-bg"><div class="ex-bar" style="width:50%;background:#B5D4F4;color:#185FA5;">Elíptica 25 min moderado</div></div></div>
+      <div class="ex-row"><div class="ex-day">Mar · Jue</div><div class="ex-bar-bg"><div class="ex-bar" style="width:22%;background:#C0DD97;color:#3B6D11;">Comba + estiramientos</div></div></div>
+      <div class="ex-row"><div class="ex-day">Sábado</div><div class="ex-bar-bg"><div class="ex-bar" style="width:65%;background:#B5D4F4;color:#185FA5;">Elíptica 35 min + estirar</div></div></div>
+    </div>
+    <div class="ex-block">
+      <div class="ex-week-title" style="color:var(--purple);">Semanas 5-6 · Consolidación</div>
+      <div class="ex-row"><div class="ex-day">Lun · Mié · Vie</div><div class="ex-bar-bg"><div class="ex-bar" style="width:68%;background:#CECBF6;color:#534AB7;">Elíptica 35 min vivo</div></div></div>
+      <div class="ex-row"><div class="ex-day">Mar · Jue</div><div class="ex-bar-bg"><div class="ex-bar" style="width:32%;background:#C0DD97;color:#3B6D11;">Comba + movilidad + core</div></div></div>
+      <div class="ex-row"><div class="ex-day">Sábado</div><div class="ex-bar-bg"><div class="ex-bar" style="width:85%;background:#CECBF6;color:#534AB7;">45 min elíptica</div></div></div>
+    </div>
+    <div class="tip amber"><strong>Las pesas — semana 5+:</strong> cuando la elíptica no cueste mentalmente. Dolor muscular: normal. Dolor articular: para.</div>
+    <div class="tip red" style="margin-top:8px;"><strong>Agujetas:</strong> normales los primeros días. Hidratación + descanso + estiramientos las reducen. No pares el plan.</div>
+  </div>
+
+  <!-- DÍA DE ENTRENO -->
+  <div id="ex-entreno" class="ex-section">
+    <div class="tip green" style="margin-bottom:12px;"><strong>Días: Lunes · Miércoles · Viernes · Sábado</strong><br>Plátano 30 min antes si haces más de 15 min. Sin plátano si solo haces comba de calentamiento.</div>
+
+    <div class="stretch-card">
+      <div class="stretch-header" style="background:var(--green);">① PRE-ENTRENO — Comba calentamiento (2-3 min)</div>
+      <div class="stretch-item"><strong>20-30 saltos suaves</strong><div class="how">La comba ya es el calentamiento — no hace falta movilidad articular adicional. Deja 1 min de descanso antes de subir a la elíptica.</div></div>
+    </div>
+
+    <div class="stretch-card" style="margin-top:8px;">
+      <div class="stretch-header" style="background:var(--blue);">② ELÍPTICA</div>
+      <div class="stretch-item"><strong>Semanas 1-2: 15 min suave</strong><div class="how">Ritmo conversacional. Puedes hablar sin ahogarte.</div></div>
+      <div class="stretch-item"><strong>Semanas 3-4: 25 min moderado</strong><div class="how">Un poco más de resistencia. Empiezas a sudar.</div></div>
+      <div class="stretch-item"><strong>Semanas 5-6: 35 min vivo</strong><div class="how">Ritmo que cuesta mantener pero aguantas. Sudas de verdad.</div></div>
+    </div>
+
+    <div class="stretch-card" style="margin-top:8px;">
+      <div class="stretch-header" style="background:var(--purple);">③ POST-ENTRENO — Estiramientos (10 min)</div>
+      <div class="stretch-item"><strong>1. Cuádriceps de pie — 30 seg cada pierna</strong><div class="how">De pie, dobla una rodilla llevando el pie hacia el glúteo. Agarra el tobillo. Apóyate en la pared si hace falta.</div></div>
+      <div class="stretch-item"><strong>2. Isquiotibiales sentado — 30 seg cada pierna</strong><div class="how">Sentado en el suelo, estira una pierna, la otra doblada. Inclínate suavemente hacia el pie estirado. Nota la tensión en la parte trasera del muslo.</div></div>
+      <div class="stretch-item"><strong>3. Cadera en el suelo — 30 seg cada lado</strong><div class="how">Tumbado boca arriba, dobla una rodilla y llévala al pecho con las dos manos. La otra pierna estirada en el suelo.</div></div>
+      <div class="stretch-item"><strong>4. Gemelos contra la pared — 30 seg cada pierna</strong><div class="how">De pie frente a la pared, un pie adelantado y el otro atrás estirado. Empuja el talón trasero hacia el suelo.</div></div>
+      <div class="stretch-item"><strong>5. Hombros cruzados — 30 seg cada brazo</strong><div class="how">Lleva un brazo estirado hacia el pecho. Con la otra mano empuja suavemente el codo hacia ti.</div></div>
+      <div class="stretch-item"><strong>6. Rotación de cuello — 5 veces cada lado</strong><div class="how">Inclina la cabeza lentamente hacia un hombro. Mantén 5 segundos. Muy despacio, sin forzar.</div></div>
+      <div class="stretch-item"><strong>7. Espalda en silla — 30 seg</strong><div class="how">Sentado, entrelaza los dedos por detrás de la cabeza. Abre los codos hacia atrás suavemente.</div></div>
+    </div>
+    <div class="tip green" style="margin-top:8px;">⏱️ Total sesión: comba (3 min) + elíptica (15-35 min) + estiramientos (10 min) = 28-48 min</div>
+  </div>
+
+  <!-- DÍA DE DESCANSO -->
+  <div id="ex-descanso" class="ex-section">
+    <div class="tip amber" style="margin-bottom:12px;"><strong>Días: Martes · Jueves · Domingo</strong><br>Descanso no significa quedarse quieto — 20-25 min de movilidad acelera la recuperación y reduce las agujetas. En el salón viendo la tele.</div>
+
+    <div class="stretch-card">
+      <div class="stretch-header" style="background:var(--amber);">① ANTES DE LA COMBA — Movilidad articular (5 min)</div>
+      <div class="stretch-item"><strong>1. Rotaciones de tobillo — 10 círculos cada pie</strong><div class="how">Sentado, levanta un pie y haz círculos lentos con el tobillo. En ambos sentidos.</div></div>
+      <div class="stretch-item"><strong>2. Rotaciones de rodilla — 10 círculos cada rodilla</strong><div class="how">De pie, manos en las rodillas ligeramente dobladas. Círculos suaves hacia dentro y hacia fuera.</div></div>
+      <div class="stretch-item"><strong>3. Rotaciones de cadera — 10 círculos cada lado</strong><div class="how">De pie, manos en la cadera. Círculos amplios como si bailaras. Sin mover los hombros.</div></div>
+      <div class="stretch-item"><strong>4. Rotaciones de hombros — 10 adelante + 10 atrás</strong><div class="how">Sube los hombros hacia las orejas y hazlos rotar lentamente. Luego hacia adelante.</div></div>
+    </div>
+
+    <div class="stretch-card" style="margin-top:8px;">
+      <div class="stretch-header" style="background:var(--green);">② COMBA SUAVE — Series cortas (5-10 min)</div>
+      <div class="stretch-item"><strong>Semanas 1-2: 20-30 saltos · descanso 30 seg · repite 5-6 veces</strong><div class="how">Sin plátano previo — con la energía del desayuno y la media mañana es suficiente.</div></div>
+      <div class="stretch-item"><strong>Semanas 3-4: 40-50 saltos · descanso 30 seg · repite 6-8 veces</strong><div class="how">Va aumentando poco a poco. Si el codo molesta, para sin dudarlo.</div></div>
+      <div class="stretch-item"><strong>Semanas 5+: 1 min seguido · descanso 30 seg · repite 5-6 veces</strong><div class="how">Aquí ya se nota de verdad. Cardio puro en 10 minutos.</div></div>
+    </div>
+
+    <div class="stretch-card" style="margin-top:8px;">
+      <div class="stretch-header" style="background:var(--purple);">③ DESPUÉS — Estiramientos sostenidos (10 min)</div>
+      <div class="stretch-item"><strong>1. Gato-vaca en el suelo — 10 repeticiones</strong><div class="how">A cuatro patas. Arquea la espalda hacia arriba (gato) y luego hacia abajo dejando caer el vientre (vaca). Muy despacio.</div></div>
+      <div class="stretch-item"><strong>2. Postura del niño — 1 minuto</strong><div class="how">Rodillas en el suelo, siéntate sobre los talones, estira los brazos adelante, frente apoyada.<br><span style="color:var(--amber-dark);font-weight:500;">Si no llegas:</span> pon un cojín entre talones y glúteos.</div></div>
+      <div class="stretch-item"><strong>3. Torsión de columna tumbado — 30 seg cada lado</strong><div class="how">Tumbado, dobla las rodillas. Déjalas caer hacia un lado, cabeza al lado contrario. Brazos en cruz.</div></div>
+      <div class="stretch-item"><strong>4. Cadera tumbado — 30 seg cada lado</strong><div class="how">Cruza un tobillo sobre la rodilla contraria. Abraza el muslo y llévalo al pecho.<br><span style="color:var(--amber-dark);font-weight:500;">Si no llegas:</span> dobla las dos rodillas y llévalas juntas al pecho.</div></div>
+    </div>
+
+    <div class="stretch-card" style="margin-top:8px;">
+      <div class="stretch-header" style="background:var(--coral);">④ CORE SUAVE — A partir de semana 3</div>
+      <div class="stretch-item"><strong>1. Plancha en rodillas — empieza con 10 seg</strong><div class="how">Manos en el suelo, rodillas apoyadas. Espalda recta, barriga apretada. 10 seg, descansa, repite 3 veces. Sube 5 seg cada semana.</div></div>
+      <div class="stretch-item"><strong>2. Puente de glúteos — 10 repeticiones</strong><div class="how">Tumbado boca arriba, rodillas dobladas. Sube las caderas apretando el glúteo, mantén 2 seg, baja despacio.</div></div>
+      <div class="stretch-item"><strong>3. Elevaciones de pierna — 10 repeticiones</strong><div class="how">Tumbado, manos debajo de los glúteos. Sube las piernas hasta 45 grados y bájalas despacio. Si duele la espalda, dobla las rodillas.</div></div>
+    </div>
+    <div class="tip green" style="margin-top:8px;">⏱️ Total sesión: movilidad (5 min) + comba (5-10 min) + estiramientos (10 min) = 20-25 min</div>
+  </div>
+
+  <!-- COMBA INFO -->
+  <div id="ex-comba" class="ex-section">
+    <div class="tip purple" style="margin-bottom:12px;"><strong>Cardio puro en casa.</strong> Quema triglicéridos de forma muy eficiente. Divertida con los niños. Sin excusa de salir.</div>
+
+    <div class="stretch-card">
+      <div class="stretch-header" style="background:var(--green);">¿Cuándo usarla?</div>
+      <div class="stretch-item"><strong>Días de descanso (mar · jue · dom)</strong><div class="how">Como actividad principal — movilidad + comba + estiramientos. Sin plátano previo.</div></div>
+      <div class="stretch-item"><strong>Calentamiento pre-elíptica</strong><div class="how">2-3 min suave antes de subir. Ya es el calentamiento, no hace falta movilidad adicional.</div></div>
+      <div class="stretch-item"><strong>Con los niños el finde</strong><div class="how">Sin contar, jugando. 32 saltos jugando = 3-4 min de elíptica moderada.</div></div>
+    </div>
+
+    <div class="stretch-card" style="margin-top:8px;">
+      <div class="stretch-header" style="background:var(--amber);">Precauciones</div>
+      <div class="stretch-item"><strong>El codo izquierdo</strong><div class="how">Si molesta durante la comba, para sin dudarlo y descansa ese día.</div></div>
+      <div class="stretch-item"><strong>Nunca en frío</strong><div class="how">Siempre movilidad articular antes si es el primer ejercicio del día.</div></div>
+      <div class="stretch-item"><strong>Plátano previo</strong><div class="how">Solo si haces más de 15-20 min. Para series cortas no hace falta.</div></div>
+      <div class="stretch-item"><strong>Superficies</strong><div class="how">Suelo duro o alfombra fina. Nunca superficies muy blandas — fuerzan rodillas y tobillos.</div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- PESAS -->
+<div id="pesas" class="section">
+  <div class="tip green"><strong>Rutina Torso-Pierna · Ideal para principiantes</strong><br>Torso y piernas en días alternos con descanso entre medias. El músculo crece en el descanso — las 48h son obligatorias.</div>
+  <div class="tip red" style="margin-top:8px;"><strong>Si notas la espalda en cualquier ejercicio — para inmediatamente.</strong> Dolor muscular al día siguiente: normal. Dolor articular o lumbar: para.</div>
+  <div class="tip amber" style="margin-top:8px;"><strong>Respiración:</strong> exhala al subir/empujar el peso, inhala al bajar. Nunca aguantes la respiración.</div>
+
+  <div class="stretch-card" style="margin-top:12px;">
+    <div class="stretch-header" style="background:var(--blue);">📅 Distribución semanal</div>
+    <div class="stretch-item" style="background:var(--blue-light);"><strong style="color:var(--blue-dark);">Lunes — TORSO 💪</strong><div class="how">Pesas banco + tabla · Elíptica 20 min moderada (110-130 ppm) · Estiramientos torso</div></div>
+    <div class="stretch-item" style="background:var(--green-light);"><strong style="color:var(--green-dark);">Martes — PIERNAS 🦵</strong><div class="how">Pesas banco · Sin elíptica — las piernas ya trabajaron, no las machacas más · Estiramientos piernas</div></div>
+    <div class="stretch-item"><strong>Miércoles — DESCANSO activo</strong><div class="how">Solo paseos con el perro. Sin elíptica ni pesas — el músculo recupera aquí.</div></div>
+    <div class="stretch-item" style="background:var(--blue-light);"><strong style="color:var(--blue-dark);">Jueves — TORSO 💪</strong><div class="how">Pesas banco + tabla · Elíptica 20 min moderada (110-130 ppm) · Estiramientos torso</div></div>
+    <div class="stretch-item" style="background:var(--green-light);"><strong style="color:var(--green-dark);">Viernes — PIERNAS 🦵</strong><div class="how">Pesas banco · Sin elíptica — misma razón que el martes · Estiramientos piernas</div></div>
+    <div class="stretch-item" style="background:var(--amber-light);"><strong style="color:var(--amber-dark);">Sábado — CARDIO PURO 🏃</strong><div class="how">Elíptica 35-40 min a tope (140-160 ppm). Sin pesas. Las piernas ya descansaron desde el viernes — aquí sí aguantan.</div></div>
+    <div class="stretch-item"><strong>Domingo — DESCANSO total</strong><div class="how">Recuperación completa. Paseo suave con el perro si apetece, nada más.</div></div>
+  </div>
+  <div class="tip blue" style="margin-top:8px;"><strong>Elíptica solo en días de TORSO</strong> — los días de piernas no, porque las piernas son las que mueven la elíptica y ya trabajaron bastante. El sábado es el día de cardio puro con las piernas descansadas desde el viernes.</div>
+
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--purple);">📈 Progresión de series y repeticiones</div>
+    <div class="stretch-item" style="background:var(--green-light);border-radius:6px;margin:4px 0;"><strong style="color:var(--green-dark);">Julio — Base</strong><div class="how">3 series x 8-10 repeticiones. Técnica correcta. Press banca 19kg · Curl 5-6kg · Sentadillas con barra.</div></div>
+    <div class="stretch-item" style="background:var(--blue-light);border-radius:6px;margin:4px 0;"><strong style="color:var(--blue-dark);">Agosto S1-S2 — Subida de intensidad</strong><div class="how">4 series x 10 repeticiones. Press banca → 21kg · Curl → 7kg · Hombros → 5kg · Sentadillas → +2kg.</div></div>
+    <div class="stretch-item" style="background:var(--purple-light);border-radius:6px;margin:4px 0;"><strong style="color:var(--purple-dark);">Agosto S3-S4 — Consolidación</strong><div class="how">4 series x 10-12 repeticiones. En la última serie busca el fallo — como ya haces en press banca. Añade abdominales 3 series x 15 rep.</div></div>
+    <div class="stretch-item" style="background:var(--amber-light);border-radius:6px;margin:4px 0;"><strong style="color:var(--amber-dark);">Señal para subir peso</strong><div class="how">Si en la última serie llegas a 12-13 rep con facilidad — sube 2kg la semana siguiente. Si no llegas a 8 rep — baja 2kg.</div></div>
+    <div class="tip amber" style="margin-top:8px;"><strong>Regla de oro:</strong> las últimas 2-3 rep tienen que costar pero poder hacerse. Si salen fáciles sube peso. Si no completas baja peso.</div>
+  </div>
+
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--blue);">💪 DÍA TORSO — Lunes y Jueves</div>
+    <div class="stretch-item"><strong>1. Press banca plano — PECHO · Barra 7kg (5kg + 1kg cada lado)</strong><div class="how">3 series x 8 rep · descanso 90 seg. Tumbado en el banco, pies en el suelo. Baja la barra hasta rozar el pecho despacio. Sube controlado sin bloquear los codos. S3-4: 9kg · S5-6: 11kg.</div></div>
+    <div class="stretch-item"><strong>2. Remo serrucho — ESPALDA · Mancuerna 6kg</strong><div class="how">3 series x 8 rep cada brazo · descanso 90 seg. Rodilla y mano del mismo lado apoyadas en el banco. Espalda recta y paralela al suelo. Sube la mancuerna hacia la cadera doblando el codo — no hacia el hombro. <span style="color:var(--red-dark);font-weight:500;">Espalda siempre recta, nunca girarla.</span> S3-4: 8kg · S5-6: 9-10kg.</div></div>
+    <div class="stretch-item"><strong>3. Curl bíceps mancuerna — BÍCEPS · 5kg</strong><div class="how">3 series x 8 rep cada brazo · descanso 60 seg. Sentado con respaldo. Codo pegado al cuerpo. Sube hasta el hombro, baja despacio. S3-4: 6-7kg · S5-6: 8kg.</div></div>
+    <div class="stretch-item"><strong>4. Fondos de tríceps — TRÍCEPS · Sin peso</strong><div class="how">3 series x 8 rep · descanso 60 seg. Manos en el borde del banco detrás de ti, pies en el suelo. Baja doblando codos hasta 90 grados. Sube empujando. Más fácil con pies cerca, más difícil con pies adelantados. S3-4: pies más adelantados · S5-6: mancuerna en el regazo.</div></div>
+    <div class="stretch-item"><strong>5. Plancha en tabla — CORE · 20 segundos</strong><div class="how">3 series x 20 seg · descanso 30 seg. Cuerpo recto, barriga apretada, mirada al suelo. Si notas la espalda baja — para. S3-4: 25 seg · S5-6: 30 seg.</div></div>
+    <div class="stretch-item" style="background:var(--green-light);border-radius:6px;"><strong style="color:var(--green-dark);">Después: Elíptica 20 min + estiramientos torso 5 min</strong><div class="how">Hombros cruzados · Tríceps detrás cabeza · Bíceps en pared · Espalda en silla · Cuello</div></div>
+  </div>
+
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--green);">🦵 DÍA PIERNAS — Martes y Viernes</div>
+    <div class="stretch-item"><strong>1. Sentadillas con barra — CUÁDRICEPS · Barra sola 5kg</strong><div class="how">3 series x 8 rep · descanso 90 seg. Barra en la parte alta de la espalda (no en el cuello). Pies a la anchura de los hombros. Baja como si fueras a sentarte — rodillas siguen los pies, no se juntan. Espalda recta. S3-4: 9kg · S5-6: 13kg.</div></div>
+    <div class="stretch-item"><strong>2. Leg extension — CUÁDRICEPS · Sin peso</strong><div class="how">3 series x 8 rep · descanso 60 seg. Sentado en el banco, tobillo bajo el soporte. Extiende las piernas hacia arriba, baja despacio sin soltar del todo. S3-4: peso mínimo del banco · S5-6: subir progresivamente.</div></div>
+    <div class="stretch-item"><strong>3. Curl femoral — ISQUIOTIBIALES · Sin peso</strong><div class="how">3 series x 8 rep · descanso 60 seg. Tumbado boca abajo, tobillo bajo el soporte. Dobla las rodillas llevando los talones hacia los glúteos. Baja controlado. S3-4: peso mínimo · S5-6: subir progresivamente.</div></div>
+    <div class="stretch-item"><strong>4. Elevación de gemelos de pie — GEMELOS · Sin peso</strong><div class="how">3 series x 15 rep · descanso 45 seg. De pie manos apoyadas en el banco. Sube de puntillas lo máximo, mantén 1 seg arriba, baja despacio. Ya los tienes entrenados con los paseos. S3-4: 20 rep.</div></div>
+    <div class="stretch-item"><strong>5. Crunch en banco — ABDOMEN · Sin peso</strong><div class="how">3 series x 8 rep · descanso 60 seg. Sentado en el borde del banco, manos en los muslos. Inclínate hacia atrás hasta notar el abdomen contraído sin llegar a tumbarte. Si molesta la espalda usa elevación de rodillas sentado.</div></div>
+    <div class="tip red" style="margin-top:8px;"><strong>⚠️ Peso muerto — NO todavía.</strong> Es el ejercicio más arriesgado para la espalda. Cuando lleves 2 meses de rutina sólida lo incorporamos.</div>
+    <div class="stretch-item" style="background:var(--green-light);border-radius:6px;"><strong style="color:var(--green-dark);">Después: Solo estiramientos piernas 5 min — sin elíptica</strong><div class="how">Cuádriceps de pie · Isquiotibiales sentado · Gemelos contra la pared · Cadera tumbado</div></div>
+    <div class="tip red">⚠️ Sin elíptica después de piernas — las piernas ya trabajaron en serio. Elíptica encima = agujetas de campeonato al día siguiente. 😄</div>
+  </div>
+
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--amber);">⚖️ Tabla de pesos semana a semana</div>
+    <div class="stretch-item"><strong>Press banca</strong><div class="how">S1-2: 7kg · S3-4: 9kg · S5-6: 11kg · S7+: +2kg si sale fácil</div></div>
+    <div class="stretch-item"><strong>Remo serrucho</strong><div class="how">S1-2: 6kg · S3-4: 8kg · S5-6: 9-10kg</div></div>
+    <div class="stretch-item"><strong>Curl bíceps</strong><div class="how">S1-2: 5kg · S3-4: 6-7kg · S5-6: 8kg</div></div>
+    <div class="stretch-item"><strong>Fondos tríceps</strong><div class="how">S1-2: pies cerca · S3-4: pies adelantados · S5-6: mancuerna en regazo</div></div>
+    <div class="stretch-item"><strong>Sentadillas</strong><div class="how">S1-2: 5kg · S3-4: 9kg · S5-6: 13kg</div></div>
+    <div class="stretch-item"><strong>Leg extension / Curl femoral</strong><div class="how">S1-2: sin peso · S3-4: peso mínimo · S5-6: subir progresivamente</div></div>
+    <div class="tip green" style="margin-top:8px;">Las últimas 2-3 rep tienen que costar. Si salen fáciles → sube peso. Si no llegas → baja peso. Sin drama. 💪</div>
+  </div>
+
+  <div class="tip amber" style="margin-top:8px;"><strong>⏱️ Total sesión torso o piernas:</strong> pesas (20-25 min) + elíptica moderada (20 min) + estiramientos (5 min) = ~50 min · Sábado solo elíptica: 35-40 min a tope</div>
+  <div class="tip blue" style="margin-top:8px;"><strong>Apple Watch:</strong> usa Entrenamiento de fuerza. Detecta repeticiones automáticamente con el movimiento de la muñeca.</div>
+</div>
+
+<!-- TABLA DE EJERCICIOS -->
+<div id="tabla" class="section">
+  <div class="tip green"><strong>Martes y Jueves · Tabla primero, elíptica después</strong><br>El músculo se construye en el descanso — 48h entre sesiones es obligatorio.</div>
+  <div class="tip red" style="margin-top:8px;"><strong>Si notas la espalda en cualquier momento — para inmediatamente.</strong> La elíptica puedes seguir, la tabla no.</div>
+  <div class="tip amber" style="margin-top:8px;"><strong>Respiración:</strong> exhala al bajar en las flexiones, inhala al subir. En la plancha respira normal — nunca aguantes la respiración.</div>
+
+  <!-- HORARIO -->
+  <div class="stretch-card" style="margin-top:12px;">
+    <div class="stretch-header" style="background:var(--blue);">🕐 Horario días de tabla (mar · jue)</div>
+    <div class="stretch-item"><strong>16:00</strong><div class="how">Frutos secos — merienda. Sin plátano.</div></div>
+    <div class="stretch-item"><strong>17:30</strong><div class="how">Tabla — 10-15 min. Flexiones + plancha + gomas.</div></div>
+    <div class="stretch-item"><strong>17:45</strong><div class="how">Elíptica — 30-35 min a ritmo moderado.</div></div>
+    <div class="stretch-item"><strong>18:20</strong><div class="how">Estiramientos post-entreno — 10 min.</div></div>
+    <div class="stretch-item"><strong>21:30</strong><div class="how">Cena normal del plan.</div></div>
+  </div>
+
+  <!-- PROGRESION -->
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--purple);">📈 Progresión semana a semana</div>
+    <div class="stretch-item" style="background:var(--green-light);border-radius:6px;margin:4px 0;">
+      <strong style="color:var(--green-dark);">Semanas 1-2 — Arranque (aprender el movimiento)</strong>
+      <div class="how">Flexiones: 3 series x 3 repeticiones · Plancha: 3 x 15 seg · Gomas bíceps: 3 x 8 rep · Gomas hombros: 3 x 8 rep</div>
+    </div>
+    <div class="stretch-item" style="background:var(--blue-light);border-radius:6px;margin:4px 0;">
+      <strong style="color:var(--blue-dark);">Semanas 3-4 — Progresión</strong>
+      <div class="how">Flexiones: 3 x 5 · Plancha: 3 x 20 seg · Gomas bíceps: 3 x 10 · Gomas hombros: 3 x 10</div>
+    </div>
+    <div class="stretch-item" style="background:var(--purple-light);border-radius:6px;margin:4px 0;">
+      <strong style="color:var(--purple-dark);">Semanas 5-6 — Consolidación</strong>
+      <div class="how">Flexiones: 3 x 8 · Plancha: 3 x 30 seg · Gomas bíceps: 3 x 12 · Gomas hombros: 3 x 12</div>
+    </div>
+  </div>
+
+  <!-- EJERCICIO 1 - FLEXIONES -->
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--blue);">1. Flexiones en tabla — PECHO y TRÍCEPS</div>
+    <div class="stretch-item">
+      <strong>Semanas 1-2: 3 series x 3 repeticiones · descanso 60 seg</strong>
+      <div class="how">Agarres en posición normal (paralelos). Cuerpo completamente recto — cabeza, espalda, caderas y talones en línea. Baja despacio hasta casi tocar la tabla. Sube controlado. Si en la tercera no puedes — para en 2, también vale.</div>
+    </div>
+    <div style="padding:12px;background:var(--bg2);border-radius:8px;margin-top:8px;">
+      <svg viewBox="0 0 320 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:320px;">
+        <!-- Tabla -->
+        <rect x="60" y="105" width="200" height="12" rx="4" fill="#888780"/>
+        <rect x="55" y="117" width="15" height="20" rx="3" fill="#5F5E5A"/>
+        <rect x="250" y="117" width="15" height="20" rx="3" fill="#5F5E5A"/>
+        <!-- Agarres tabla -->
+        <rect x="90" y="95" width="12" height="15" rx="3" fill="#BA7517"/>
+        <rect x="218" y="95" width="12" height="15" rx="3" fill="#BA7517"/>
+        <!-- Cuerpo en plancha -->
+        <circle cx="75" cy="82" r="12" fill="#BA7517"/>
+        <rect x="83" y="76" width="145" height="16" rx="6" fill="#2C2C2A"/>
+        <!-- Brazos -->
+        <line x1="95" y1="80" x2="96" y2="100" stroke="#2C2C2A" stroke-width="7" stroke-linecap="round"/>
+        <line x1="220" y1="80" x2="224" y2="100" stroke="#2C2C2A" stroke-width="7" stroke-linecap="round"/>
+        <!-- Piernas -->
+        <line x1="223" y1="84" x2="270" y2="90" stroke="#2C2C2A" stroke-width="8" stroke-linecap="round"/>
+        <line x1="270" y1="90" x2="285" y2="108" stroke="#2C2C2A" stroke-width="7" stroke-linecap="round"/>
+        <!-- Flecha bajada -->
+        <path d="M160 72 L160 88" stroke="#1D9E75" stroke-width="2" stroke-dasharray="4,2"/>
+        <text x="165" y="82" font-size="9" fill="#1D9E75">bajar</text>
+        <text x="50" y="148" font-size="10" fill="#5F5E5A">Cuerpo recto como tabla — ni culo arriba ni espalda hundida</text>
+      </svg>
+    </div>
+    <div class="tip blue" style="margin-top:8px;"><strong>3 posiciones de agarre:</strong> Normal (paralelos) = equilibrado · Ancho = más pecho · Estrecho = más tríceps. Empieza siempre en normal.</div>
+  </div>
+
+  <!-- EJERCICIO 2 - PLANCHA -->
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--green);">2. Plancha en tabla — ABDOMEN y CORE</div>
+    <div class="stretch-item">
+      <strong>Semanas 1-2: 3 series x 15 segundos · descanso 30 seg</strong>
+      <div class="how">Misma posición que las flexiones pero sin bajar — te quedas arriba con los brazos estirados. Barriga apretada hacia dentro como si fueras a recibir un puñetazo. Mirada al suelo. Respira normal sin aguantar la respiración.</div>
+    </div>
+    <div style="padding:12px;background:var(--bg2);border-radius:8px;margin-top:8px;">
+      <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:320px;">
+        <!-- Tabla -->
+        <rect x="60" y="105" width="200" height="12" rx="4" fill="#888780"/>
+        <rect x="55" y="117" width="15" height="20" rx="3" fill="#5F5E5A"/>
+        <rect x="250" y="117" width="15" height="20" rx="3" fill="#5F5E5A"/>
+        <rect x="90" y="95" width="12" height="15" rx="3" fill="#BA7517"/>
+        <rect x="218" y="95" width="12" height="15" rx="3" fill="#BA7517"/>
+        <!-- Cuerpo recto -->
+        <circle cx="75" cy="78" r="12" fill="#BA7517"/>
+        <rect x="83" y="72" width="145" height="16" rx="6" fill="#1D9E75"/>
+        <line x1="95" y1="76" x2="96" y2="100" stroke="#2C2C2A" stroke-width="7" stroke-linecap="round"/>
+        <line x1="220" y1="76" x2="224" y2="100" stroke="#2C2C2A" stroke-width="7" stroke-linecap="round"/>
+        <line x1="223" y1="80" x2="270" y2="86" stroke="#2C2C2A" stroke-width="8" stroke-linecap="round"/>
+        <line x1="270" y1="86" x2="285" y2="105" stroke="#2C2C2A" stroke-width="7" stroke-linecap="round"/>
+        <!-- Linea recta indicadora -->
+        <line x1="70" y1="68" x2="290" y2="82" stroke="#1D9E75" stroke-width="1" stroke-dasharray="5,3"/>
+        <text x="50" y="132" font-size="10" fill="#5F5E5A">Línea recta de cabeza a talones — barriga apretada siempre</text>
+      </svg>
+    </div>
+    <div class="tip red" style="margin-top:8px;"><strong>Si notas la espalda baja — para inmediatamente.</strong> Mejor 10 segundos bien que 30 segundos mal.</div>
+  </div>
+
+  <!-- EJERCICIO 3 - BICEPS GOMAS -->
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--purple);">3. Curl de bíceps con gomas — BÍCEPS</div>
+    <div class="stretch-item">
+      <strong>Semanas 1-2: 3 series x 8 repeticiones cada brazo · descanso 60 seg</strong>
+      <div class="how">De pie, pisa la goma con un pie. Agarra el asa con la mano del mismo lado. Sube doblando el codo hasta el hombro — el codo no se mueve, queda pegado al cuerpo. Baja despacio sin soltar del todo.</div>
+    </div>
+    <div class="tip purple">Haz un brazo cada vez — más fácil de controlar la técnica. El codo fijo es la clave.</div>
+  </div>
+
+  <!-- EJERCICIO 4 - HOMBROS GOMAS -->
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--amber);">4. Press de hombros con gomas — HOMBROS</div>
+    <div class="stretch-item">
+      <strong>Semanas 1-2: 3 series x 8 repeticiones cada brazo · descanso 60 seg</strong>
+      <div class="how">De pie, pisa la goma. Agarra el asa a la altura del hombro con el codo a 90 grados. Sube el brazo recto hacia arriba, baja controlado. Sin arquear la espalda hacia atrás — si la arqueas la resistencia es demasiada, baja la goma.</div>
+    </div>
+    <div class="tip amber">Sin arquear la espalda — si lo haces la resistencia es demasiada. Elige una goma más suave.</div>
+  </div>
+
+  <!-- ORDEN SESION -->
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--coral);">✅ Orden completo de la sesión</div>
+    <div class="stretch-item"><strong>1. Flexiones x3 series</strong><div class="how">3 rep · descanso 60 seg · 3 rep · descanso 60 seg · 3 rep</div></div>
+    <div class="stretch-item"><strong>2. Plancha x3 series</strong><div class="how">15 seg · descanso 30 seg · 15 seg · descanso 30 seg · 15 seg</div></div>
+    <div class="stretch-item"><strong>3. Curl bíceps con goma x3 series</strong><div class="how">8 rep cada brazo · descanso 60 seg entre series</div></div>
+    <div class="stretch-item"><strong>4. Press hombros con goma x3 series</strong><div class="how">8 rep cada brazo · descanso 60 seg entre series</div></div>
+    <div class="stretch-item"><strong>5. Elíptica 30-35 min</strong><div class="how">Inmediatamente después de la tabla — el cuerpo ya está caliente.</div></div>
+    <div class="stretch-item"><strong>6. Estiramientos 10 min</strong><div class="how">Hombros cruzados · tríceps detrás cabeza · bíceps en pared · cuello · espalda en silla.</div></div>
+  </div>
+
+  <div class="tip green" style="margin-top:8px;"><strong>⏱️ Total sesión:</strong> tabla (10 min) + elíptica (30-35 min) + estiramientos (10 min) = ~55 min</div>
+  <div class="tip amber" style="margin-top:8px;"><strong>Agujetas al día siguiente:</strong> normales y buena señal. Dolor articular o de espalda: para y descansa.</div>
+</div>
+
+
+<!-- SUPLEMENTOS -->
+<div id="suplementos" class="section">
+  <div class="tip green"><strong>Whey Protein + Creatina Monohidrato — Sportyfeel Lidl</strong><br>Dos suplementos básicos y seguros para la recomposición corporal. Sin complicaciones.</div>
+  <div class="tip blue" style="margin-top:8px;"><strong>Recuerda:</strong> los suplementos son un extra, no la base. La dieta y el ejercicio hacen el 90% del trabajo.</div>
+
+  <!-- CREATINA -->
+  <div class="stretch-card" style="margin-top:12px;">
+    <div class="stretch-header" style="background:var(--yellow,#F5C518);">⚡ Creatina Monohidrato — 5g al día TODOS los días</div>
+    <div class="stretch-item"><strong>¿Qué hace?</strong><div class="how">Aumenta la fuerza y la resistencia en los ejercicios de alta intensidad. Retiene agua en el músculo haciéndolo más grande y fuerte. Funciona por acumulación — necesitas tomarla todos los días para que haga efecto.</div></div>
+    <div class="stretch-item"><strong>¿Cuánto?</strong><div class="how">5g al día — aproximadamente 1 cucharadita rasa. El bote tiene 58 raciones = casi 2 meses.</div></div>
+    <div class="stretch-item" style="background:var(--blue-light);border-radius:6px;margin:4px 0;"><strong style="color:var(--blue-dark);">Días de entreno (lun · mar · jue · vie · sáb)</strong><div class="how">Después del ejercicio — mezclada directamente en el batido de proteína. Un solo trago.</div></div>
+    <div class="stretch-item" style="background:var(--green-light);border-radius:6px;margin:4px 0;"><strong style="color:var(--green-dark);">Días de descanso (mié · dom)</strong><div class="how">En cualquier momento del día — con agua, con zumo de naranja o con el batido de fresas. El zumo de naranja ayuda a absorberla mejor.</div></div>
+    <div class="tip red" style="margin-top:8px;"><strong>💧 Agua obligatoria:</strong> con el calor de julio bebe al menos 2,5-3 litros al día. La creatina retiene agua en el músculo y si no te hidratas bien aparecen calambres.</div>
+    <div class="tip amber" style="margin-top:4px;"><strong>No saltarte días:</strong> la creatina funciona por acumulación. Un día sin tomarla no pasa nada, pero si fallas varios días seguidos pierdes el efecto.</div>
+  </div>
+
+  <!-- PROTEINA -->
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--purple);">🥛 Whey Protein Vainilla — Solo días de entreno</div>
+    <div class="stretch-item"><strong>¿Qué hace?</strong><div class="how">Aporta proteína de alta calidad de absorción rápida justo cuando el músculo más la necesita — después del ejercicio. 30,5g de proteína por ración.</div></div>
+    <div class="stretch-item"><strong>¿Cuánto y cómo?</strong><div class="how">1 cacito (30g) con 200-250ml de agua fría o leche desnatada. Agita bien en la coctelera o bate 20 segundos. Con agua tiene menos calorías, con leche desnatada más proteína y más cremoso.</div></div>
+    <div class="stretch-item"><strong>¿Cuándo?</strong><div class="how">Dentro de los 30-45 min después de terminar las pesas — es la ventana anabólica donde el músculo absorbe mejor la proteína.</div></div>
+    <div class="stretch-item" style="background:var(--purple-light);border-radius:6px;margin:4px 0;"><strong style="color:var(--purple-dark);">Días de TORSO (lun · jue) — con elíptica</strong><div class="how">Terminas la elíptica → duchas → batido con creatina dentro. Unos 40 min después de empezar el ejercicio.</div></div>
+    <div class="stretch-item" style="background:var(--green-light);border-radius:6px;margin:4px 0;"><strong style="color:var(--green-dark);">Días de PIERNAS (mar · vie) — sin elíptica</strong><div class="how">Terminas las pesas → batido con creatina dentro. Inmediatamente al acabar.</div></div>
+    <div class="stretch-item" style="background:var(--amber-light);border-radius:6px;margin:4px 0;"><strong style="color:var(--amber-dark);">Sábado — cardio puro</strong><div class="how">Terminas la elíptica → batido con creatina dentro.</div></div>
+    <div class="tip blue" style="margin-top:8px;"><strong>Días de descanso (mié · dom):</strong> NO tomes el batido — con la comida real tienes proteína suficiente esos días.</div>
+    <div class="tip green" style="margin-top:4px;"><strong>Con la whey añadida:</strong> la ración de proteína en la CENA de los días de entreno baja a 150g en vez de 175g — el batido ya cubre la diferencia.</div>
+  </div>
+
+  <!-- HORARIOS COMPLETOS -->
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--blue);">🕐 Horario completo días de entreno</div>
+
+    <div class="stretch-item" style="background:var(--blue-light);border-radius:6px;margin:4px 0;">
+      <strong style="color:var(--blue-dark);">Días TORSO — Lunes y Jueves</strong>
+      <div class="how">
+        16:00 — Frutos secos (merienda)<br>
+        17:30 — Pesas torso (~25 min)<br>
+        18:00 — Elíptica 20 min moderada (110-130 ppm)<br>
+        18:25 — 🥤 Batido proteína (30g) + creatina (5g) con agua o leche desnatada<br>
+        21:30 — Cena normal (proteína 150g en vez de 175g)
+      </div>
+    </div>
+
+    <div class="stretch-item" style="background:var(--green-light);border-radius:6px;margin:4px 0;">
+      <strong style="color:var(--green-dark);">Días PIERNAS — Martes y Viernes</strong>
+      <div class="how">
+        16:00 — Frutos secos (merienda)<br>
+        17:30 — Pesas piernas (~25 min)<br>
+        18:00 — 🥤 Batido proteína (30g) + creatina (5g) — sin elíptica<br>
+        21:30 — Cena normal (proteína 150g en vez de 175g)
+      </div>
+    </div>
+
+    <div class="stretch-item" style="background:var(--amber-light);border-radius:6px;margin:4px 0;">
+      <strong style="color:var(--amber-dark);">Sábado — Cardio puro</strong>
+      <div class="how">
+        17:30 — Elíptica 35-40 min a tope (140-160 ppm)<br>
+        18:15 — 🥤 Batido proteína (30g) + creatina (5g)<br>
+        21:30 — Cena normal (proteína 175g — no hubo pesas)
+      </div>
+    </div>
+
+    <div class="stretch-item" style="border-radius:6px;margin:4px 0;">
+      <strong>Miércoles y Domingo — Descanso</strong>
+      <div class="how">
+        En cualquier momento — ⚡ Creatina (5g) sola con agua o zumo de naranja<br>
+        Sin batido de proteína estos días
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO NUTRICIONAL -->
+  <div class="stretch-card" style="margin-top:10px;">
+    <div class="stretch-header" style="background:var(--green);">📊 Lo que aporta cada ración</div>
+    <div class="stretch-item"><strong>Whey Protein (30g con agua)</strong><div class="how">30,5g proteína · ~120 kcal · 4,4g grasa · Sin azúcares añadidos ✅</div></div>
+    <div class="stretch-item"><strong>Creatina (5g)</strong><div class="how">0 kcal · 0 grasa · 0 azúcar · Solo creatina pura ✅</div></div>
+    <div class="stretch-item"><strong>Total proteína diaria días de entreno</strong><div class="how">Comidas: ~120-130g + Batido: 30,5g = ~155g total ✅ Objetivo de 1,8g/kg cubierto.</div></div>
+  </div>
+
+  <div class="tip amber" style="margin-top:8px;"><strong>Bote de proteína dura:</strong> 14 raciones — algo más de 2 semanas si entrenas 5 días/semana. Compra 2 botes para el mes.</div>
+  <div class="tip green" style="margin-top:4px;"><strong>Creatina dura:</strong> 58 raciones — casi 2 meses tomando 5g diarios. ✅</div>
+</div>
+
+<!-- PROGRESO -->
+<div id="progreso" class="section">
+  <div class="tip green"><strong>Registro semanal — sábado en ayunas</strong><br>Mismo día, misma hora, mismas condiciones. Así los datos son comparables.</div>
+  <div class="tip red" style="margin-top:8px;"><strong>🎯 Objetivo: 30 de junio — revisión endocrina.</strong> Lleva este registro impreso o en el móvil para enseñárselo.</div>
+
+  <!-- TABLA DE PROGRESO -->
+  <div class="card" style="margin-top:12px;overflow-x:auto;">
+    <div class="card-title">📈 Evolución de peso y medidas</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="background:var(--green-light);">
+          <th style="padding:8px;text-align:left;color:var(--green-dark);font-weight:600;">Fecha</th>
+          <th style="padding:8px;text-align:center;color:var(--green-dark);font-weight:600;">Peso</th>
+          <th style="padding:8px;text-align:center;color:var(--green-dark);font-weight:600;">Cintura</th>
+          <th style="padding:8px;text-align:center;color:var(--green-dark);font-weight:600;">Pecho</th>
+          <th style="padding:8px;text-align:center;color:var(--green-dark);font-weight:600;">Bajo pecho</th>
+          <th style="padding:8px;text-align:center;color:var(--green-dark);font-weight:600;">Brazo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:var(--gray-light);">
+          <td style="padding:8px;font-weight:500;color:var(--text2);">Inicio (~abril)</td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">~104 kg</td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">—</td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">—</td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">—</td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">—</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:8px;font-weight:600;">6 junio ✅</td>
+          <td style="padding:8px;text-align:center;font-weight:600;color:var(--green-dark);">89,45 kg</td>
+          <td style="padding:8px;text-align:center;">142 cm</td>
+          <td style="padding:8px;text-align:center;">110 cm</td>
+          <td style="padding:8px;text-align:center;">103 cm</td>
+          <td style="padding:8px;text-align:center;">41 cm</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:8px;font-weight:600;">13 junio ✅</td>
+          <td style="padding:8px;text-align:center;font-weight:600;color:var(--green-dark);">88,5 kg<br><span style="font-size:10px;color:var(--green);">-0,95 kg</span></td>
+          <td style="padding:8px;text-align:center;">136 cm<br><span style="font-size:10px;color:var(--green);">-6 cm</span></td>
+          <td style="padding:8px;text-align:center;">108 cm<br><span style="font-size:10px;color:var(--green);">-2 cm</span></td>
+          <td style="padding:8px;text-align:center;">100 cm<br><span style="font-size:10px;color:var(--green);">-3 cm</span></td>
+          <td style="padding:8px;text-align:center;">~33,5 cm<br><span style="font-size:10px;color:var(--green);">-7,5 cm</span></td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:8px;font-weight:600;">20 junio ✅</td>
+          <td style="padding:8px;text-align:center;font-weight:600;color:var(--green-dark);">87,4 kg<br><span style="font-size:10px;color:var(--green);">-1,1 kg</span></td>
+          <td style="padding:8px;text-align:center;">106 cm*</td>
+          <td style="padding:8px;text-align:center;">108 cm</td>
+          <td style="padding:8px;text-align:center;">102 cm</td>
+          <td style="padding:8px;text-align:center;">34 cm</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:8px;font-weight:600;">🎯 30 junio ✅</td>
+          <td style="padding:8px;text-align:center;font-weight:600;color:var(--green-dark);">87,2 kg<br><span style="font-size:10px;color:var(--green);">-16,8 kg total</span></td>
+          <td style="padding:8px;text-align:center;">103 cm</td>
+          <td style="padding:8px;text-align:center;">106 cm</td>
+          <td style="padding:8px;text-align:center;">99/100 cm</td>
+          <td style="padding:8px;text-align:center;">33-34 cm</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);background:var(--amber-light);">
+          <td style="padding:8px;font-weight:500;color:var(--amber-dark);">Vacaciones 🏖️</td>
+          <td style="padding:8px;text-align:center;color:var(--amber-dark);">90,8 kg<br><span style="font-size:10px;">vuelta playa</span></td>
+          <td style="padding:8px;text-align:center;color:var(--amber-dark);">—</td>
+          <td style="padding:8px;text-align:center;color:var(--amber-dark);">—</td>
+          <td style="padding:8px;text-align:center;color:var(--amber-dark);">—</td>
+          <td style="padding:8px;text-align:center;color:var(--amber-dark);">—</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:8px;font-weight:600;">15 agosto ✅</td>
+          <td style="padding:8px;text-align:center;font-weight:600;color:var(--green-dark);">87,4 kg<br><span style="font-size:10px;color:var(--green);">-16,6 kg total</span></td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">por medir</td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">por medir</td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">por medir</td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">por medir</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:8px;font-weight:600;">22 agosto ✅</td>
+          <td style="padding:8px;text-align:center;font-weight:600;color:var(--green-dark);">86,35 kg<br><span style="font-size:10px;color:var(--green);">-1,05 kg</span></td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">por medir</td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">por medir</td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">por medir</td>
+          <td style="padding:8px;text-align:center;color:var(--text2);">por medir</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);background:var(--blue-light);">
+          <td style="padding:8px;font-weight:500;color:var(--blue-dark);">29 agosto 📝</td>
+          <td style="padding:8px;text-align:center;color:var(--blue-dark);">por medir</td>
+          <td style="padding:8px;text-align:center;color:var(--blue-dark);">por medir</td>
+          <td style="padding:8px;text-align:center;color:var(--blue-dark);">por medir</td>
+          <td style="padding:8px;text-align:center;color:var(--blue-dark);">por medir</td>
+          <td style="padding:8px;text-align:center;color:var(--blue-dark);">por medir</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DIFERENCIA ACUMULADA -->
+  <div class="card" style="margin-top:10px;">
+    <div class="card-title">💪 Lo que llevas conseguido</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="stat" style="border-left:3px solid var(--green);">
+        <div class="stat-label">Peso perdido</div>
+        <div class="stat-val" style="color:var(--green-dark);">-17,65 kg</div>
+        <div class="stat-sub">desde abril 🔥</div>
+      </div>
+      <div class="stat" style="border-left:3px solid var(--blue);">
+        <div class="stat-label">IMC actual</div>
+        <div class="stat-val" style="color:var(--blue-dark);">30,2</div>
+        <div class="stat-sub">bajando bien</div>
+      </div>
+      <div class="stat" style="border-left:3px solid var(--amber);">
+        <div class="stat-label">Objetivo 30 jun</div>
+        <div class="stat-val" style="color:var(--amber-dark);">~86 kg</div>
+        <div class="stat-sub">¡casi llegamos!</div>
+      </div>
+      <div class="stat" style="border-left:3px solid var(--purple);">
+        <div class="stat-label">Próx. revisión</div>
+        <div class="stat-val" style="color:var(--purple-dark);">Dic</div>
+        <div class="stat-sub">seguimos construyendo 💪</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTRUCCIONES MEDICION -->
+  <div class="card" style="margin-top:10px;">
+    <div class="card-title">📏 Cómo medirte correctamente</div>
+    <div class="stretch-item"><strong>Cuándo:</strong><div class="how">Siempre el sábado por la mañana, en ayunas, antes de beber nada. Después de ir al baño.</div></div>
+    <div class="stretch-item"><strong>Peso:</strong><div class="how">Sin ropa o con la misma cada vez. En el mismo sitio de la casa — el suelo puede variar.</div></div>
+    <div class="stretch-item"><strong>Cintura:</strong><div class="how">A la altura del ombligo, cinta paralela al suelo, sin meter tripa ni forzar. Exhala y mide.</div></div>
+    <div class="stretch-item"><strong>Pecho:</strong><div class="how">A la altura de los pezones, cinta paralela al suelo, respiración normal.</div></div>
+    <div class="stretch-item"><strong>Bajo pecho:</strong><div class="how">Justo debajo del pecho, donde termina la caja torácica.</div></div>
+    <div class="stretch-item"><strong>Brazo:</strong><div class="how">En el punto más ancho del bíceps, brazo relajado caído. Siempre el mismo brazo.</div></div>
+    <div class="tip blue" style="margin-top:8px;"><strong>* Nota medidas:</strong> medir con cinta en el mismo punto exacto cada vez es difícil. Las variaciones de 2-5 cm entre semanas son normales si el punto cambia. El peso es el indicador más fiable semana a semana.</div>
+    <div class="tip amber" style="margin-top:8px;"><strong>Importante:</strong> el peso puede variar 1-2 kg día a día por agua, sal y tránsito. Lo que importa es la tendencia semanal, no el número de cada día.</div>
+  </div>
+
+  <!-- PARA LA REVISION -->
+  <div class="card" style="margin-top:10px;border-left:3px solid var(--red);">
+    <div class="card-title" style="color:var(--red-dark);">🎯 Para la revisión del 30 de junio — qué llevar</div>
+    <div class="stretch-item"><strong>Este registro de medidas</strong><div class="how">La tabla de arriba con los 4 sábados completos.</div></div>
+    <div class="stretch-item"><strong>Peso de inicio vs peso actual</strong><div class="how">~104 kg en abril → lo que peses el 30 de junio. El dato más impactante.</div></div>
+    <div class="stretch-item"><strong>Ejercicio que haces</strong><div class="how">Elíptica 35-40 min · 3-4 días/semana · Comba días de descanso · Pesas cuando la espalda lo permita.</div></div>
+    <div class="stretch-item"><strong>Cambios en la dieta</strong><div class="how">Sin azúcar añadida · Sin alcohol · 5 comidas al día · Déficit de ~460 kcal · Danacol diario.</div></div>
+    <div class="stretch-item"><strong>Medicación</strong><div class="how">Las pastillas para triglicéridos que te recetaron — lleva el nombre y dosis.</div></div>
+  </div>
+</div>
+
+
+<!-- MACROS -->
+<div id="macros" class="section">
+  <div class="tip green"><strong>Tabla de macros por 100g de plato cocinado</strong><br>Valores aproximados ±10-15%. Para máxima precisión pesa los ingredientes clave antes de cocinar.</div>
+  <div class="tip blue" style="margin-top:8px;"><strong>Cómo usarla:</strong> Pesas el plato en gramos → divides entre 100 → multiplicas por los valores. Ejemplo: 350g de potaje → 350 ÷ 100 × 95 = 332 kcal.</div>
+
+  <div style="overflow-x:auto;margin-top:12px;">
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="background:var(--green-light);">
+          <th style="padding:8px 10px;text-align:left;color:var(--green-dark);font-weight:600;min-width:160px;">Plato</th>
+          <th style="padding:8px 6px;text-align:right;color:var(--green-dark);font-weight:600;">Kcal</th>
+          <th style="padding:8px 6px;text-align:right;color:var(--green-dark);font-weight:600;">Proteína</th>
+          <th style="padding:8px 6px;text-align:right;color:var(--green-dark);font-weight:600;">Hidratos</th>
+          <th style="padding:8px 6px;text-align:right;color:var(--green-dark);font-weight:600;">Azúcares</th>
+          <th style="padding:8px 6px;text-align:right;color:var(--green-dark);font-weight:600;">G.Sat.</th>
+          <th style="padding:8px 6px;text-align:right;color:var(--green-dark);font-weight:600;">Fibra</th>
+          <th style="padding:8px 6px;text-align:right;color:var(--green-dark);font-weight:600;">Sal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="8" style="padding:8px 10px;font-size:11px;font-weight:600;color:var(--text2);background:var(--bg2);letter-spacing:0.04em;">LEGUMBRES</td></tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Lentejas con zanahoria</strong><div style="font-size:10px;color:var(--text2);">ración ~300g = ~285 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">95</td><td style="padding:7px 6px;text-align:right;">6g</td><td style="padding:7px 6px;text-align:right;">13g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,2g</td><td style="padding:7px 6px;text-align:right;">4g</td><td style="padding:7px 6px;text-align:right;">0,3g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Garbanzos con champiñones</strong><div style="font-size:10px;color:var(--text2);">ración ~300g = ~285 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">95</td><td style="padding:7px 6px;text-align:right;">6g</td><td style="padding:7px 6px;text-align:right;">12g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,2g</td><td style="padding:7px 6px;text-align:right;">4g</td><td style="padding:7px 6px;text-align:right;">0,3g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Potaje garbanzos + espinacas</strong><div style="font-size:10px;color:var(--text2);">ración ~300g = ~255 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">85</td><td style="padding:7px 6px;text-align:right;">5g</td><td style="padding:7px 6px;text-align:right;">11g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,2g</td><td style="padding:7px 6px;text-align:right;">4g</td><td style="padding:7px 6px;text-align:right;">0,3g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Alubias blancas con pimiento</strong><div style="font-size:10px;color:var(--text2);">ración ~300g = ~270 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">90</td><td style="padding:7px 6px;text-align:right;">5g</td><td style="padding:7px 6px;text-align:right;">13g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,1g</td><td style="padding:7px 6px;text-align:right;">4g</td><td style="padding:7px 6px;text-align:right;">0,3g</td>
+        </tr>
+
+        <tr><td colspan="8" style="padding:8px 10px;font-size:11px;font-weight:600;color:var(--text2);background:var(--bg2);letter-spacing:0.04em;">ARROCES Y PASTAS</td></tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Arroz caldoso con pollo</strong><div style="font-size:10px;color:var(--text2);">ración ~350g = ~350 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">100</td><td style="padding:7px 6px;text-align:right;">7g</td><td style="padding:7px 6px;text-align:right;">15g</td><td style="padding:7px 6px;text-align:right;">0,5g</td><td style="padding:7px 6px;text-align:right;">0,3g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,4g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Arroz salteado con verduras</strong><div style="font-size:10px;color:var(--text2);">ración ~300g = ~285 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">95</td><td style="padding:7px 6px;text-align:right;">4g</td><td style="padding:7px 6px;text-align:right;">17g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,2g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">0,3g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Pasta con atún al natural</strong><div style="font-size:10px;color:var(--text2);">ración ~300g = ~330 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">110</td><td style="padding:7px 6px;text-align:right;">9g</td><td style="padding:7px 6px;text-align:right;">15g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,3g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">0,5g</td>
+        </tr>
+
+        <tr><td colspan="8" style="padding:8px 10px;font-size:11px;font-weight:600;color:var(--text2);background:var(--bg2);letter-spacing:0.04em;">PROTEÍNAS PRINCIPALES</td></tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Pollo al limón</strong><div style="font-size:10px;color:var(--text2);">ración 150g = ~195 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">130</td><td style="padding:7px 6px;text-align:right;">23g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0g</td><td style="padding:7px 6px;text-align:right;">0,5g</td><td style="padding:7px 6px;text-align:right;">0g</td><td style="padding:7px 6px;text-align:right;">0,4g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Pollo mostaza y limón</strong><div style="font-size:10px;color:var(--text2);">ración 150g = ~200 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">133</td><td style="padding:7px 6px;text-align:right;">23g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">0g</td><td style="padding:7px 6px;text-align:right;">0,5g</td><td style="padding:7px 6px;text-align:right;">0g</td><td style="padding:7px 6px;text-align:right;">0,5g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Merluza a la plancha</strong><div style="font-size:10px;color:var(--text2);">ración 150g = ~135 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">90</td><td style="padding:7px 6px;text-align:right;">18g</td><td style="padding:7px 6px;text-align:right;">0g</td><td style="padding:7px 6px;text-align:right;">0g</td><td style="padding:7px 6px;text-align:right;">0,2g</td><td style="padding:7px 6px;text-align:right;">0g</td><td style="padding:7px 6px;text-align:right;">0,3g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Bacalao a la plancha</strong><div style="font-size:10px;color:var(--text2);">ración 150g = ~120 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">80</td><td style="padding:7px 6px;text-align:right;">18g</td><td style="padding:7px 6px;text-align:right;">0g</td><td style="padding:7px 6px;text-align:right;">0g</td><td style="padding:7px 6px;text-align:right;">0,1g</td><td style="padding:7px 6px;text-align:right;">0g</td><td style="padding:7px 6px;text-align:right;">0,8g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Solomillo de cerdo con manzana</strong><div style="font-size:10px;color:var(--text2);">ración 150g = ~225 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">150</td><td style="padding:7px 6px;text-align:right;">20g</td><td style="padding:7px 6px;text-align:right;">5g</td><td style="padding:7px 6px;text-align:right;">4g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,5g</td><td style="padding:7px 6px;text-align:right;">0,4g</td>
+        </tr>
+
+        <tr><td colspan="8" style="padding:8px 10px;font-size:11px;font-weight:600;color:var(--text2);background:var(--bg2);letter-spacing:0.04em;">TORTILLAS Y HUEVOS</td></tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Tortilla de patata con cebolla</strong><div style="font-size:10px;color:var(--text2);">ración ~200g = ~280 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">140</td><td style="padding:7px 6px;text-align:right;">8g</td><td style="padding:7px 6px;text-align:right;">12g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">1,5g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,5g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Revuelto guisantes con jamón</strong><div style="font-size:10px;color:var(--text2);">ración ~250g = ~300 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">120</td><td style="padding:7px 6px;text-align:right;">10g</td><td style="padding:7px 6px;text-align:right;">5g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">0,6g</td>
+        </tr>
+
+        <tr><td colspan="8" style="padding:8px 10px;font-size:11px;font-weight:600;color:var(--text2);background:var(--bg2);letter-spacing:0.04em;">VERDURAS DE ACOMPAÑAMIENTO</td></tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Espinacas salteadas con ajo</strong><div style="font-size:10px;color:var(--text2);">ración 150g = ~60 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">40</td><td style="padding:7px 6px;text-align:right;">3g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">0,5g</td><td style="padding:7px 6px;text-align:right;">0,2g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">0,2g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Champiñones al ajillo</strong><div style="font-size:10px;color:var(--text2);">ración 150g = ~75 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">50</td><td style="padding:7px 6px;text-align:right;">3g</td><td style="padding:7px 6px;text-align:right;">3g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,2g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,2g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Judías verdes salteadas</strong><div style="font-size:10px;color:var(--text2);">ración 150g = ~60 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">40</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">5g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">0,1g</td><td style="padding:7px 6px;text-align:right;">3g</td><td style="padding:7px 6px;text-align:right;">0,1g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Pimientos asados</strong><div style="font-size:10px;color:var(--text2);">ración 150g = ~45 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">30</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">5g</td><td style="padding:7px 6px;text-align:right;">4g</td><td style="padding:7px 6px;text-align:right;">0,1g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">0,1g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Tomate aliñado con aceite</strong><div style="font-size:10px;color:var(--text2);">ración 150g = ~75 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">50</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">4g</td><td style="padding:7px 6px;text-align:right;">3g</td><td style="padding:7px 6px;text-align:right;">0,2g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,1g</td>
+        </tr>
+
+        <tr><td colspan="8" style="padding:8px 10px;font-size:11px;font-weight:600;color:var(--text2);background:var(--bg2);letter-spacing:0.04em;">PLATOS NUEVOS AGOSTO</td></tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Poke bowl de pollo</strong><div style="font-size:10px;color:var(--text2);">ración ~350g = ~420 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">120</td><td style="padding:7px 6px;text-align:right;">10g</td><td style="padding:7px 6px;text-align:right;">13g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,5g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">0,3g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Hamburguesa casera de pollo</strong><div style="font-size:10px;color:var(--text2);">ración ~200g = ~360 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">180</td><td style="padding:7px 6px;text-align:right;">18g</td><td style="padding:7px 6px;text-align:right;">14g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">1g</td><td style="padding:7px 6px;text-align:right;">0,6g</td>
+        </tr>
+
+        <tr><td colspan="8" style="padding:8px 10px;font-size:11px;font-weight:600;color:var(--text2);background:var(--bg2);letter-spacing:0.04em;">DESAYUNO Y MERIENDAS</td></tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Tostada integral + tomate + AOVE</strong><div style="font-size:10px;color:var(--text2);">40g pan + tomate + aceite = ~160 kcal total</div></td>
+          <td style="padding:7px 6px;text-align:right;">—</td><td style="padding:7px 6px;text-align:right;">5g</td><td style="padding:7px 6px;text-align:right;">22g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">0,5g</td><td style="padding:7px 6px;text-align:right;">3g</td><td style="padding:7px 6px;text-align:right;">0,3g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Batido de fresas con leche desnatada</strong><div style="font-size:10px;color:var(--text2);">150g fresas + 200ml leche = ~110 kcal total</div></td>
+          <td style="padding:7px 6px;text-align:right;">—</td><td style="padding:7px 6px;text-align:right;">7g</td><td style="padding:7px 6px;text-align:right;">16g</td><td style="padding:7px 6px;text-align:right;">13g</td><td style="padding:7px 6px;text-align:right;">0,1g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">0,1g</td>
+        </tr>
+        <tr style="border-bottom:.5px solid var(--border);">
+          <td style="padding:7px 10px;"><strong>Whey protein 2 scoops con agua</strong><div style="font-size:10px;color:var(--text2);">30g polvo + 250ml agua = ~120 kcal total</div></td>
+          <td style="padding:7px 6px;text-align:right;">—</td><td style="padding:7px 6px;text-align:right;">30,5g</td><td style="padding:7px 6px;text-align:right;">4g</td><td style="padding:7px 6px;text-align:right;">3g</td><td style="padding:7px 6px;text-align:right;">0,7g</td><td style="padding:7px 6px;text-align:right;">0,5g</td><td style="padding:7px 6px;text-align:right;">0,5g</td>
+        </tr>
+        <tr>
+          <td style="padding:7px 10px;"><strong>Frutos secos (nueces/almendras)</strong><div style="font-size:10px;color:var(--text2);">ración 30g = ~180 kcal</div></td>
+          <td style="padding:7px 6px;text-align:right;">600</td><td style="padding:7px 6px;text-align:right;">15g</td><td style="padding:7px 6px;text-align:right;">10g</td><td style="padding:7px 6px;text-align:right;">2g</td><td style="padding:7px 6px;text-align:right;">4g</td><td style="padding:7px 6px;text-align:right;">6g</td><td style="padding:7px 6px;text-align:right;">0g</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="tip amber" style="margin-top:10px;"><strong>Para no obsesionarse:</strong> pesa solo los ingredientes con más calorías — aceite (1 cucharada = ~90 kcal), proteína (pollo, pescado) y legumbre. El resto es marginal.</div>
+</div>
+
+
+<script>
+const data={
+  verduras:["Tomates (2 kg)","Zanahoria (1 kg)","Cebolla (1 kg)","Pimiento rojo (8 unid)","Pimiento verde (4 unid)","Champiñones (500g)","Espinacas congeladas (400g)","Judías verdes (500g)","Ajo (1 cabeza)","Puerro (2 unid)","Patata (1 kg)","Berenjena (2 unid grandes)"],
+  frutas:["Manzanas (2 kg)","Mandarinas (2 kg)","Peras (6 unid)","Plátanos (para pre-ejercicio)"],
+  proteinas:["Pechuga pollo (800g)","Solomillo de cerdo (400g)","Merluza fresca o filetes (600g)","Bacalao (400g)","Huevos (1 docena)","Pavo bajo en sal lonchas (200g)","Flan proteico (pack)"],
+  lacteos:["Yogur desnatado (16 unid)","Queso fresco desnatado (4 porciones)"],
+  despensa:["Lentejas (500g)","Garbanzos bote (2 unid)","Alubias blancas bote (2 unid)","Arroz integral (500g)","Espaguetis integrales (500g)","Macarrones integrales (500g)","Edamame congelado (400g)","Guisantes congelados (400g)"],
+  basicos:["Pan integral","Biscotes integrales (1 caja)","Aceite oliva virgen extra","Pimentón ahumado","Caldo verduras brick bajo sal (2 unid)","Tomate triturado natural (2 botes)","Frutos secos sin sal (nueces/almendras)","Miel (tarro pequeño)","Canela molida","Limones (4 unid)","Orégano","Laurel","Vinagre de manzana","Atún al natural en lata (4 latas)","Harina integral (pequeña)","Leche desnatada (1 litro)","Nuez moscada"],
+  congelados:["✓ Migas de bacalao (ya tienes)","✓ Filetes merluza sin rebozar (ya tienes)","✓ Anillas de calamar (ya tienes)","✓ Gambas peladas (ya tienes)","✓ Boniato congelado (ya tienes)","✓ Espinacas congeladas (opcional)"]
+};
+const checked={};
+function buildList(key){
+  const el=document.getElementById('list-'+key);
+  if(!el)return;
+  const frozen=key==='congelados';
+  el.innerHTML=data[key].map((item,i)=>{
+    const id=key+'_'+i;
+    const done=frozen||checked[id];
+    return `<div class="shop-item" data-id="${id}" data-frozen="${frozen}">
+      <div class="shop-cb ${done?'done':''}" id="cb_${id}">${done?'✓':''}</div>
+      <span class="shop-name ${done?'done':''}" id="nm_${id}">${item}</span>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.shop-item').forEach(row=>{
+    if(row.dataset.frozen==='true')return;
+    row.addEventListener('click',()=>toggle(row.dataset.id));
+  });
+}
+function toggle(id){
+  checked[id]=!checked[id];
+  const cb=document.getElementById('cb_'+id);
+  const nm=document.getElementById('nm_'+id);
+  if(checked[id]){cb.classList.add('done');cb.textContent='✓';nm.classList.add('done');}
+  else{cb.classList.remove('done');cb.textContent='';nm.classList.remove('done');}
+}
+function resetAll(){
+  Object.keys(checked).forEach(k=>delete checked[k]);
+  Object.keys(data).forEach(k=>buildList(k));
+}
+function toggleAcc(btn) {
+  const body = btn.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  btn.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+function showEx(id,btn){
+  document.querySelectorAll(".ex-section").forEach(s=>s.classList.remove("visible"));
+  document.querySelectorAll(".ex-tab").forEach(t=>t.classList.remove("active"));
+  document.getElementById("ex-"+id).classList.add("visible");
+  btn.classList.add("active");
+}
+function show(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('visible');
+  btn.classList.add('active');
+  if(id==='compra')Object.keys(data).forEach(k=>buildList(k));
+}
+</script>
+</body>
+</html>

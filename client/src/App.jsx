@@ -251,6 +251,8 @@ export default function App() {
     return acc
   }, { kcal: 0, protein: 0, satfat: 0, carbs: 0, sugar: 0, fiber: 0, salt: 0 })
 
+  const over = totals.kcal > goal
+
   if (!token) return <Login onLogin={handleLogin} />
 
   return (
