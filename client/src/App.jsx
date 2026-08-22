@@ -24,6 +24,7 @@ const CATEGORIES = [
   { key: 'bebidas', label: '🥤 Bebidas' },
   { key: 'snacks', label: '🍿 Snacks' },
   { key: 'salsas', label: '🫙 Salsas' },
+  { key: 'platos', label: '🥘 Platos completos' },
   { key: 'otros', label: '📦 Otros' },
 ]
 
@@ -34,6 +35,8 @@ const MACRO_GOALS = {
   salt: 5,
   fiber: 30,
 }
+
+const PLAN_USERS = ['Daniel', 'daniel']
 
 const C = {
   bg: '#F7F7F5',
@@ -148,9 +151,12 @@ export default function App() {
   const [showOcr, setShowOcr] = useState(false)
   const [savingGoal, setSavingGoal] = useState(false)
   const [editEntry, setEditEntry] = useState(null)
+  const [editFood, setEditFood] = useState(null)
   const [filterCategory, setFilterCategory] = useState('todos')
   const [catalogSearch, setCatalogSearch] = useState('')
   const [editGoal, setEditGoal] = useState(false)
+
+  const canSeePlan = PLAN_USERS.includes(username)
 
   function handleLogin(tkn, user) { setToken(tkn); setUsername(user) }
   function handleLogout() {
@@ -192,45 +198,27 @@ export default function App() {
 
   async function addFood(e) {
     e.preventDefault()
-    const res = await fetch(`${API}/foods`, {
-      method: 'POST', headers: getHeaders(),
-      body: JSON.stringify({
-        ...newFood,
-        kcal100: parseFloat(newFood.kcal100) || 0,
-        protein100: parseFloat(newFood.protein100) || 0,
-        satfat100: parseFloat(newFood.satfat100) || 0,
-        carbs100: parseFloat(newFood.carbs100) || 0,
-        sugar100: parseFloat(newFood.sugar100) || 0,
-        fiber100: parseFloat(newFood.fiber100) || 0,
-        salt100: parseFloat(newFood.salt100) || 0,
-      })
-    })
-    if (res.ok) { setNewFood(EMPTY_FOOD); setShowFoodForm(false); loadFoods() }
-  }
+    const payload = {
+      ...newFood,
+      kcal100: parseFloat(newFood.kcal100) || 0,
+      protein100: parseFloat(newFood.protein100) || 0,
+      satfat100: parseFloat(newFood.satfat100) || 0,
+      carbs100: parseFloat(newFood.carbs100) || 0,
+      sugar100: parseFloat(newFood.sugar100) || 0,
+      fiber100: parseFloat(newFood.fiber100) || 0,
+      salt100: parseFloat(newFood.salt100) || 0,
+    }
 
-async function handleOcrResult(data) {
-  const { name, ...nutrition } = data
-  const res = await fetch(`${API}/foods`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({
-      name,
-      unit: 'g',
-      category: 'otros',
-      kcal100: parseFloat(nutrition.kcal100) || 0,
-      protein100: parseFloat(nutrition.protein100) || 0,
-      satfat100: parseFloat(nutrition.satfat100) || 0,
-      carbs100: parseFloat(nutrition.carbs100) || 0,
-      sugar100: parseFloat(nutrition.sugar100) || 0,
-      fiber100: parseFloat(nutrition.fiber100) || 0,
-      salt100: parseFloat(nutrition.salt100) || 0,
-    })
-  })
-  if (res.ok) {
-    setShowOcr(false)
+    if (editFood) {
+      await fetch(`${API}/foods/${editFood.id}`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify(payload) })
+      setEditFood(null)
+    } else {
+      await fetch(`${API}/foods`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) })
+    }
+    setNewFood(EMPTY_FOOD)
+    setShowFoodForm(false)
     loadFoods()
   }
-}
 
   async function addEntry(e) {
     e.preventDefault()
@@ -261,6 +249,38 @@ async function handleOcrResult(data) {
     loadFoods()
   }
 
+  async function handleOcrResult(data) {
+    const { name, category, unit, ...nutrition } = data
+    const res = await fetch(`${API}/foods`, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({
+        name, unit: unit || 'g', category: category || 'otros',
+        kcal100: parseFloat(nutrition.kcal100) || 0,
+        protein100: parseFloat(nutrition.protein100) || 0,
+        satfat100: parseFloat(nutrition.satfat100) || 0,
+        carbs100: parseFloat(nutrition.carbs100) || 0,
+        sugar100: parseFloat(nutrition.sugar100) || 0,
+        fiber100: parseFloat(nutrition.fiber100) || 0,
+        salt100: parseFloat(nutrition.salt100) || 0,
+      })
+    })
+    if (res.ok) { setShowOcr(false); loadFoods() }
+  }
+
+  function startEditFood(f) {
+    setEditFood(f)
+    setNewFood({
+      name: f.name, unit: f.unit, category: f.category || 'otros',
+      kcal100: String(f.kcal100), protein100: String(f.protein100),
+      satfat100: String(f.satfat100), carbs100: String(f.carbs100),
+      sugar100: String(f.sugar100), fiber100: String(f.fiber100),
+      salt100: String(f.salt100), vitamins: f.vitamins || ''
+    })
+    setShowFoodForm(true)
+    setShowOcr(false)
+    window.scrollTo(0, 0)
+  }
+
   function startEdit(e) {
     setEditEntry(e)
     setSelectedFood({ id: e.food_id, name: e.name, unit: e.unit, kcal100: e.kcal100, protein100: e.protein100, satfat100: e.satfat100, carbs100: e.carbs100, sugar100: e.sugar100, fiber100: e.fiber100, salt100: e.salt100 })
@@ -271,20 +291,12 @@ async function handleOcrResult(data) {
   }
 
   function openMealAdd(mealKey) {
-    setActiveMeal(mealKey)
-    setSelectedFood(null)
-    setSearch('')
-    setAmount('')
-    setEditEntry(null)
+    setActiveMeal(mealKey); setSelectedFood(null); setSearch(''); setAmount(''); setEditEntry(null)
     window.scrollTo(0, 0)
   }
 
   function cancelAdd() {
-    setActiveMeal(null)
-    setSelectedFood(null)
-    setSearch('')
-    setAmount('')
-    setEditEntry(null)
+    setActiveMeal(null); setSelectedFood(null); setSearch(''); setAmount(''); setEditEntry(null)
   }
 
   const filtered = foods.filter(f => f.name.toLowerCase().includes(search.toLowerCase()))
@@ -305,6 +317,9 @@ async function handleOcrResult(data) {
     acc.salt += e.salt100 * f
     return acc
   }, { kcal: 0, protein: 0, satfat: 0, carbs: 0, sugar: 0, fiber: 0, salt: 0 })
+
+  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo']]
+  if (canSeePlan) tabs.push(['plan', 'Mi Plan'])
 
   if (!token) return <Login onLogin={handleLogin} />
 
@@ -327,7 +342,7 @@ async function handleOcrResult(data) {
           </div>
         </div>
 
-        {/* Tarjeta principal con círculo */}
+        {/* Tarjeta principal */}
         <div style={{ background: C.white, margin: '16px 16px 0', borderRadius: 24, padding: '24px 20px', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <div style={{ textAlign: 'left' }}>
@@ -352,7 +367,6 @@ async function handleOcrResult(data) {
             </div>
           </div>
 
-          {/* Macros con barras de progreso */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
             <MacroBar label="Proteína" value={totals.protein} goal={MACRO_GOALS.protein} color={C.blue} bg={C.blueLight} />
             <MacroBar label="Hidratos" value={totals.carbs} goal={MACRO_GOALS.carbs} color={C.yellow} bg={C.yellowLight} />
@@ -360,7 +374,6 @@ async function handleOcrResult(data) {
             <MacroBar label="Sal" value={totals.salt} goal={MACRO_GOALS.salt} color={C.purple} bg={C.purpleLight} />
           </div>
 
-          {/* Fibra aparte — secundaria */}
           <div style={{ marginTop: 8, background: C.tealLight, borderRadius: 14, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 11, color: C.teal, fontWeight: 700 }}>Fibra</div>
             <div style={{ flex: 1, margin: '0 10px', height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 99, overflow: 'hidden' }}>
@@ -372,7 +385,7 @@ async function handleOcrResult(data) {
 
         {/* Tabs */}
         <div style={{ display: 'flex', margin: '16px 16px 0', background: C.white, borderRadius: 16, padding: 4, gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-          {[['registro', 'Registro'], ['catalogo', 'Catálogo'], ['plan', 'Mi Plan']].map(([key, label]) => (
+          {tabs.map(([key, label]) => (
             <button key={key} onClick={() => setView(key)} style={{
               flex: 1, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12,
               background: view === key ? C.accent : 'transparent',
@@ -498,32 +511,28 @@ async function handleOcrResult(data) {
         {/* Vista Catálogo */}
         {view === 'catalogo' && (
           <div style={{ padding: '12px 16px 0' }}>
-            <button onClick={() => setShowFoodForm(!showFoodForm)} style={{
-              width: '100%', padding: '14px', background: showFoodForm ? C.bg : C.accent, color: showFoodForm ? C.muted : '#fff',
-              border: showFoodForm ? `1px solid ${C.border}` : 'none', borderRadius: 16, fontWeight: 700, fontSize: 14, cursor: 'pointer', marginBottom: 12
-            }}>
-              {showFoodForm ? '✕ Cancelar' : '+ Añadir nuevo alimento'}
-              {!showFoodForm && (
-              <button onClick={() => setShowOcr(!showOcr)} style={{
-                width: '100%', padding: '14px', background: showOcr ? C.bg : C.white,
-                color: C.accent, border: `1.5px solid ${C.accent}`,
-                borderRadius: 16, fontWeight: 700, fontSize: 14, cursor: 'pointer', marginBottom: 12
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              <button onClick={() => { setShowFoodForm(!showFoodForm); setShowOcr(false); setEditFood(null); setNewFood(EMPTY_FOOD) }} style={{
+                flex: 1, padding: '14px', background: showFoodForm ? C.bg : C.accent, color: showFoodForm ? C.muted : '#fff',
+                border: showFoodForm ? `1px solid ${C.border}` : 'none', borderRadius: 16, fontWeight: 700, fontSize: 13, cursor: 'pointer'
               }}>
-                {showOcr ? '✕ Cancelar escaneo' : '📷 Escanear etiqueta'}
+                {showFoodForm ? '✕ Cancelar' : '+ Añadir alimento'}
               </button>
-            )}
+              <button onClick={() => { setShowOcr(!showOcr); setShowFoodForm(false) }} style={{
+                flex: 1, padding: '14px', background: showOcr ? C.bg : C.white, color: C.accent,
+                border: `1.5px solid ${C.accent}`, borderRadius: 16, fontWeight: 700, fontSize: 13, cursor: 'pointer'
+              }}>
+                {showOcr ? '✕ Cancelar' : '📷 Escanear'}
+              </button>
+            </div>
 
-            {showOcr && (
-              <OcrScanner
-                onResult={handleOcrResult}
-                onClose={() => setShowOcr(false)}
-              />
-            )}
-            </button>
+            {showOcr && <OcrScanner onResult={handleOcrResult} onClose={() => setShowOcr(false)} />}
 
             {showFoodForm && (
               <form onSubmit={addFood} style={{ background: C.white, borderRadius: 20, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 14 }}>Nuevo alimento — valores por 100g/ml</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 14 }}>
+                  {editFood ? `Editando: ${editFood.name}` : 'Nuevo alimento — valores por 100g/ml'}
+                </div>
                 <div style={{ marginBottom: 10 }}>
                   <Label>Nombre</Label>
                   <input type="text" value={newFood.name} placeholder="Ej: Leche entera"
@@ -566,7 +575,7 @@ async function handleOcrResult(data) {
                   </div>
                 </div>
                 <button type="submit" style={{ width: '100%', marginTop: 14, padding: '13px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
-                  Guardar alimento
+                  {editFood ? 'Guardar cambios' : 'Guardar alimento'}
                 </button>
               </form>
             )}
@@ -604,15 +613,18 @@ async function handleOcrResult(data) {
                       {f.kcal100} kcal · P:{f.protein100}g · H:{f.carbs100}g · Az:{f.sugar100}g · Sat:{f.satfat100}g · Sal:{f.salt100}g
                     </div>
                   </div>
-                  <button onClick={() => deleteFood(f.id)} style={{ border: 'none', background: C.redLight, color: C.red, cursor: 'pointer', borderRadius: 8, width: 28, height: 28, fontSize: 14, marginLeft: 8 }}>✕</button>
+                  <div style={{ display: 'flex', gap: 6, marginLeft: 8 }}>
+                    <button onClick={() => startEditFood(f)} style={{ border: 'none', background: C.blueLight, color: C.blue, cursor: 'pointer', borderRadius: 8, width: 28, height: 28, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✏️</button>
+                    <button onClick={() => deleteFood(f.id)} style={{ border: 'none', background: C.redLight, color: C.red, cursor: 'pointer', borderRadius: 8, width: 28, height: 28, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                  </div>
                 </div>
               ))
             }
           </div>
         )}
 
-        {/* Vista Mi Plan */}
-        {view === 'plan' && (
+        {/* Vista Mi Plan — solo para Daniel */}
+        {view === 'plan' && canSeePlan && (
           <div style={{ padding: '12px 16px 0' }}>
             <div style={{ background: C.white, borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
               <iframe

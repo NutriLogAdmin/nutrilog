@@ -37,6 +37,17 @@ router.delete('/:id', async (req, res) => {
   res.json({ ok: true })
 })
 
+// Editar alimento del catálogo
+router.put('/:id', async (req, res) => {
+  const { name, unit, kcal100, protein100, satfat100, carbs100, sugar100, fiber100, salt100, vitamins, category } = req.body
+  await pool.query(`
+    UPDATE foods SET name=$1, unit=$2, kcal100=$3, protein100=$4, satfat100=$5,
+    carbs100=$6, sugar100=$7, fiber100=$8, salt100=$9, vitamins=$10, category=$11
+    WHERE id=$12
+  `, [name, unit, kcal100, protein100, satfat100, carbs100, sugar100, fiber100, salt100, vitamins, category, req.params.id])
+  res.json({ ok: true })
+})
+
 // Obtener entradas de un día — filtradas por usuario
 router.get('/entries', async (req, res) => {
   const { date } = req.query
