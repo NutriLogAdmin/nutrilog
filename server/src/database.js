@@ -1,52 +1,54 @@
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
+const { Pool } = require('pg')
 
-const dataDir = path.join(__dirname, '../../data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+})
+
+async function initDB() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS foods (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      unit TEXT DEFAULT 'g',
+      kcal100 REAL NOT NULL,
+      protein100 REAL NOT NULL DEFAULT 0,
+      satfat100 REAL NOT NULL DEFAULT 0,
+      carbs100 REAL NOT NULL DEFAULT 0,
+      sugar100 REAL NOT NULL DEFAULT 0,
+      fiber100 REAL NOT NULL DEFAULT 0,
+      salt100 REAL NOT NULL DEFAULT 0,
+      vitamins TEXT DEFAULT '',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS entries (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      food_id INTEGER NOT NULL REFERENCES foods(id),
+      amount REAL NOT NULL,
+      date TEXT NOT NULL,
+      time TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS daily_goals (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      date TEXT NOT NULL,
+      kcal_goal REAL NOT NULL DEFAULT 2500,
+      UNIQUE(user_id, date)
+    );
+  `)
+  console.log('Base de datos PostgreSQL inicializada')
 }
 
-const db = new Database(path.join(dataDir, 'nutrilog.db'));
+initDB().catch(console.error)
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS foods (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    unit TEXT DEFAULT 'g',
-    kcal100 REAL NOT NULL,
-    protein100 REAL NOT NULL DEFAULT 0,
-    satfat100 REAL NOT NULL DEFAULT 0,
-    carbs100 REAL NOT NULL DEFAULT 0,
-    sugar100 REAL NOT NULL DEFAULT 0,
-    fiber100 REAL NOT NULL DEFAULT 0,
-    salt100 REAL NOT NULL DEFAULT 0,
-    vitamins TEXT DEFAULT '',
-    created_at TEXT DEFAULT (datetime('now'))
-  );
-
-  CREATE TABLE IF NOT EXISTS entries (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    food_id INTEGER NOT NULL,
-    amount REAL NOT NULL,
-    date TEXT NOT NULL,
-    time TEXT NOT NULL,
-    FOREIGN KEY (food_id) REFERENCES foods(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS daily_goals (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT UNIQUE NOT NULL,
-    kcal_goal REAL NOT NULL DEFAULT 2500
-  );
-
-    CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    created_at TEXT DEFAULT (datetime('now'))
-  );
-
-`);
-
-module.exports = db;
+module.exports = pool
