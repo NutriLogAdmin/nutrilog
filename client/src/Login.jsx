@@ -1,13 +1,19 @@
+import { useState } from 'react'
+
 const C = {
-  bg: '#0F0F0F',
-  surface: '#1A1A1A',
-  surface2: '#242424',
-  border: '#2E2E2E',
-  accent: '#6C63FF',
-  red: '#EF4444',
-  text: '#F5F5F5',
+  bg: '#F7F7F5',
+  white: '#FFFFFF',
+  border: '#EBEBEB',
+  text: '#1A1A1A',
   muted: '#888',
+  accent: '#FF6B35',
+  accentLight: '#FFF0EB',
+  accentMid: '#FFB39A',
+  red: '#EF4444',
+  redLight: '#FEF2F2',
 }
+
+const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState('')
@@ -15,8 +21,6 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [mode, setMode] = useState('login')
-
-  const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -29,15 +33,13 @@ export default function Login({ onLogin }) {
         body: JSON.stringify({ username, password })
       })
       const data = await res.json()
-      if (!res.ok) {
-        setError(data.error || 'Error al conectar')
-        return
-      }
+      if (!res.ok) { setError(data.error || 'Error al conectar'); setLoading(false); return }
       if (mode === 'register') {
         setMode('login')
         setError('')
         setUsername('')
         setPassword('')
+        setLoading(false)
         return
       }
       localStorage.setItem('nutrilog_token', data.token)
@@ -51,22 +53,31 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-      <div style={{ width: '100%', maxWidth: 380, padding: '0 20px' }}>
+    <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', padding: '20px' }}>
+      <div style={{ width: '100%', maxWidth: 380 }}>
+
+        {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ fontSize: 11, letterSpacing: 3, color: C.accent, fontWeight: 700, textTransform: 'uppercase' }}>Bienvenido a</div>
-          <div style={{ fontSize: 36, fontWeight: 900, color: C.text, marginTop: 4 }}>NutriLog</div>
+          <div style={{ width: 64, height: 64, borderRadius: 20, background: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 28 }}>
+            🥗
+          </div>
+          <div style={{ fontSize: 10, letterSpacing: 3, color: C.accent, fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Bienvenido a</div>
+          <div style={{ fontSize: 32, fontWeight: 800, color: C.text }}>NutriLog</div>
           <div style={{ fontSize: 13, color: C.muted, marginTop: 6 }}>Seguimiento nutricional personal</div>
         </div>
 
-        <div style={{ background: C.surface, borderRadius: 20, padding: 24, border: `1px solid ${C.border}` }}>
-          <div style={{ display: 'flex', marginBottom: 20, background: C.surface2, borderRadius: 10, padding: 4, gap: 4 }}>
+        {/* Card */}
+        <div style={{ background: C.white, borderRadius: 24, padding: 24, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+
+          {/* Tabs modo */}
+          <div style={{ display: 'flex', background: C.bg, borderRadius: 14, padding: 4, gap: 4, marginBottom: 20 }}>
             {[['login', 'Entrar'], ['register', 'Registrarse']].map(([key, label]) => (
               <button key={key} onClick={() => { setMode(key); setError('') }} style={{
-                flex: 1, padding: '8px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                border: 'none', borderRadius: 7,
+                flex: 1, padding: '9px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                border: 'none', borderRadius: 10,
                 background: mode === key ? C.accent : 'transparent',
-                color: mode === key ? '#fff' : C.muted
+                color: mode === key ? '#fff' : C.muted,
+                transition: 'all 0.2s'
               }}>{label}</button>
             ))}
           </div>
@@ -74,37 +85,34 @@ export default function Login({ onLogin }) {
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Usuario</div>
-              <input
-                type="text" value={username} onChange={e => setUsername(e.target.value)}
+              <input type="text" value={username} onChange={e => setUsername(e.target.value)}
                 placeholder="Tu nombre de usuario" autoFocus
-                style={{ width: '100%', background: C.surface2, border: `1px solid ${C.border}`, color: C.text, padding: '12px 14px', borderRadius: 10, fontSize: 15, boxSizing: 'border-box' }}
-              />
+                style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '12px 14px', borderRadius: 12, fontSize: 15, boxSizing: 'border-box' }} />
             </div>
+
             <div style={{ marginBottom: 20 }}>
               <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Contraseña</div>
-              <input
-                type="password" value={password} onChange={e => setPassword(e.target.value)}
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                 placeholder="Tu contraseña"
-                style={{ width: '100%', background: C.surface2, border: `1px solid ${C.border}`, color: C.text, padding: '12px 14px', borderRadius: 10, fontSize: 15, boxSizing: 'border-box' }}
-              />
+                style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '12px 14px', borderRadius: 12, fontSize: 15, boxSizing: 'border-box' }} />
             </div>
 
             {error && (
-              <div style={{ background: '#2D1515', border: `1px solid ${C.red}`, borderRadius: 8, padding: '10px 14px', fontSize: 13, color: C.red, marginBottom: 16 }}>
+              <div style={{ background: C.redLight, border: `1px solid ${C.red}`, borderRadius: 10, padding: '10px 14px', fontSize: 13, color: C.red, marginBottom: 16 }}>
                 {error}
               </div>
             )}
 
             {mode === 'register' && !error && (
-              <div style={{ background: '#1A1A2D', border: `1px solid ${C.accent}`, borderRadius: 8, padding: '10px 14px', fontSize: 13, color: C.accent, marginBottom: 16 }}>
+              <div style={{ background: C.accentLight, border: `1px solid ${C.accentMid}`, borderRadius: 10, padding: '10px 14px', fontSize: 13, color: C.accent, marginBottom: 16 }}>
                 Después de registrarte inicia sesión con tus datos.
               </div>
             )}
 
             <button type="submit" disabled={loading} style={{
               width: '100%', padding: '14px', background: C.accent, color: '#fff',
-              border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1
+              border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 15,
+              cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1
             }}>
               {loading ? 'Cargando...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
             </button>
@@ -114,5 +122,3 @@ export default function Login({ onLogin }) {
     </div>
   )
 }
-
-import { useState } from 'react'
