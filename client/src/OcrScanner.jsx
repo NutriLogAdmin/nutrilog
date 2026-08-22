@@ -15,53 +15,98 @@ const C = {
   redLight: '#FEF2F2',
 }
 
+const CATEGORIES = [
+  { key: 'otros', label: '📦 Otros' },
+  { key: 'frutas', label: '🍎 Frutas' },
+  { key: 'verduras', label: '🥦 Verduras' },
+  { key: 'carnes', label: '🥩 Carnes' },
+  { key: 'pescados', label: '🐟 Pescados' },
+  { key: 'lacteos', label: '🥛 Lácteos' },
+  { key: 'cereales', label: '🌾 Cereales' },
+  { key: 'legumbres', label: '🫘 Legumbres' },
+  { key: 'bebidas', label: '🥤 Bebidas' },
+  { key: 'snacks', label: '🍿 Snacks' },
+  { key: 'salsas', label: '🫙 Salsas' },
+]
+
+function extractNumber(text) {
+  // Extrae el último número de una línea (el valor nutricional suele ir al final)
+  const matches = text.match(/(\d+[.,]\d+|\d+)/g)
+  if (!matches) return null
+  return parseFloat(matches[matches.length - 1].replace(',', '.'))
+}
+
 function parseNutrition(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
-  const lower = lines.map(l => l.toLowerCase())
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 1)
   const result = { kcal100: '', protein100: '', carbs100: '', sugar100: '', satfat100: '', fiber100: '', salt100: '' }
 
-  function findValue(keywords, sourceLines) {
-    for (let i = 0; i < sourceLines.length; i++) {
-      for (const kw of keywords) {
-        if (sourceLines[i].includes(kw)) {
-          // Busca número en la misma línea o en la siguiente
-          const searchText = sourceLines[i] + ' ' + (sourceLines[i + 1] || '')
-          const match = searchText.match(/(\d+[.,]\d+|\d+)/)
-          if (match) return parseFloat(match[1].replace(',', '.'))
-        }
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].toLowerCase()
+    const nextLine = (lines[i + 1] || '').toLowerCase()
+
+    // Energía — busca kcal explícitamente, ignora kJ
+    if (!result.kcal100 && (line.includes('kcal') || line.includes('energético') || line.includes('energetico') || line.includes('energia'))) {
+      // Formato "190 kj/45 kcal" — coger el número después de "/"
+      const slashMatch = line.match(/\/\s*(\d+[.,]?\d*)\s*kcal/)
+      if (slashMatch) {
+        result.kcal100 = String(Math.round(parseFloat(slashMatch[1].replace(',', '.'))))
+        continue
+      }
+      // Formato "45 kcal" solo
+      const kcalMatch = line.match(/(\d+[.,]?\d*)\s*kcal/)
+      if (kcalMatch) {
+        result.kcal100 = String(Math.round(parseFloat(kcalMatch[1].replace(',', '.'))))
+        continue
+      }
+      // Si solo hay kJ, convertir
+      const kjMatch = line.match(/(\d+[.,]?\d*)\s*kj/)
+      if (kjMatch && !result.kcal100) {
+        result.kcal100 = String(Math.round(parseFloat(kjMatch[1].replace(',', '.')) / 4.184))
       }
     }
-    return null
+
+    // Grasas totales (no saturadas)
+    if (!result.satfat100 === false && line.match(/^grasas\b/) && !line.includes('saturad')) {
+      const val = extractNumber(line) ?? extractNumber(nextLine)
+      if (val !== null) result.fatTotal = val
+    }
+
+    // Grasas saturadas
+    if (!result.satfat100 && (line.includes('saturad') && !line.includes('insaturad'))) {
+      const val = extractNumber(line) ?? extractNumber(nextLine)
+      if (val !== null) result.satfat100 = String(val)
+    }
+
+    // Hidratos
+    if (!result.carbs100 && (line.includes('hidratos') || line.includes('carbohidrato'))) {
+      const val = extractNumber(line) ?? extractNumber(nextLine)
+      if (val !== null) result.carbs100 = String(val)
+    }
+
+    // Azúcares
+    if (!result.sugar100 && (line.includes('azúcar') || line.includes('azucar') || line.includes('sugar'))) {
+      const val = extractNumber(line) ?? extractNumber(nextLine)
+      if (val !== null) result.sugar100 = String(val)
+    }
+
+    // Fibra
+    if (!result.fiber100 && (line.includes('fibra') || line.includes('fiber'))) {
+      const val = extractNumber(line) ?? extractNumber(nextLine)
+      if (val !== null) result.fiber100 = String(val)
+    }
+
+    // Proteínas
+    if (!result.protein100 && (line.includes('proteína') || line.includes('proteina') || line.includes('protein'))) {
+      const val = extractNumber(line) ?? extractNumber(nextLine)
+      if (val !== null) result.protein100 = String(val)
+    }
+
+    // Sal
+    if (!result.salt100 && line.match(/^sal\b/)) {
+      const val = extractNumber(line) ?? extractNumber(nextLine)
+      if (val !== null) result.salt100 = String(val)
+    }
   }
-
-  // Buscar kcal primero, luego kJ como fallback
-  const kcal = findValue(['kcal', 'calorías', 'calorias', 'energía kcal', 'energia kcal'], lower)
-  const kj = findValue(['kj', 'energía kj', 'energia kj', 'valor energético', 'valor energetico'], lower)
-  
-  if (kcal !== null) {
-    result.kcal100 = String(Math.round(kcal))
-  } else if (kj !== null) {
-    // Convertir kJ a kcal
-    result.kcal100 = String(Math.round(kj / 4.184))
-  }
-
-  const protein = findValue(['proteína', 'proteinas', 'proteína', 'protein'], lower)
-  if (protein !== null) result.protein100 = String(protein)
-
-  const carbs = findValue(['hidratos de carbono', 'carbohidratos', 'hidratos', 'carbohydrate'], lower)
-  if (carbs !== null) result.carbs100 = String(carbs)
-
-  const sugar = findValue(['azúcares', 'azucares', 'de los cuales azúcares', 'sugars'], lower)
-  if (sugar !== null) result.sugar100 = String(sugar)
-
-  const satfat = findValue(['ácidos grasos saturados', 'grasas saturadas', 'saturadas', 'saturated'], lower)
-  if (satfat !== null) result.satfat100 = String(satfat)
-
-  const fiber = findValue(['fibra alimentaria', 'fibra', 'fiber', 'fibre'], lower)
-  if (fiber !== null) result.fiber100 = String(fiber)
-
-  const salt = findValue(['sal', 'salt'], lower)
-  if (salt !== null) result.salt100 = String(salt)
 
   return result
 }
@@ -72,6 +117,8 @@ export default function OcrScanner({ onResult, onClose }) {
   const [preview, setPreview] = useState(null)
   const [extracted, setExtracted] = useState(null)
   const [name, setName] = useState('')
+  const [category, setCategory] = useState('otros')
+  const [unit, setUnit] = useState('g')
   const [error, setError] = useState('')
   const fileRef = useRef()
 
@@ -111,7 +158,7 @@ export default function OcrScanner({ onResult, onClose }) {
       return
     }
     setError('')
-    if (extracted) onResult({ ...extracted, name })
+    if (extracted) onResult({ ...extracted, name, category, unit })
   }
 
   return (
@@ -121,12 +168,31 @@ export default function OcrScanner({ onResult, onClose }) {
         <button onClick={onClose} style={{ border: 'none', background: C.accentLight, color: C.accent, borderRadius: 20, padding: '4px 10px', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>✕ Cerrar</button>
       </div>
 
-      {/* Nombre del alimento — siempre visible */}
-      <div style={{ marginBottom: 12 }}>
+      {/* Nombre */}
+      <div style={{ marginBottom: 10 }}>
         <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Nombre del alimento</div>
         <input type="text" value={name} onChange={e => setName(e.target.value)}
-          placeholder="Ej: Yogur natural Danone"
+          placeholder="Ej: Leche semidesnatada Lidl"
           style={{ width: '100%', border: `1.5px solid ${name ? C.green : C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' }} />
+      </div>
+
+      {/* Categoría y unidad */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Categoría</div>
+          <select value={category} onChange={e => setCategory(e.target.value)}
+            style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 8px', borderRadius: 10, fontSize: 12, height: 40 }}>
+            {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Unidad</div>
+          <select value={unit} onChange={e => setUnit(e.target.value)}
+            style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 8px', borderRadius: 10, fontSize: 12, height: 40 }}>
+            <option value="g">g (sólido)</option>
+            <option value="ml">ml (líquido)</option>
+          </select>
+        </div>
       </div>
 
       {/* Botón cámara */}
@@ -142,7 +208,7 @@ export default function OcrScanner({ onResult, onClose }) {
             📷 Hacer foto a la etiqueta
           </button>
           <div style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 8 }}>
-            Apunta a la tabla nutricional con buena luz · Se convierte kJ a kcal automáticamente
+            Apunta a la tabla nutricional · Buena luz · Encuadra bien el texto
           </div>
         </div>
       )}
@@ -170,7 +236,7 @@ export default function OcrScanner({ onResult, onClose }) {
         <div>
           {preview && <img src={preview} alt="preview" style={{ width: '100%', borderRadius: 10, marginBottom: 12, maxHeight: 150, objectFit: 'cover' }} />}
           <div style={{ fontSize: 12, color: C.muted, marginBottom: 10 }}>
-            Revisa y corrige si algo está mal — los campos en verde se detectaron correctamente:
+            Verde = detectado · Blanco = no detectado, rellena manualmente:
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 12 }}>
             {[
