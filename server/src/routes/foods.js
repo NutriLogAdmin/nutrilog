@@ -42,7 +42,7 @@ router.get('/entries', async (req, res) => {
   const { date } = req.query
   const userId = req.user.id
   const result = await pool.query(`
-    SELECT e.id, e.amount, e.date, e.time,
+    SELECT e.id, e.amount, e.date, e.time, e.meal,
            f.name, f.unit, f.kcal100, f.protein100, f.satfat100,
            f.carbs100, f.sugar100, f.fiber100, f.salt100, f.vitamins
     FROM entries e
@@ -55,16 +55,27 @@ router.get('/entries', async (req, res) => {
 
 // Registrar ingesta — asociada al usuario
 router.post('/entries', async (req, res) => {
-  const { food_id, amount, date, time } = req.body
+  const { food_id, amount, date, time, meal } = req.body
   const userId = req.user.id
   if (!food_id || !amount || !date) {
     return res.status(400).json({ error: 'food_id, amount y date son obligatorios' })
   }
   const result = await pool.query(
-    'INSERT INTO entries (user_id, food_id, amount, date, time) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-    [userId, food_id, amount, date, time || new Date().toTimeString().slice(0, 5)]
+    'INSERT INTO entries (user_id, food_id, amount, date, time, meal) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+    [userId, food_id, amount, date, time || new Date().toTimeString().slice(0, 5), meal || 'comida']
   )
   res.status(201).json({ id: result.rows[0].id })
+})
+
+// Editar entrada
+router.put('/entries/:id', async (req, res) => {
+  const { food_id, amount, meal, date, time } = req.body
+  const userId = req.user.id
+  await pool.query(
+    'UPDATE entries SET food_id=$1, amount=$2, meal=$3, date=$4, time=$5 WHERE id=$6 AND user_id=$7',
+    [food_id, amount, meal, date, time, req.params.id, userId]
+  )
+  res.json({ ok: true })
 })
 
 // Eliminar entrada — solo si es del usuario
