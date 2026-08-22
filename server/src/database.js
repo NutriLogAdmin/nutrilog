@@ -54,6 +54,7 @@ initDB().catch(console.error)
 async function migrateDB() {
   try {
     await pool.query(`ALTER TABLE entries ADD COLUMN IF NOT EXISTS meal TEXT DEFAULT 'comida'`)
+    await pool.query(`ALTER TABLE foods ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'otros'`)
     console.log('Migración OK')
   } catch (err) {
     console.error('Error en migración:', err)

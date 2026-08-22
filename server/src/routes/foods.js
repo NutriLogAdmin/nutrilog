@@ -20,14 +20,14 @@ router.get('/search', async (req, res) => {
 
 // Añadir alimento al catálogo (compartido)
 router.post('/', async (req, res) => {
-  const { name, unit, kcal100, protein100, satfat100, carbs100, sugar100, fiber100, salt100, vitamins } = req.body
+  const { name, unit, kcal100, protein100, satfat100, carbs100, sugar100, fiber100, salt100, vitamins, category } = req.body
   if (!name || kcal100 === undefined) {
     return res.status(400).json({ error: 'Nombre y calorías son obligatorios' })
   }
   const result = await pool.query(`
-    INSERT INTO foods (name, unit, kcal100, protein100, satfat100, carbs100, sugar100, fiber100, salt100, vitamins)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *
-  `, [name, unit || 'g', kcal100, protein100 || 0, satfat100 || 0, carbs100 || 0, sugar100 || 0, fiber100 || 0, salt100 || 0, vitamins || ''])
+    INSERT INTO foods (name, unit, kcal100, protein100, satfat100, carbs100, sugar100, fiber100, salt100, vitamins, category)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *
+  `, [name, unit || 'g', kcal100, protein100 || 0, satfat100 || 0, carbs100 || 0, sugar100 || 0, fiber100 || 0, salt100 || 0, vitamins || '', category || 'otros'])
   res.status(201).json(result.rows[0])
 })
 
