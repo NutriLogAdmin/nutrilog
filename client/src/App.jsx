@@ -3,21 +3,6 @@ import Login from './Login'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 
-const C = {
-  bg: '#0F0F0F',
-  surface: '#1A1A1A',
-  surface2: '#242424',
-  border: '#2E2E2E',
-  accent: '#6C63FF',
-  accentLight: '#8B85FF',
-  green: '#22C55E',
-  red: '#EF4444',
-  yellow: '#F59E0B',
-  text: '#F5F5F5',
-  muted: '#888',
-  mutedLight: '#AAA',
-}
-
 const MEALS = [
   { key: 'desayuno', label: 'Desayuno', emoji: '☀️' },
   { key: 'almuerzo', label: 'Almuerzo', emoji: '🍎' },
@@ -41,32 +26,79 @@ const CATEGORIES = [
   { key: 'otros', label: '📦 Otros' },
 ]
 
-function getToken() {
-  return localStorage.getItem('nutrilog_token')
+const C = {
+  bg: '#F7F7F5',
+  white: '#FFFFFF',
+  border: '#EBEBEB',
+  text: '#1A1A1A',
+  muted: '#888',
+  mutedLight: '#BBB',
+  accent: '#FF6B35',
+  accentLight: '#FFF0EB',
+  accentMid: '#FFB39A',
+  green: '#22C55E',
+  greenLight: '#DCFCE7',
+  blue: '#3B82F6',
+  blueLight: '#EFF6FF',
+  yellow: '#F59E0B',
+  yellowLight: '#FFFBEB',
+  red: '#EF4444',
+  redLight: '#FEF2F2',
+  purple: '#8B5CF6',
+  purpleLight: '#F5F3FF',
 }
 
+function getToken() { return localStorage.getItem('nutrilog_token') }
 function getHeaders() {
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${getToken()}`
-  }
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
 }
-
-function todayISO() {
-  return new Date().toISOString().slice(0, 10)
-}
-
-function round(n) {
-  return Math.round((n + Number.EPSILON) * 10) / 10
-}
-
-function calcFactor(amount) {
-  return amount / 100
-}
+function todayISO() { return new Date().toISOString().slice(0, 10) }
+function round(n) { return Math.round((n + Number.EPSILON) * 10) / 10 }
+function calcFactor(amount) { return amount / 100 }
 
 const EMPTY_FOOD = {
   name: '', unit: 'g', category: 'otros', kcal100: '', protein100: '', satfat100: '',
   carbs100: '', sugar100: '', fiber100: '', salt100: '', vitamins: ''
+}
+
+function CircleProgress({ value, max, size = 180 }) {
+  const pct = Math.min(1, value / max)
+  const r = 70
+  const cx = size / 2
+  const cy = size / 2
+  const startAngle = -210
+  const endAngle = 30
+  const totalAngle = endAngle - startAngle
+  const currentAngle = startAngle + totalAngle * pct
+
+  function polarToXY(angle, radius) {
+    const rad = (angle * Math.PI) / 180
+    return { x: cx + radius * Math.cos(rad), y: cy + radius * Math.sin(rad) }
+  }
+
+  function describeArc(startAng, endAng) {
+    const s = polarToXY(startAng, r)
+    const e = polarToXY(endAng, r)
+    const largeArc = endAng - startAng > 180 ? 1 : 0
+    return `M ${s.x} ${s.y} A ${r} ${r} 0 ${largeArc} 1 ${e.x} ${e.y}`
+  }
+
+  const over = value > max
+  const color = over ? C.red : pct > 0.85 ? C.yellow : C.accent
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <path d={describeArc(startAngle, endAngle)} fill="none" stroke={C.border} strokeWidth="12" strokeLinecap="round" />
+      {pct > 0 && (
+        <path d={describeArc(startAngle, currentAngle)} fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" style={{ transition: 'all 0.5s ease' }} />
+      )}
+      <text x={cx} y={cy - 10} textAnchor="middle" fontSize="32" fontWeight="700" fill={C.text}>{round(value)}</text>
+      <text x={cx} y={cy + 16} textAnchor="middle" fontSize="12" fill={C.muted}>kcal</text>
+      <text x={cx} y={cy + 34} textAnchor="middle" fontSize="11" fill={color} fontWeight="600">
+        {over ? `+${round(value - max)}` : `${round(max - value)} restantes`}
+      </text>
+    </svg>
+  )
 }
 
 export default function App() {
@@ -81,23 +113,19 @@ export default function App() {
   const [search, setSearch] = useState('')
   const [selectedFood, setSelectedFood] = useState(null)
   const [amount, setAmount] = useState('')
-  const [selectedMeal, setSelectedMeal] = useState('desayuno')
+  const [activeMeal, setActiveMeal] = useState(null)
   const [showFoodForm, setShowFoodForm] = useState(false)
   const [savingGoal, setSavingGoal] = useState(false)
   const [editEntry, setEditEntry] = useState(null)
   const [filterCategory, setFilterCategory] = useState('todos')
   const [catalogSearch, setCatalogSearch] = useState('')
+  const [editGoal, setEditGoal] = useState(false)
 
-  function handleLogin(tkn, user) {
-    setToken(tkn)
-    setUsername(user)
-  }
-
+  function handleLogin(tkn, user) { setToken(tkn); setUsername(user) }
   function handleLogout() {
     localStorage.removeItem('nutrilog_token')
     localStorage.removeItem('nutrilog_user')
-    setToken(null)
-    setUsername('')
+    setToken(null); setUsername('')
   }
 
   useEffect(() => { if (token) loadEntries() }, [date, token])
@@ -127,19 +155,14 @@ export default function App() {
 
   async function saveGoal(val) {
     setSavingGoal(true)
-    await fetch(`${API}/foods/goal`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ date, kcal_goal: val })
-    })
+    await fetch(`${API}/foods/goal`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ date, kcal_goal: val }) })
     setSavingGoal(false)
   }
 
   async function addFood(e) {
     e.preventDefault()
     const res = await fetch(`${API}/foods`, {
-      method: 'POST',
-      headers: getHeaders(),
+      method: 'POST', headers: getHeaders(),
       body: JSON.stringify({
         ...newFood,
         kcal100: parseFloat(newFood.kcal100) || 0,
@@ -151,11 +174,7 @@ export default function App() {
         salt100: parseFloat(newFood.salt100) || 0,
       })
     })
-    if (res.ok) {
-      setNewFood(EMPTY_FOOD)
-      setShowFoodForm(false)
-      loadFoods()
-    }
+    if (res.ok) { setNewFood(EMPTY_FOOD); setShowFoodForm(false); loadFoods() }
   }
 
   async function addEntry(e) {
@@ -163,21 +182,17 @@ export default function App() {
     if (!selectedFood || !amount) return
     if (editEntry) {
       await fetch(`${API}/foods/entries/${editEntry.id}`, {
-        method: 'PUT',
-        headers: getHeaders(),
-        body: JSON.stringify({ food_id: selectedFood.id, amount: parseFloat(amount), meal: selectedMeal, date, time: editEntry.time })
+        method: 'PUT', headers: getHeaders(),
+        body: JSON.stringify({ food_id: selectedFood.id, amount: parseFloat(amount), meal: activeMeal, date, time: editEntry.time })
       })
       setEditEntry(null)
     } else {
       await fetch(`${API}/foods/entries`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ food_id: selectedFood.id, amount: parseFloat(amount), meal: selectedMeal, date, time: new Date().toTimeString().slice(0, 5) })
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({ food_id: selectedFood.id, amount: parseFloat(amount), meal: activeMeal, date, time: new Date().toTimeString().slice(0, 5) })
       })
     }
-    setSelectedFood(null)
-    setAmount('')
-    setSearch('')
+    setSelectedFood(null); setAmount(''); setSearch(''); setActiveMeal(null)
     loadEntries()
   }
 
@@ -196,13 +211,28 @@ export default function App() {
     setSelectedFood({ id: e.food_id, name: e.name, unit: e.unit, kcal100: e.kcal100, protein100: e.protein100, satfat100: e.satfat100, carbs100: e.carbs100, sugar100: e.sugar100, fiber100: e.fiber100, salt100: e.salt100 })
     setAmount(String(e.amount))
     setSearch(e.name)
-    setSelectedMeal(e.meal || 'comida')
-    setView('registro')
+    setActiveMeal(e.meal || 'comida')
     window.scrollTo(0, 0)
   }
 
-  const filtered = foods.filter(f => f.name.toLowerCase().includes(search.toLowerCase()))
+  function openMealAdd(mealKey) {
+    setActiveMeal(mealKey)
+    setSelectedFood(null)
+    setSearch('')
+    setAmount('')
+    setEditEntry(null)
+    window.scrollTo(0, 0)
+  }
 
+  function cancelAdd() {
+    setActiveMeal(null)
+    setSelectedFood(null)
+    setSearch('')
+    setAmount('')
+    setEditEntry(null)
+  }
+
+  const filtered = foods.filter(f => f.name.toLowerCase().includes(search.toLowerCase()))
   const catalogFiltered = foods.filter(f => {
     const matchSearch = f.name.toLowerCase().includes(catalogSearch.toLowerCase())
     const matchCategory = filterCategory === 'todos' || f.category === filterCategory
@@ -221,180 +251,185 @@ export default function App() {
     return acc
   }, { kcal: 0, protein: 0, satfat: 0, carbs: 0, sugar: 0, fiber: 0, salt: 0 })
 
-  const pct = Math.min(100, (totals.kcal / goal) * 100)
-  const remaining = round(goal - totals.kcal)
-  const over = totals.kcal > goal
-  const nearGoal = !over && pct > 85
-
   if (!token) return <Login onLogin={handleLogin} />
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', color: C.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '0 0 80px' }}>
+    <div style={{ background: C.bg, minHeight: '100vh', color: C.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', paddingBottom: 40 }}>
+      <div style={{ maxWidth: 480, margin: '0 auto' }}>
 
         {/* Header */}
-        <div style={{ padding: '24px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: C.white, padding: '20px 20px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
           <div>
-            <div style={{ fontSize: 11, letterSpacing: 3, color: C.accent, fontWeight: 700, textTransform: 'uppercase' }}>Nutrilog</div>
-            <div style={{ fontSize: 22, fontWeight: 800, marginTop: 2 }}>Seguimiento</div>
+            <div style={{ fontSize: 10, letterSpacing: 2, color: C.accent, fontWeight: 700, textTransform: 'uppercase' }}>NutriLog</div>
+            <input type="date" value={date} max={todayISO()} onChange={e => setDate(e.target.value)}
+              style={{ border: 'none', background: 'none', fontSize: 15, fontWeight: 600, color: C.text, padding: 0, cursor: 'pointer' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input type="date" value={date} max={todayISO()} onChange={e => setDate(e.target.value)}
-              style={{ background: C.surface2, border: `1px solid ${C.border}`, color: C.text, padding: '8px 12px', borderRadius: 10, fontSize: 13 }} />
-            <span style={{ fontSize: 12, color: C.muted }}>{username}</span>
-            <button onClick={handleLogout} style={{ background: C.surface2, border: `1px solid ${C.border}`, color: C.muted, padding: '6px 12px', borderRadius: 8, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>Salir</button>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: C.accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: C.accent }}>
+              {username.charAt(0).toUpperCase()}
+            </div>
+            <button onClick={handleLogout} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.muted, padding: '5px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer' }}>Salir</button>
           </div>
         </div>
 
-        {/* Tarjeta de calorías */}
-        <div style={{ margin: '20px 16px 0', background: C.surface, borderRadius: 20, padding: '20px', border: `1px solid ${C.border}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-            <div>
-              <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>Calorías consumidas</div>
-              <div style={{ fontSize: 42, fontWeight: 900, lineHeight: 1, color: over ? C.red : nearGoal ? C.yellow : C.text }}>{round(totals.kcal)}</div>
-              <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>de {goal} kcal</div>
+        {/* Tarjeta principal con círculo */}
+        <div style={{ background: C.white, margin: '16px 16px 0', borderRadius: 24, padding: '24px 20px', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+          
+          {/* Círculo + objetivo */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: 11, color: C.muted, marginBottom: 2 }}>Consumidas</div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: C.text }}>{round(totals.kcal)}</div>
+              <div style={{ fontSize: 11, color: C.muted }}>kcal</div>
             </div>
+
+            <CircleProgress value={totals.kcal} max={goal} size={160} />
+
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>Objetivo</div>
-              <input type="number" value={goal}
-                onChange={e => { const v = parseFloat(e.target.value) || 0; setGoal(v); saveGoal(v) }}
-                style={{ width: 80, background: C.surface2, border: `1px solid ${C.border}`, color: C.text, padding: '6px 10px', borderRadius: 8, fontSize: 15, fontWeight: 700, textAlign: 'right' }} />
-              <div style={{ fontSize: 11, color: savingGoal ? C.accent : 'transparent', marginTop: 3 }}>guardando...</div>
+              <div style={{ fontSize: 11, color: C.muted, marginBottom: 2 }}>Objetivo</div>
+              {editGoal ? (
+                <input type="number" value={goal} autoFocus
+                  onChange={e => setGoal(parseFloat(e.target.value) || 0)}
+                  onBlur={() => { setEditGoal(false); saveGoal(goal) }}
+                  style={{ width: 70, border: `2px solid ${C.accent}`, borderRadius: 8, padding: '4px 6px', fontSize: 18, fontWeight: 800, textAlign: 'right', color: C.text }} />
+              ) : (
+                <div onClick={() => setEditGoal(true)} style={{ fontSize: 28, fontWeight: 800, color: C.text, cursor: 'pointer' }}>{goal}</div>
+              )}
+              <div style={{ fontSize: 11, color: C.muted }}>kcal · {savingGoal ? '💾' : <span onClick={() => setEditGoal(true)} style={{ color: C.accent, cursor: 'pointer' }}>editar</span>}</div>
             </div>
           </div>
-          <div style={{ height: 8, background: C.surface2, borderRadius: 99, overflow: 'hidden', marginBottom: 8 }}>
-            <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, transition: 'width 0.4s', background: over ? C.red : nearGoal ? C.yellow : C.accent }} />
-          </div>
-          <div style={{ fontSize: 13, color: over ? C.red : nearGoal ? C.yellow : C.green, fontWeight: 600 }}>
-            {over ? `${Math.abs(remaining)} kcal por encima del objetivo` : `${remaining} kcal restantes`}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: 16 }}>
-            {[['Proteína', totals.protein, C.accent], ['Hidratos', totals.carbs, '#F59E0B'], ['Azúcares', totals.sugar, '#EC4899'], ['Grasas sat.', totals.satfat, C.red]].map(([label, val, color]) => (
-              <div key={label} style={{ background: C.surface2, borderRadius: 12, padding: '10px 8px', textAlign: 'center' }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color }}>{round(val)}g</div>
-                <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>{label}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginTop: 8 }}>
-            {[['Fibra', totals.fiber, 'g'], ['Sal', totals.salt, 'g']].map(([label, val, u]) => (
-              <div key={label} style={{ background: C.surface2, borderRadius: 10, padding: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.mutedLight }}>{round(val)}{u}</div>
-                <div style={{ fontSize: 10, color: C.muted, marginTop: 1 }}>{label}</div>
+
+          {/* Macros */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+            {[
+              ['Proteína', totals.protein, C.blue, C.blueLight],
+              ['Hidratos', totals.carbs, C.yellow, C.yellowLight],
+              ['Grasas sat.', totals.satfat, C.red, C.redLight],
+              ['Sal', totals.salt, C.purple, C.purpleLight],
+            ].map(([label, val, color, bg]) => (
+              <div key={label} style={{ background: bg, borderRadius: 14, padding: '10px 6px', textAlign: 'center' }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color }}>{round(val)}g</div>
+                <div style={{ fontSize: 9, color: C.muted, marginTop: 2 }}>{label}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', margin: '20px 16px 0', background: C.surface, borderRadius: 12, padding: 4, gap: 4 }}>
+        <div style={{ display: 'flex', margin: '16px 16px 0', background: C.white, borderRadius: 16, padding: 4, gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
           {[['registro', 'Registro'], ['catalogo', 'Catálogo']].map(([key, label]) => (
             <button key={key} onClick={() => setView(key)} style={{
-              flex: 1, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 9,
-              background: view === key ? C.accent : 'transparent', color: view === key ? '#fff' : C.muted, transition: 'all 0.2s'
+              flex: 1, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12,
+              background: view === key ? C.accent : 'transparent',
+              color: view === key ? '#fff' : C.muted, transition: 'all 0.2s'
             }}>{label}</button>
           ))}
         </div>
 
+        {/* Panel añadir alimento */}
+        {activeMeal && (
+          <div style={{ margin: '12px 16px 0', background: C.white, borderRadius: 20, padding: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.08)', border: `2px solid ${C.accentMid}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: C.accent }}>
+                {editEntry ? 'Editando entrada' : `Añadir a ${MEALS.find(m => m.key === activeMeal)?.emoji} ${MEALS.find(m => m.key === activeMeal)?.label}`}
+              </div>
+              <button onClick={cancelAdd} style={{ border: 'none', background: C.accentLight, color: C.accent, borderRadius: 20, padding: '4px 10px', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>✕ Cancelar</button>
+            </div>
+
+            <input placeholder="🔍 Buscar alimento..." value={search}
+              onChange={e => { setSearch(e.target.value); if (!editEntry) setSelectedFood(null); setAmount('') }}
+              style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '11px 14px', borderRadius: 12, fontSize: 14, boxSizing: 'border-box' }} />
+
+            {search && !selectedFood && (
+              <div style={{ marginTop: 8, borderRadius: 12, overflow: 'hidden', border: `1px solid ${C.border}`, background: C.white }}>
+                {filtered.length === 0
+                  ? <div style={{ padding: '12px 14px', fontSize: 13, color: C.muted }}>No encontrado — añádelo en Catálogo</div>
+                  : filtered.map(f => (
+                    <div key={f.id} onClick={() => { setSelectedFood(f); setSearch(f.name) }}
+                      style={{ padding: '12px 14px', cursor: 'pointer', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{f.name}</div>
+                        <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{f.kcal100} kcal / 100{f.unit}</div>
+                      </div>
+                      <div style={{ fontSize: 11, background: C.accentLight, color: C.accent, padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>{f.unit}</div>
+                    </div>
+                  ))
+                }
+              </div>
+            )}
+
+            {selectedFood && (
+              <form onSubmit={addEntry} style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, color: C.muted, marginBottom: 8, padding: '8px 12px', background: C.accentLight, borderRadius: 10 }}>
+                  <strong style={{ color: C.accent }}>{selectedFood.name}</strong> · {selectedFood.kcal100} kcal/100{selectedFood.unit}
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: C.muted, marginBottom: 4, fontWeight: 700, textTransform: 'uppercase' }}>
+                      Cantidad en {selectedFood.unit === 'ml' ? 'ml' : 'gramos'}
+                    </div>
+                    <input type="number" placeholder={selectedFood.unit === 'ml' ? 'Ej: 250' : 'Ej: 35'}
+                      value={amount} onChange={e => setAmount(e.target.value)} autoFocus
+                      style={{ width: '100%', border: `2px solid ${C.accent}`, background: C.white, color: C.text, padding: '12px 14px', borderRadius: 12, fontSize: 18, fontWeight: 800, boxSizing: 'border-box' }} />
+                  </div>
+                  <button type="submit" style={{ padding: '12px 20px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer', height: 50 }}>
+                    {editEntry ? 'Guardar' : 'Añadir'}
+                  </button>
+                </div>
+
+                {amount && parseFloat(amount) > 0 && (
+                  <div style={{ marginTop: 10, background: C.bg, borderRadius: 12, padding: '12px 14px', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: C.accent }}>
+                      {round(selectedFood.kcal100 * parseFloat(amount) / 100)} kcal
+                    </div>
+                    {[['P', selectedFood.protein100, C.blue], ['H', selectedFood.carbs100, C.yellow], ['Sat', selectedFood.satfat100, C.red], ['Sal', selectedFood.salt100, C.purple]].map(([label, val, color]) => (
+                      <div key={label} style={{ fontSize: 12, color: C.muted }}>
+                        {label}: <strong style={{ color }}>{round(val * parseFloat(amount) / 100)}g</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </form>
+            )}
+          </div>
+        )}
+
         {/* Vista Registro */}
         {view === 'registro' && (
-          <div style={{ padding: '16px' }}>
-            <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', paddingBottom: 4 }}>
-              {MEALS.map(m => (
-                <button key={m.key} onClick={() => setSelectedMeal(m.key)} style={{
-                  padding: '8px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                  background: selectedMeal === m.key ? C.accent : C.surface, color: selectedMeal === m.key ? '#fff' : C.muted, fontSize: 13, fontWeight: 600
-                }}>{m.emoji} {m.label}</button>
-              ))}
-            </div>
-
-            <div style={{ background: C.surface, borderRadius: 16, padding: 16, marginBottom: 16, border: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: C.mutedLight, marginBottom: 10 }}>
-                {editEntry ? 'Editando entrada' : `Añadir a ${MEALS.find(m => m.key === selectedMeal)?.label}`}
-              </div>
-              <input placeholder="🔍 Buscar alimento..." value={search}
-                onChange={e => { setSearch(e.target.value); if (!editEntry) setSelectedFood(null); setAmount('') }}
-                style={{ width: '100%', background: C.surface2, border: `1px solid ${C.border}`, color: C.text, padding: '12px 14px', borderRadius: 10, fontSize: 15, boxSizing: 'border-box' }} />
-
-              {search && !selectedFood && (
-                <div style={{ marginTop: 8, borderRadius: 10, overflow: 'hidden', border: `1px solid ${C.border}` }}>
-                  {filtered.length === 0
-                    ? <div style={{ padding: '12px 14px', fontSize: 13, color: C.muted }}>No encontrado — añádelo en Catálogo</div>
-                    : filtered.map(f => (
-                      <div key={f.id} onClick={() => { setSelectedFood(f); setSearch(f.name) }}
-                        style={{ padding: '12px 14px', cursor: 'pointer', borderBottom: `1px solid ${C.border}`, background: C.surface2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ fontSize: 14, fontWeight: 600 }}>{f.name}</div>
-                          <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{f.kcal100} kcal / 100{f.unit} · P:{f.protein100}g · H:{f.carbs100}g</div>
-                        </div>
-                        <div style={{ fontSize: 11, color: C.accent, fontWeight: 700 }}>{f.unit}</div>
-                      </div>
-                    ))
-                  }
-                </div>
-              )}
-
-              {selectedFood && (
-                <form onSubmit={addEntry} style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>
-                    Seleccionado: <strong style={{ color: C.text }}>{selectedFood.name}</strong> · {selectedFood.kcal100} kcal/100{selectedFood.unit}
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>CANTIDAD EN {selectedFood.unit === 'ml' ? 'ML' : 'GRAMOS'}</div>
-                      <input type="number" placeholder={selectedFood.unit === 'ml' ? 'Ej: 250' : 'Ej: 35'}
-                        value={amount} onChange={e => setAmount(e.target.value)} autoFocus
-                        style={{ width: '100%', background: C.surface2, border: `1px solid ${C.accent}`, color: C.text, padding: '12px 14px', borderRadius: 10, fontSize: 16, fontWeight: 700, boxSizing: 'border-box' }} />
-                    </div>
-                    <button type="submit" style={{ padding: '12px 20px', background: C.accent, color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
-                      {editEntry ? 'Guardar' : 'Añadir'}
-                    </button>
-                    {editEntry && (
-                      <button type="button" onClick={() => { setEditEntry(null); setSelectedFood(null); setSearch(''); setAmount('') }}
-                        style={{ padding: '12px 16px', background: C.surface2, color: C.muted, border: `1px solid ${C.border}`, borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
-                        Cancelar
-                      </button>
-                    )}
-                  </div>
-                  {amount && parseFloat(amount) > 0 && (
-                    <div style={{ marginTop: 10, background: C.surface2, borderRadius: 10, padding: '12px 14px', border: `1px solid ${C.border}` }}>
-                      <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>Preview — {amount}{selectedFood.unit}:</div>
-                      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                        <div style={{ fontSize: 22, fontWeight: 900, color: C.accent }}>{round(selectedFood.kcal100 * parseFloat(amount) / 100)} kcal</div>
-                        {[['P', selectedFood.protein100], ['H', selectedFood.carbs100], ['Az', selectedFood.sugar100], ['Sat', selectedFood.satfat100], ['Sal', selectedFood.salt100]].map(([label, val]) => (
-                          <div key={label} style={{ fontSize: 13, color: C.mutedLight }}>{label}: <strong>{round(val * parseFloat(amount) / 100)}g</strong></div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </form>
-              )}
-            </div>
-
+          <div style={{ padding: '12px 16px 0' }}>
             {MEALS.map(meal => {
               const mealEntries = entries.filter(e => (e.meal || 'comida') === meal.key)
-              if (mealEntries.length === 0) return null
               const mealKcal = mealEntries.reduce((sum, e) => sum + e.kcal100 * calcFactor(e.amount), 0)
               return (
-                <div key={meal.key} style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: C.mutedLight }}>{meal.emoji} {meal.label}</div>
-                    <div style={{ fontSize: 12, color: C.muted }}>{round(mealKcal)} kcal</div>
+                <div key={meal.key} style={{ background: C.white, borderRadius: 20, marginBottom: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: mealEntries.length > 0 ? `1px solid ${C.border}` : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 12, background: C.accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{meal.emoji}</div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{meal.label}</div>
+                        {mealKcal > 0 && <div style={{ fontSize: 11, color: C.muted }}>{round(mealKcal)} kcal</div>}
+                      </div>
+                    </div>
+                    <button onClick={() => openMealAdd(meal.key)} style={{
+                      width: 32, height: 32, borderRadius: '50%', background: activeMeal === meal.key ? C.accent : C.accentLight,
+                      color: activeMeal === meal.key ? '#fff' : C.accent, border: 'none', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700
+                    }}>+</button>
                   </div>
+
                   {mealEntries.map(e => {
                     const f = e.amount / 100
                     return (
-                      <div key={e.id} style={{ background: C.surface, borderRadius: 14, padding: '14px 16px', marginBottom: 8, border: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ fontSize: 15, fontWeight: 700 }}>{e.name}</div>
-                          <div style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>
-                            {e.amount}{e.unit} · {e.time} · P:{round(e.protein100 * f)}g · H:{round(e.carbs100 * f)}g · Sal:{round(e.salt100 * f)}g
+                      <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: `1px solid ${C.border}` }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{e.name}</div>
+                          <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
+                            {e.amount}{e.unit} · P:{round(e.protein100 * f)}g · H:{round(e.carbs100 * f)}g · Sal:{round(e.salt100 * f)}g
                           </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div style={{ fontSize: 18, fontWeight: 900, color: C.accentLight }}>{round(e.kcal100 * f)}</div>
-                          <button onClick={() => startEdit(e)} style={{ background: C.surface2, border: 'none', color: C.accent, cursor: 'pointer', borderRadius: 8, width: 30, height: 30, fontSize: 14 }}>✏️</button>
-                          <button onClick={() => deleteEntry(e.id)} style={{ background: C.surface2, border: 'none', color: C.muted, cursor: 'pointer', borderRadius: 8, width: 30, height: 30, fontSize: 14 }}>✕</button>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: C.accent }}>{round(e.kcal100 * f)}</div>
+                          <button onClick={() => startEdit(e)} style={{ border: 'none', background: C.blueLight, color: C.blue, cursor: 'pointer', borderRadius: 8, width: 28, height: 28, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✏️</button>
+                          <button onClick={() => deleteEntry(e.id)} style={{ border: 'none', background: C.redLight, color: C.red, cursor: 'pointer', borderRadius: 8, width: 28, height: 28, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                         </div>
                       </div>
                     )
@@ -402,39 +437,35 @@ export default function App() {
                 </div>
               )
             })}
-
-            {entries.length === 0 && (
-              <div style={{ textAlign: 'center', color: C.muted, fontSize: 14, padding: '40px 0' }}>
-                Nada registrado hoy.<br />Busca un alimento arriba para empezar.
-              </div>
-            )}
           </div>
         )}
 
         {/* Vista Catálogo */}
         {view === 'catalogo' && (
-          <div style={{ padding: '16px' }}>
+          <div style={{ padding: '12px 16px 0' }}>
             <button onClick={() => setShowFoodForm(!showFoodForm)} style={{
-              width: '100%', padding: '14px', background: showFoodForm ? C.surface2 : C.accent, color: '#fff',
-              border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer', marginBottom: 16
+              width: '100%', padding: '14px', background: showFoodForm ? C.bg : C.accent, color: showFoodForm ? C.muted : '#fff',
+              border: showFoodForm ? `1px solid ${C.border}` : 'none', borderRadius: 16, fontWeight: 700, fontSize: 14, cursor: 'pointer', marginBottom: 12
             }}>
               {showFoodForm ? '✕ Cancelar' : '+ Añadir nuevo alimento'}
             </button>
 
             {showFoodForm && (
-              <form onSubmit={addFood} style={{ background: C.surface, borderRadius: 16, padding: 16, marginBottom: 16, border: `1px solid ${C.border}` }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: C.mutedLight, marginBottom: 14 }}>Nuevo alimento — valores por 100g/ml</div>
+              <form onSubmit={addFood} style={{ background: C.white, borderRadius: 20, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 14 }}>Nuevo alimento — valores por 100g/ml</div>
+
+                <div style={{ marginBottom: 10 }}>
+                  <Label>Nombre</Label>
+                  <input type="text" value={newFood.name} placeholder="Ej: Leche entera"
+                    onChange={e => setNewFood({ ...newFood, name: e.target.value })}
+                    style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' }} />
+                </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <Label>Nombre</Label>
-                    <input type="text" value={newFood.name} placeholder="Ej: Leche entera"
-                      onChange={e => setNewFood({ ...newFood, name: e.target.value })}
-                      style={{ width: '100%', background: '#1A1A1A', border: '1px solid #2E2E2E', color: '#F5F5F5', padding: '10px 12px', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
-                  </div>
                   <div>
                     <Label>Categoría</Label>
                     <select value={newFood.category} onChange={e => setNewFood({ ...newFood, category: e.target.value })}
-                      style={{ width: '100%', background: C.surface2, border: `1px solid ${C.border}`, color: C.text, padding: '10px 12px', borderRadius: 8, fontSize: 14, height: 42 }}>
+                      style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 13, height: 42 }}>
                       {CATEGORIES.filter(c => c.key !== 'todos').map(c => (
                         <option key={c.key} value={c.key}>{c.label}</option>
                       ))}
@@ -443,45 +474,47 @@ export default function App() {
                   <div>
                     <Label>Unidad</Label>
                     <select value={newFood.unit} onChange={e => setNewFood({ ...newFood, unit: e.target.value })}
-                      style={{ width: '100%', background: C.surface2, border: `1px solid ${C.border}`, color: C.text, padding: '10px 12px', borderRadius: 8, fontSize: 14, height: 42 }}>
+                      style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 13, height: 42 }}>
                       <option value="g">g (sólido)</option>
                       <option value="ml">ml (líquido)</option>
                     </select>
                   </div>
                 </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                   {[['Kcal / 100g·ml', 'kcal100'], ['Proteína (g)', 'protein100'], ['Hidratos (g)', 'carbs100'], ['Azúcares (g)', 'sugar100'], ['Grasas sat. (g)', 'satfat100'], ['Fibra (g)', 'fiber100'], ['Sal (g)', 'salt100']].map(([label, key]) => (
                     <div key={key}>
                       <Label>{label}</Label>
                       <input type="number" value={newFood[key]} placeholder="0"
                         onChange={e => setNewFood({ ...newFood, [key]: e.target.value })}
-                        style={{ width: '100%', background: '#1A1A1A', border: '1px solid #2E2E2E', color: '#F5F5F5', padding: '10px 12px', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+                        style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' }} />
                     </div>
                   ))}
                   <div>
                     <Label>Vitaminas</Label>
                     <input type="text" value={newFood.vitamins} placeholder="Ej: A, C, D"
                       onChange={e => setNewFood({ ...newFood, vitamins: e.target.value })}
-                      style={{ width: '100%', background: '#1A1A1A', border: '1px solid #2E2E2E', color: '#F5F5F5', padding: '10px 12px', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+                      style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' }} />
                   </div>
                 </div>
-                <button type="submit" style={{ width: '100%', marginTop: 14, padding: '13px', background: C.accent, color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+
+                <button type="submit" style={{ width: '100%', marginTop: 14, padding: '13px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
                   Guardar alimento
                 </button>
               </form>
             )}
 
-            {/* Buscador y filtro de categorías */}
             <input placeholder="🔍 Buscar en el catálogo..." value={catalogSearch}
               onChange={e => setCatalogSearch(e.target.value)}
-              style={{ width: '100%', background: C.surface2, border: `1px solid ${C.border}`, color: C.text, padding: '12px 14px', borderRadius: 10, fontSize: 15, boxSizing: 'border-box', marginBottom: 10 }} />
+              style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.white, color: C.text, padding: '12px 14px', borderRadius: 14, fontSize: 14, boxSizing: 'border-box', marginBottom: 10 }} />
 
             <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 12 }}>
               {CATEGORIES.map(c => (
                 <button key={c.key} onClick={() => setFilterCategory(c.key)} style={{
                   padding: '6px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                  background: filterCategory === c.key ? C.accent : C.surface,
-                  color: filterCategory === c.key ? '#fff' : C.muted, fontSize: 12, fontWeight: 600
+                  background: filterCategory === c.key ? C.accent : C.white,
+                  color: filterCategory === c.key ? '#fff' : C.muted,
+                  fontSize: 12, fontWeight: 600, boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
                 }}>{c.label}</button>
               ))}
             </div>
@@ -491,23 +524,20 @@ export default function App() {
                   {foods.length === 0 ? 'El catálogo está vacío.' : 'No hay alimentos en esta categoría.'}
                 </div>
               : catalogFiltered.map(f => (
-                <div key={f.id} style={{ background: C.surface, borderRadius: 14, padding: '14px 16px', marginBottom: 10, border: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 700 }}>
-                      {f.name}
-                      <span style={{ fontSize: 11, color: C.accent, fontWeight: 700, marginLeft: 6 }}>{f.unit}</span>
+                <div key={f.id} style={{ background: C.white, borderRadius: 16, padding: '14px 16px', marginBottom: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{f.name}</div>
+                      <span style={{ fontSize: 10, background: C.accentLight, color: C.accent, padding: '2px 6px', borderRadius: 8, fontWeight: 600 }}>{f.unit}</span>
                       {f.category && f.category !== 'otros' && (
-                        <span style={{ fontSize: 10, color: C.muted, marginLeft: 6 }}>
-                          {CATEGORIES.find(c => c.key === f.category)?.label}
-                        </span>
+                        <span style={{ fontSize: 10, color: C.muted }}>{CATEGORIES.find(c => c.key === f.category)?.label}</span>
                       )}
                     </div>
                     <div style={{ fontSize: 11, color: C.muted, marginTop: 3 }}>
                       {f.kcal100} kcal · P:{f.protein100}g · H:{f.carbs100}g · Az:{f.sugar100}g · Sat:{f.satfat100}g · Sal:{f.salt100}g
-                      {f.vitamins && ` · Vit: ${f.vitamins}`}
                     </div>
                   </div>
-                  <button onClick={() => deleteFood(f.id)} style={{ background: C.surface2, border: 'none', color: C.muted, cursor: 'pointer', borderRadius: 8, width: 30, height: 30, fontSize: 14 }}>✕</button>
+                  <button onClick={() => deleteFood(f.id)} style={{ border: 'none', background: C.redLight, color: C.red, cursor: 'pointer', borderRadius: 8, width: 28, height: 28, fontSize: 14, marginLeft: 8 }}>✕</button>
                 </div>
               ))
             }
