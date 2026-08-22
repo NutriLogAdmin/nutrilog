@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Login from './Login'
+import OcrScanner from './OcrScanner'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 
@@ -144,6 +145,7 @@ export default function App() {
   const [amount, setAmount] = useState('')
   const [activeMeal, setActiveMeal] = useState(null)
   const [showFoodForm, setShowFoodForm] = useState(false)
+  const [showOcr, setShowOcr] = useState(false)
   const [savingGoal, setSavingGoal] = useState(false)
   const [editEntry, setEditEntry] = useState(null)
   const [filterCategory, setFilterCategory] = useState('todos')
@@ -204,6 +206,12 @@ export default function App() {
       })
     })
     if (res.ok) { setNewFood(EMPTY_FOOD); setShowFoodForm(false); loadFoods() }
+  }
+
+  function handleOcrResult(data) {
+  setNewFood(prev => ({ ...prev, ...data }))
+  setShowOcr(false)
+  setShowFoodForm(true)
   }
 
   async function addEntry(e) {
@@ -477,6 +485,22 @@ export default function App() {
               border: showFoodForm ? `1px solid ${C.border}` : 'none', borderRadius: 16, fontWeight: 700, fontSize: 14, cursor: 'pointer', marginBottom: 12
             }}>
               {showFoodForm ? '✕ Cancelar' : '+ Añadir nuevo alimento'}
+              {!showFoodForm && (
+              <button onClick={() => setShowOcr(!showOcr)} style={{
+                width: '100%', padding: '14px', background: showOcr ? C.bg : C.white,
+                color: C.accent, border: `1.5px solid ${C.accent}`,
+                borderRadius: 16, fontWeight: 700, fontSize: 14, cursor: 'pointer', marginBottom: 12
+              }}>
+                {showOcr ? '✕ Cancelar escaneo' : '📷 Escanear etiqueta'}
+              </button>
+            )}
+
+            {showOcr && (
+              <OcrScanner
+                onResult={handleOcrResult}
+                onClose={() => setShowOcr(false)}
+              />
+            )}
             </button>
 
             {showFoodForm && (
