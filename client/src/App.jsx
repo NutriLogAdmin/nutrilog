@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Login from './Login'
 import OcrScanner from './OcrScanner'
 import Profile from './Profile'
+import { exportDayPDF, exportWeekPDF } from './PdfExport'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 
@@ -342,6 +343,14 @@ export default function App() {
             <div onClick={() => setShowProfile(true)} style={{ cursor: 'pointer' }}>
               <AvatarDisplay avatarData={avatarData} username={username} size={36} />
             </div>
+            <button onClick={() => exportDayPDF(date, username)} style={{
+                border: `1px solid ${C.border}`, background: C.white, color: C.accent,
+                padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600
+              }}>📄 Día</button>
+              <button onClick={() => exportWeekPDF(username)} style={{
+                border: `1px solid ${C.border}`, background: C.white, color: C.accent,
+                padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600
+              }}>📊 Semana</button>
             <button onClick={handleLogout} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.muted, padding: '5px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer' }}>Salir</button>
           </div>
         </div>
