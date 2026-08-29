@@ -646,7 +646,7 @@ export default function App() {
         {view === 'plan' && canSeePlan && (
           <div style={{ padding: '12px 16px 0' }}>
             <div style={{ background: C.white, borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-              <iframe src="/plan_trigliceridos.html" style={{ width: '100%', height: '80vh', border: 'none' }} title="Mi Plan de Vida" />
+              <iframe src="/nutrilog/plan_trigliceridos.html" style={{ width: '100%', height: '80vh', border: 'none' }} title="Mi Plan de Vida" />
             </div>
           </div>
         )}
