@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Login from './Login'
 import OcrScanner from './OcrScanner'
 import Profile from './Profile'
+import Onboarding from './Onboarding'
 import { exportDayPDF, exportWeekPDF } from './PdfExport'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
@@ -37,7 +38,7 @@ const PRESET_AVATARS = [
   {id:'av9',e:'🌟'},{id:'av10',e:'🦁'}
 ]
 
-const MACRO_GOALS = { protein: 155, carbs: 280, satfat: 15, salt: 5, fiber: 30 }
+const DEFAULT_GOALS = { protein: 163, carbs: 230, satfat: 12, salt: 4, fiber: 30, kcal: 2400 }
 const PLAN_USERS = ['Daniel', 'daniel']
 
 const C = {
@@ -129,10 +130,12 @@ export default function App() {
   const [token, setToken] = useState(getToken())
   const [username, setUsername] = useState(localStorage.getItem('nutrilog_user') || '')
   const [avatarData, setAvatarData] = useState(null)
+  const [macroGoals, setMacroGoals] = useState(DEFAULT_GOALS)
+  const [needsOnboarding, setNeedsOnboarding] = useState(false)
   const [date, setDate] = useState(todayISO())
   const [entries, setEntries] = useState([])
   const [foods, setFoods] = useState([])
-  const [goal, setGoal] = useState(2500)
+  const [goal, setGoal] = useState(2400)
   const [view, setView] = useState('registro')
   const [newFood, setNewFood] = useState(EMPTY_FOOD)
   const [search, setSearch] = useState('')
@@ -156,31 +159,54 @@ export default function App() {
   function handleLogout() {
     localStorage.removeItem('nutrilog_token')
     localStorage.removeItem('nutrilog_user')
-    setToken(null); setUsername(''); setAvatarData(null)
+    setToken(null); setUsername(''); setAvatarData(null); setNeedsOnboarding(false)
   }
 
-  // Auto-logout por inactividad — 30 minutos
+  function handleOnboardingComplete(macros) {
+    setMacroGoals({
+      protein: macros.goal_protein,
+      carbs: macros.goal_carbs,
+      satfat: macros.goal_satfat,
+      salt: macros.goal_salt,
+      fiber: macros.goal_fiber,
+      kcal: macros.goal_kcal,
+    })
+    setGoal(macros.goal_kcal)
+    setNeedsOnboarding(false)
+  }
+
+  // Auto-logout 30 minutos
   useEffect(() => {
     if (!token) return
     let timer = setTimeout(() => { handleLogout() }, 30 * 60 * 1000)
-    const reset = () => {
-      clearTimeout(timer)
-      timer = setTimeout(() => { handleLogout() }, 30 * 60 * 1000)
-    }
+    const reset = () => { clearTimeout(timer); timer = setTimeout(() => { handleLogout() }, 30 * 60 * 1000) }
     const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click']
     events.forEach(e => window.addEventListener(e, reset))
     return () => { clearTimeout(timer); events.forEach(e => window.removeEventListener(e, reset)) }
   }, [token])
 
-  // Cargar avatar al iniciar sesión
+  // Cargar perfil al iniciar sesión
   useEffect(() => {
     if (!token) return
-    async function loadAvatar() {
+    async function loadProfile() {
       const res = await fetch(`${API}/profile`, { headers: getHeaders() })
       const data = await res.json()
       if (data.avatar) setAvatarData(data.avatar)
+      if (data.goal_kcal) {
+        setMacroGoals({
+          protein: data.goal_protein,
+          carbs: data.goal_carbs,
+          satfat: data.goal_satfat,
+          salt: data.goal_salt,
+          fiber: data.goal_fiber,
+          kcal: data.goal_kcal,
+        })
+        setGoal(data.goal_kcal)
+      } else {
+        setNeedsOnboarding(true)
+      }
     }
-    loadAvatar()
+    loadProfile()
   }, [token])
 
   useEffect(() => { if (token) loadEntries() }, [date, token])
@@ -327,31 +353,26 @@ export default function App() {
   }, { kcal: 0, protein: 0, satfat: 0, carbs: 0, sugar: 0, fiber: 0, salt: 0 })
 
   if (!token) return <Login onLogin={handleLogin} />
+  if (needsOnboarding) return <Onboarding username={username} onComplete={handleOnboardingComplete} />
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh', color: C.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', paddingBottom: 40 }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
 
         {/* Header */}
-        <div style={{ background: C.white, padding: '20px 20px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ background: C.white, padding: '16px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
           <div>
             <div style={{ fontSize: 10, letterSpacing: 2, color: C.accent, fontWeight: 700, textTransform: 'uppercase' }}>NutriLog</div>
             <input type="date" value={date} max={todayISO()} onChange={e => setDate(e.target.value)}
               style={{ border: 'none', background: 'none', fontSize: 15, fontWeight: 600, color: C.text, padding: 0, cursor: 'pointer' }} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={() => exportDayPDF(date, username)} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.accent, padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>📄 Día</button>
+            <button onClick={() => exportWeekPDF(username)} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.accent, padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>📊 Semana</button>
             <div onClick={() => setShowProfile(true)} style={{ cursor: 'pointer' }}>
-              <AvatarDisplay avatarData={avatarData} username={username} size={36} />
+              <AvatarDisplay avatarData={avatarData} username={username} size={34} />
             </div>
-            <button onClick={() => exportDayPDF(date, username)} style={{
-                border: `1px solid ${C.border}`, background: C.white, color: C.accent,
-                padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600
-              }}>📄 Día</button>
-              <button onClick={() => exportWeekPDF(username)} style={{
-                border: `1px solid ${C.border}`, background: C.white, color: C.accent,
-                padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600
-              }}>📊 Semana</button>
-            <button onClick={handleLogout} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.muted, padding: '5px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer' }}>Salir</button>
+            <button onClick={handleLogout} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.muted, padding: '5px 10px', borderRadius: 20, fontSize: 12, cursor: 'pointer' }}>Salir</button>
           </div>
         </div>
 
@@ -381,18 +402,18 @@ export default function App() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-            <MacroBar label="Proteína" value={totals.protein} goal={MACRO_GOALS.protein} color={C.blue} bg={C.blueLight} />
-            <MacroBar label="Hidratos" value={totals.carbs} goal={MACRO_GOALS.carbs} color={C.yellow} bg={C.yellowLight} />
-            <MacroBar label="Grasas sat." value={totals.satfat} goal={MACRO_GOALS.satfat} color={C.red} bg={C.redLight} />
-            <MacroBar label="Sal" value={totals.salt} goal={MACRO_GOALS.salt} color={C.purple} bg={C.purpleLight} />
+            <MacroBar label="Proteína" value={totals.protein} goal={macroGoals.protein} color={C.blue} bg={C.blueLight} />
+            <MacroBar label="Hidratos" value={totals.carbs} goal={macroGoals.carbs} color={C.yellow} bg={C.yellowLight} />
+            <MacroBar label="Grasas sat." value={totals.satfat} goal={macroGoals.satfat} color={C.red} bg={C.redLight} />
+            <MacroBar label="Sal" value={totals.salt} goal={macroGoals.salt} color={C.purple} bg={C.purpleLight} />
           </div>
 
           <div style={{ marginTop: 8, background: C.tealLight, borderRadius: 14, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 11, color: C.teal, fontWeight: 700 }}>Fibra</div>
             <div style={{ flex: 1, margin: '0 10px', height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 99, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min(100, (totals.fiber / MACRO_GOALS.fiber) * 100)}%`, background: C.teal, borderRadius: 99, transition: 'width 0.4s' }} />
+              <div style={{ height: '100%', width: `${Math.min(100, (totals.fiber / macroGoals.fiber) * 100)}%`, background: C.teal, borderRadius: 99, transition: 'width 0.4s' }} />
             </div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.teal }}>{round(totals.fiber)}g <span style={{ fontSize: 10, fontWeight: 400, color: C.muted }}>/ {MACRO_GOALS.fiber}g</span></div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.teal }}>{round(totals.fiber)}g <span style={{ fontSize: 10, fontWeight: 400, color: C.muted }}>/ {macroGoals.fiber}g</span></div>
           </div>
         </div>
 
@@ -460,16 +481,11 @@ export default function App() {
                     {editEntry ? 'Guardar' : 'Añadir'}
                   </button>
                 </div>
-
                 {amount && parseFloat(amount) > 0 && (
                   <div style={{ marginTop: 10, background: C.bg, borderRadius: 12, padding: '12px 14px', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                    <div style={{ fontSize: 20, fontWeight: 900, color: C.accent }}>
-                      {round(selectedFood.kcal100 * parseFloat(amount) / 100)} kcal
-                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: C.accent }}>{round(selectedFood.kcal100 * parseFloat(amount) / 100)} kcal</div>
                     {[['P', selectedFood.protein100, C.blue], ['H', selectedFood.carbs100, C.yellow], ['Sat', selectedFood.satfat100, C.red], ['Sal', selectedFood.salt100, C.purple]].map(([label, val, color]) => (
-                      <div key={label} style={{ fontSize: 12, color: C.muted }}>
-                        {label}: <strong style={{ color }}>{round(val * parseFloat(amount) / 100)}g</strong>
-                      </div>
+                      <div key={label} style={{ fontSize: 12, color: C.muted }}>{label}: <strong style={{ color }}>{round(val * parseFloat(amount) / 100)}g</strong></div>
                     ))}
                   </div>
                 )}
@@ -656,16 +672,11 @@ export default function App() {
           <div style={{ fontSize: 11, color: C.mutedLight }}>© {new Date().getFullYear()} NutriLog · Todos los derechos reservados</div>
           <div style={{ fontSize: 10, color: C.mutedLight, marginTop: 2 }}>Desarrollado por Daniel Ambrosio</div>
         </div>
-
       </div>
 
-      {/* Modal de perfil */}
+      {/* Modal perfil */}
       {showProfile && (
-        <Profile
-          username={username}
-          onClose={() => setShowProfile(false)}
-          onAvatarUpdate={(av) => setAvatarData(av)}
-        />
+        <Profile username={username} onClose={() => setShowProfile(false)} onAvatarUpdate={(av) => setAvatarData(av)} />
       )}
     </div>
   )
