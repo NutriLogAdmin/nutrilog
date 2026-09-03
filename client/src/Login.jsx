@@ -11,6 +11,8 @@ const C = {
   accentMid: '#FFB39A',
   red: '#EF4444',
   redLight: '#FEF2F2',
+  green: '#16A34A',
+  greenLight: '#F0FDF4',
 }
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
@@ -19,6 +21,7 @@ export default function Login({ onLogin }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
   const [mode, setMode] = useState('login')
 
@@ -26,6 +29,7 @@ export default function Login({ onLogin }) {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setNotice('')
     try {
       const res = await fetch(`${API}/auth/${mode}`, {
         method: 'POST',
@@ -37,8 +41,8 @@ export default function Login({ onLogin }) {
       if (mode === 'register') {
         setMode('login')
         setError('')
-        setUsername('')
         setPassword('')
+        setNotice('Cuenta creada. Ya puedes iniciar sesión con tu usuario y contraseña.')
         setLoading(false)
         return
       }
@@ -72,7 +76,7 @@ export default function Login({ onLogin }) {
           {/* Tabs modo */}
           <div style={{ display: 'flex', background: C.bg, borderRadius: 14, padding: 4, gap: 4, marginBottom: 20 }}>
             {[['login', 'Entrar'], ['register', 'Registrarse']].map(([key, label]) => (
-              <button key={key} onClick={() => { setMode(key); setError('') }} style={{
+              <button key={key} onClick={() => { setMode(key); setError(''); setNotice('') }} style={{
                 flex: 1, padding: '9px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
                 border: 'none', borderRadius: 10,
                 background: mode === key ? C.accent : 'transparent',
@@ -103,7 +107,13 @@ export default function Login({ onLogin }) {
               </div>
             )}
 
-            {mode === 'register' && !error && (
+            {notice && !error && (
+              <div style={{ background: C.greenLight, border: `1px solid ${C.green}`, borderRadius: 10, padding: '10px 14px', fontSize: 13, color: C.green, marginBottom: 16 }}>
+                ✅ {notice}
+              </div>
+            )}
+
+            {mode === 'register' && !error && !notice && (
               <div style={{ background: C.accentLight, border: `1px solid ${C.accentMid}`, borderRadius: 10, padding: '10px 14px', fontSize: 13, color: C.accent, marginBottom: 16 }}>
                 Después de registrarte inicia sesión con tus datos.
               </div>
