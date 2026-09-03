@@ -329,11 +329,11 @@ export default function App() {
 
   // Layout responsive
   const mainMaxWidth = isDesktop ? 1200 : 480
-  const contentLayout = isDesktop ? { display: 'grid', gridTemplateColumns: '380px 1fr', gap: 24, alignItems: 'start' } : {}
+  const contentLayout = isDesktop ? { display: 'grid', gridTemplateColumns: '380px minmax(0, 1fr)', gap: 24, alignItems: 'start' } : {}
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh', color: C.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', paddingBottom: 40 }}>
-      <div style={{ maxWidth: mainMaxWidth, margin: '0 auto' }}>
+      <div style={{ maxWidth: mainMaxWidth, width: '100%', margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{ background: C.white, padding: '14px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -602,14 +602,14 @@ export default function App() {
                     ))}
                   </div>
 
-                  <div style={{ display: isDesktop ? 'grid' : 'block', gridTemplateColumns: isDesktop ? 'repeat(2, 1fr)' : undefined, gap: 8 }}>
+                  <div style={{ display: isDesktop ? 'grid' : 'block', gridTemplateColumns: isDesktop ? 'repeat(2, minmax(0, 1fr))' : undefined, gap: 8 }}>
                     {catalogFiltered.length === 0
                       ? <div style={{ textAlign: 'center', color: C.muted, fontSize: 14, padding: '40px 0' }}>{foods.length === 0 ? 'El catálogo está vacío.' : 'No hay alimentos en esta categoría.'}</div>
                       : catalogFiltered.map(f => (
                         <div key={f.id} style={{ background: C.white, borderRadius: 16, padding: '14px 16px', marginBottom: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
                             <span style={{ fontSize: 24, flexShrink: 0 }}>{CATEGORIES.find(c => c.key === f.category)?.emoji || '📦'}</span>
-                            <div style={{ flex: 1 }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{f.name}</div>
                                 <span style={{ fontSize: 10, background: C.accentLight, color: C.accent, padding: '2px 6px', borderRadius: 8, fontWeight: 600 }}>{f.unit}</span>
