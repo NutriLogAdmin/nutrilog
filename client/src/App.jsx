@@ -165,6 +165,7 @@ export default function App() {
   const [editGoal, setEditGoal] = useState(false)
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 900)
   const [whatsNew, setWhatsNew] = useState(null)
+  const [inlineCreate, setInlineCreate] = useState(false)
 
   useEffect(() => {
     const handler = () => setIsDesktop(window.innerWidth >= 900)
@@ -267,6 +268,26 @@ export default function App() {
     setNewFood(EMPTY_FOOD); setShowFoodForm(false); loadFoods()
   }
 
+  // Crear un alimento desde el panel de "Añadir a comida" sin ir al Catálogo.
+  // Solo INSERT (POST /api/foods), el mismo endpoint que el botón del Catálogo.
+  async function createFoodInline(e) {
+    e.preventDefault()
+    if (!newFood.name.trim()) return
+    const payload = { ...newFood, name: newFood.name.trim(),
+      kcal100: parseFloat(newFood.kcal100) || 0, protein100: parseFloat(newFood.protein100) || 0,
+      satfat100: parseFloat(newFood.satfat100) || 0, carbs100: parseFloat(newFood.carbs100) || 0,
+      sugar100: parseFloat(newFood.sugar100) || 0, fiber100: parseFloat(newFood.fiber100) || 0,
+      salt100: parseFloat(newFood.salt100) || 0 }
+    const res = await fetch(`${API}/foods`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) })
+    if (!res.ok) return
+    const created = await res.json()
+    await loadFoods()
+    setSelectedFood(created)
+    setSearch(created.name)
+    setInlineCreate(false)
+    setNewFood(EMPTY_FOOD)
+  }
+
   async function addEntry(e) {
     e.preventDefault()
     if (!selectedFood || !amount) return
@@ -310,13 +331,13 @@ export default function App() {
   }
 
   function openMealAdd(mealKey) {
-    setActiveMeal(mealKey); setSelectedFood(null); setSearch(''); setAmount(''); setEditEntry(null)
+    setActiveMeal(mealKey); setSelectedFood(null); setSearch(''); setAmount(''); setEditEntry(null); setInlineCreate(false)
     setExpandedMeals(prev => ({ ...prev, [mealKey]: true }))
     window.scrollTo(0, 0)
   }
 
   function cancelAdd() {
-    setActiveMeal(null); setSelectedFood(null); setSearch(''); setAmount(''); setEditEntry(null)
+    setActiveMeal(null); setSelectedFood(null); setSearch(''); setAmount(''); setEditEntry(null); setInlineCreate(false)
   }
 
   const filtered = foods.filter(f => f.name.toLowerCase().includes(search.toLowerCase()))
@@ -443,10 +464,18 @@ export default function App() {
                   <input placeholder="🔍 Buscar alimento..." value={search}
                     onChange={e => { setSearch(e.target.value); if (!editEntry) setSelectedFood(null); setAmount('') }}
                     style={{ ...inputStyle, marginBottom: 0 }} />
-                  {search && !selectedFood && (
+                  {search && !selectedFood && !inlineCreate && (
                     <div style={{ marginTop: 8, borderRadius: 12, overflow: 'hidden', border: `1px solid ${C.border}`, background: C.white, maxHeight: 250, overflowY: 'auto' }}>
                       {filtered.length === 0
-                        ? <div style={{ padding: '12px 14px', fontSize: 13, color: C.muted }}>No encontrado — añádelo en Catálogo</div>
+                        ? (
+                          <div style={{ padding: '12px 14px', fontSize: 13, color: C.muted, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
+                            <span>No hay ningún alimento con ese nombre.</span>
+                            <button type="button" onClick={() => { setNewFood({ ...EMPTY_FOOD, name: search }); setInlineCreate(true) }}
+                              style={{ border: 'none', background: C.accent, color: '#fff', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                              + Crear "{search}"
+                            </button>
+                          </div>
+                        )
                         : filtered.map(f => (
                           <div key={f.id} onClick={() => { setSelectedFood(f); setSearch(f.name) }}
                             style={{ padding: '12px 14px', cursor: 'pointer', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: C.white }}>
@@ -462,6 +491,33 @@ export default function App() {
                         ))
                       }
                     </div>
+                  )}
+                  {inlineCreate && (
+                    <form onSubmit={createFoodInline} style={{ marginTop: 12, background: C.bg, borderRadius: 12, padding: 12 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: C.accent, marginBottom: 8 }}>Nuevo alimento</div>
+                      <input type="text" value={newFood.name} placeholder="Nombre" onChange={e => setNewFood({ ...newFood, name: e.target.value })} style={{ ...inputStyle, marginBottom: 8 }} />
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                        <select value={newFood.category} onChange={e => setNewFood({ ...newFood, category: e.target.value })} style={{ ...inputStyle, height: 42 }}>
+                          {CATEGORIES.filter(c => c.key !== 'todos').map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+                        </select>
+                        <select value={newFood.unit} onChange={e => setNewFood({ ...newFood, unit: e.target.value })} style={{ ...inputStyle, height: 42 }}>
+                          <option value="g">g (sólido)</option>
+                          <option value="ml">ml (líquido)</option>
+                        </select>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                        {[['Kcal/100', 'kcal100'], ['Proteína (g)', 'protein100'], ['Hidratos (g)', 'carbs100'], ['Azúcares (g)', 'sugar100'], ['Grasas sat. (g)', 'satfat100'], ['Fibra (g)', 'fiber100'], ['Sal (g)', 'salt100']].map(([label, key]) => (
+                          <div key={key}>
+                            <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>{label}</div>
+                            <input type="number" value={newFood[key]} placeholder="0" onChange={e => setNewFood({ ...newFood, [key]: e.target.value })} style={inputStyle} />
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                        <button type="submit" style={{ flex: 1, padding: '11px', background: C.accent, color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Crear y seleccionar</button>
+                        <button type="button" onClick={() => { setInlineCreate(false); setNewFood(EMPTY_FOOD) }} style={{ padding: '11px 14px', background: C.white, color: C.muted, border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, cursor: 'pointer' }}>Cancelar</button>
+                      </div>
+                    </form>
                   )}
                   {selectedFood && (
                     <form onSubmit={addEntry} style={{ marginTop: 12 }}>

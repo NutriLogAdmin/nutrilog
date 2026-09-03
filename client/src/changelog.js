@@ -6,6 +6,15 @@
 
 export const CHANGELOG = [
   {
+    version: '1.1.0',
+    date: '2026-09-03',
+    changes: [
+      'Al registrarte se te confirma que la cuenta se ha creado.',
+      'El registro pide una contraseña mínima: 8 caracteres, con al menos una letra y un número.',
+      'Puedes crear un alimento nuevo desde la pantalla de añadir a una comida, sin ir al catálogo.',
+    ],
+  },
+  {
     version: '1.0.0',
     date: '2026-09-03',
     changes: [
