@@ -4,6 +4,8 @@ import OcrScanner from './OcrScanner'
 import Profile from './Profile'
 import Onboarding from './Onboarding'
 import { exportDayPDF, exportWeekPDF } from './PdfExport'
+import WhatsNew from './WhatsNew'
+import { unseenEntries, LATEST_VERSION } from './changelog'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 
@@ -162,6 +164,7 @@ export default function App() {
   const [catalogSearch, setCatalogSearch] = useState('')
   const [editGoal, setEditGoal] = useState(false)
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 900)
+  const [whatsNew, setWhatsNew] = useState(null)
 
   useEffect(() => {
     const handler = () => setIsDesktop(window.innerWidth >= 900)
@@ -188,6 +191,8 @@ export default function App() {
   function handleOnboardingComplete(macros) {
     setMacroGoals({ protein: macros.goal_protein, carbs: macros.goal_carbs, satfat: macros.goal_satfat, salt: macros.goal_salt, fiber: macros.goal_fiber, kcal: macros.goal_kcal })
     setGoal(macros.goal_kcal)
+    // Usuario recién creado: se marca al día para que no le salga el pop-up de novedades.
+    localStorage.setItem('nutrilog_changelog_seen', LATEST_VERSION)
     setNeedsOnboarding(false)
   }
 
@@ -219,6 +224,12 @@ export default function App() {
     }
     loadProfile()
   }, [token])
+
+  useEffect(() => {
+    if (!token || needsOnboarding) return
+    const pending = unseenEntries(localStorage.getItem('nutrilog_changelog_seen'))
+    if (pending.length > 0) setWhatsNew(pending)
+  }, [token, needsOnboarding])
 
   useEffect(() => { if (token) loadEntries() }, [date, token])
   useEffect(() => { if (token) loadFoods() }, [token])
@@ -651,6 +662,17 @@ export default function App() {
 
       {showProfile && (
         <Profile username={username} onClose={() => setShowProfile(false)} onAvatarUpdate={av => setAvatarData(av)} darkMode={darkMode} macroGoals={macroGoals} onMacrosUpdate={macros => { setMacroGoals(macros); setGoal(macros.kcal) }} />
+      )}
+
+      {whatsNew && (
+        <WhatsNew
+          entries={whatsNew}
+          C={C}
+          onClose={() => {
+            localStorage.setItem('nutrilog_changelog_seen', LATEST_VERSION)
+            setWhatsNew(null)
+          }}
+        />
       )}
     </div>
   )
