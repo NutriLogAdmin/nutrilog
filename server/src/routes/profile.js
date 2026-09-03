@@ -18,6 +18,13 @@ router.put('/avatar', async (req, res) => {
   res.json({ ok: true })
 })
 
+// Actualizar solo el objetivo de kcal (edición rápida desde la principal)
+router.put('/goal-kcal', async (req, res) => {
+  const { goal_kcal } = req.body
+  await pool.query('UPDATE users SET goal_kcal = $1 WHERE id = $2', [goal_kcal, req.user.id])
+  res.json({ ok: true })
+})
+
 // Guardar objetivos del usuario
 router.put('/goals', async (req, res) => {
   const { weight, height, activity_level, goal_type, goal_kcal, goal_protein, goal_carbs, goal_satfat, goal_salt, goal_fiber } = req.body

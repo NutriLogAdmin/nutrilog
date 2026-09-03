@@ -38,10 +38,10 @@ async function fetchEntries(date) {
   return Array.isArray(data) ? data : []
 }
 
-async function fetchGoal(date) {
-  const res = await fetch(`${API}/foods/goal?date=${date}`, { headers: getHeaders() })
+async function fetchGoal() {
+  const res = await fetch(`${API}/profile`, { headers: getHeaders() })
   const data = await res.json()
-  return data.kcal_goal || 2500
+  return data.goal_kcal || 2500
 }
 
 function calcTotals(entries) {
@@ -95,7 +95,7 @@ function addMacroRow(doc, label, value, goal, unit, y) {
 }
 
 export async function exportDayPDF(date, username) {
-  const [entries, goal] = await Promise.all([fetchEntries(date), fetchGoal(date)])
+  const [entries, goal] = await Promise.all([fetchEntries(date), fetchGoal()])
   const totals = calcTotals(entries)
   const doc = new jsPDF()
 
@@ -195,7 +195,7 @@ export async function exportDayPDF(date, username) {
 
 export async function exportWeekPDF(username) {
   const dates = Array.from({ length: 7 }, (_, i) => daysAgoISO(6 - i))
-  const goal = await fetchGoal(dates[6])
+  const goal = await fetchGoal()
 
   const weekData = await Promise.all(dates.map(async date => {
     const entries = await fetchEntries(date)

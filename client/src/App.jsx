@@ -222,7 +222,6 @@ export default function App() {
 
   useEffect(() => { if (token) loadEntries() }, [date, token])
   useEffect(() => { if (token) loadFoods() }, [token])
-  useEffect(() => { if (token) loadGoal() }, [date, token])
 
   async function loadEntries() {
     const res = await fetch(`${API}/foods/entries?date=${date}`, { headers: getHeaders() })
@@ -238,16 +237,10 @@ export default function App() {
     setFoods(Array.isArray(data) ? data : [])
   }
 
-  async function loadGoal() {
-    const res = await fetch(`${API}/foods/goal?date=${date}`, { headers: getHeaders() })
-    if (res.status === 401) { handleLogout(); return }
-    const data = await res.json()
-    setGoal(data.kcal_goal)
-  }
-
   async function saveGoal(val) {
     setSavingGoal(true)
-    await fetch(`${API}/foods/goal`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ date, kcal_goal: val }) })
+    await fetch(`${API}/profile/goal-kcal`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify({ goal_kcal: val }) })
+    setMacroGoals(prev => ({ ...prev, kcal: val }))
     setSavingGoal(false)
   }
 
