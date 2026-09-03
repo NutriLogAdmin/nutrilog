@@ -17,6 +17,16 @@ const C = {
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 
+// Mismas reglas que valida el servidor en /auth/register. Aquí solo para avisar antes.
+function validateRegister(username, password) {
+  const u = username.trim()
+  if (u.length < 3 || /\s/.test(u)) return 'El usuario debe tener al menos 3 caracteres y no puede llevar espacios.'
+  if (password.length < 8 || !/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+    return 'La contraseña debe tener al menos 8 caracteres e incluir una letra y un número.'
+  }
+  return ''
+}
+
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -30,6 +40,10 @@ export default function Login({ onLogin }) {
     setLoading(true)
     setError('')
     setNotice('')
+    if (mode === 'register') {
+      const v = validateRegister(username, password)
+      if (v) { setError(v); setLoading(false); return }
+    }
     try {
       const res = await fetch(`${API}/auth/${mode}`, {
         method: 'POST',
@@ -99,6 +113,11 @@ export default function Login({ onLogin }) {
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                 placeholder="Tu contraseña"
                 style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '12px 14px', borderRadius: 12, fontSize: 15, boxSizing: 'border-box' }} />
+              {mode === 'register' && (
+                <div style={{ fontSize: 11, color: C.muted, marginTop: 6 }}>
+                  Mínimo 8 caracteres, con al menos una letra y un número.
+                </div>
+              )}
             </div>
 
             {error && (

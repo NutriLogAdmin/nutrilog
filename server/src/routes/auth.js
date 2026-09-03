@@ -12,11 +12,19 @@ router.post('/register', async (req, res) => {
   if (!username || !password) {
     return res.status(400).json({ error: 'Usuario y contraseña obligatorios' })
   }
+  const user = String(username).trim()
+  const pass = String(password)
+  if (user.length < 3 || /\s/.test(user)) {
+    return res.status(400).json({ error: 'El usuario debe tener al menos 3 caracteres y sin espacios' })
+  }
+  if (pass.length < 8 || !/[a-zA-Z]/.test(pass) || !/\d/.test(pass)) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres, con una letra y un número' })
+  }
   try {
-    const hash = await bcrypt.hash(password, 10)
+    const hash = await bcrypt.hash(pass, 10)
     const result = await pool.query(
       'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id, username',
-      [username, hash]
+      [user, hash]
     )
     res.status(201).json(result.rows[0])
   } catch {
