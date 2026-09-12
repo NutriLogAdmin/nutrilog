@@ -18,7 +18,12 @@ jobs:
       - name: Instalar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          # Fijado a 22 (LTS): better-sqlite3 aún no tiene binario precompilado para
+          # Node 24.20.x recién salido, y compilarlo desde cero con node-gyp falla en el
+          # runner de GitHub (bug conocido de node-gyp/undici, no es código nuestro).
+          # better-sqlite3 no se usa en el código — está pendiente quitarlo del todo
+          # (ver Tareas/PENDIENTES.md), esto es el parche mientras tanto.
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
 
