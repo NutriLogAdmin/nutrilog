@@ -1,20 +1,5 @@
 import { useState } from 'react'
 
-const C = {
-  bg: '#F7F7F5',
-  white: '#FFFFFF',
-  border: '#EBEBEB',
-  text: '#1A1A1A',
-  muted: '#888',
-  accent: '#FF6B35',
-  accentLight: '#FFF0EB',
-  accentMid: '#FFB39A',
-  red: '#EF4444',
-  redLight: '#FEF2F2',
-  green: '#16A34A',
-  greenLight: '#F0FDF4',
-}
-
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 
 // Mismas reglas que valida el servidor en /auth/register. Aquí solo para avisar antes.
@@ -27,7 +12,7 @@ function validateRegister(username, password) {
   return ''
 }
 
-export default function Login({ onLogin }) {
+export default function Login({ onLogin, darkMode, onToggleDark, C }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -71,7 +56,11 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', padding: '20px' }}>
+    <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', padding: '20px', position: 'relative' }}>
+      <button onClick={onToggleDark} style={{ position: 'absolute', top: 16, right: 16, border: `1px solid ${C.border}`, background: C.white, color: C.muted, padding: '5px 10px', borderRadius: 20, fontSize: 13, cursor: 'pointer' }}>
+        {darkMode ? '☀️' : '🌙'}
+      </button>
+
       <div style={{ width: '100%', maxWidth: 380 }}>
 
         {/* Logo */}
@@ -146,6 +135,12 @@ export default function Login({ onLogin }) {
               {loading ? 'Cargando...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
             </button>
           </form>
+        </div>
+
+        {/* Footer */}
+        <div style={{ textAlign: 'center', padding: '24px 16px 0' }}>
+          <div style={{ fontSize: 11, color: C.mutedLight }}>© {new Date().getFullYear()} NutriLog · Todos los derechos reservados</div>
+          <div style={{ fontSize: 10, color: C.mutedLight, marginTop: 2 }}>Desarrollado por Daniel Ambrosio</div>
         </div>
       </div>
     </div>

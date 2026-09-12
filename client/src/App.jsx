@@ -135,7 +135,13 @@ function MacroBar({ label, value, goal, color, bg, C }) {
 }
 
 export default function App() {
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('nutrilog_dark') === 'true')
+  const [darkMode, setDarkMode] = useState(() => {
+    const stored = localStorage.getItem('nutrilog_dark')
+    if (stored === 'true') return true
+    if (stored === 'false') return false
+    // Sin elección guardada: seguir el tema del sistema (móvil u ordenador).
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
   const C = getColors(darkMode)
 
   const [token, setToken] = useState(getToken())
@@ -171,6 +177,16 @@ export default function App() {
     const handler = () => setIsDesktop(window.innerWidth >= 900)
     window.addEventListener('resize', handler)
     return () => window.removeEventListener('resize', handler)
+  }, [])
+
+  // Si el usuario nunca ha tocado el botón de tema, seguir el del sistema en vivo
+  // (cambia el móvil de oscuro a claro con la hora, por ejemplo).
+  useEffect(() => {
+    if (localStorage.getItem('nutrilog_dark') !== null) return
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = e => setDarkMode(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
   }, [])
 
   function toggleDark() {
@@ -354,7 +370,7 @@ export default function App() {
     return acc
   }, { kcal:0, protein:0, satfat:0, carbs:0, sugar:0, fiber:0, salt:0 })
 
-  if (!token) return <Login onLogin={handleLogin} darkMode={darkMode} />
+  if (!token) return <Login onLogin={handleLogin} darkMode={darkMode} onToggleDark={toggleDark} C={C} />
   if (needsOnboarding) return <Onboarding username={username} onComplete={handleOnboardingComplete} />
 
   const inputStyle = { width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' }
