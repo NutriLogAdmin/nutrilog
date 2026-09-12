@@ -66,10 +66,12 @@ function getHeaders() {
   return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
 }
 function todayISO() { return new Date().toISOString().slice(0, 10) }
-function formatHeaderDate(iso) {
+// Mes y año, sin el día: el día ya lo marca el círculo resaltado en la tira de la semana,
+// repetirlo en texto (antes "12 sept 2026" junto a un "12" ya visible debajo) era redundante.
+function formatHeaderMonth(iso) {
   const [y, m, d] = iso.split('-').map(Number)
-  const txt = new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
-  return txt.replace(/\./g, '')
+  const txt = new Date(y, m - 1, d).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+  return txt.charAt(0).toUpperCase() + txt.slice(1)
 }
 const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 // La semana (lunes a domingo) que contiene `iso`, para la tira de días de la cabecera.
@@ -158,6 +160,9 @@ function MacroRing({ label, value, goal, color, C, size = 66 }) {
         <text x={size / 2} y={size / 2 + 4} textAnchor="middle" fontSize="13" fontWeight="800" fill={C.text}>{round(value)}</text>
       </svg>
       <div style={{ fontSize: 9, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'center', lineHeight: 1.2 }}>{label}</div>
+      <div style={{ fontSize: 9, color: C.muted, textAlign: 'center', lineHeight: 1.3 }}>
+        obj. {goal}g<br />{over ? <span style={{ color: C.red }}>+{round(value - goal)}g</span> : `${round(goal - value)}g restantes`}
+      </div>
     </div>
   )
 }
@@ -421,7 +426,7 @@ export default function App() {
             <div>
               <div style={{ fontSize: 9, letterSpacing: 2, color: C.accent, fontWeight: 700, textTransform: 'uppercase' }}>NutriLog</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: C.text, marginTop: 1 }}>Hola, {username} 👋</div>
-              <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{formatHeaderDate(date)}</div>
+              <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{formatHeaderMonth(date)}</div>
             </div>
             <div onClick={() => setShowProfile(true)} style={{ cursor: 'pointer' }}>
               <AvatarDisplay avatarData={avatarData} username={username} size={40} />

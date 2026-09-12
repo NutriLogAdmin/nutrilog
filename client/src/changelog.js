@@ -6,6 +6,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.5.1',
+    date: '2026-09-12',
+    changes: [
+      'Quitada la fecha duplicada de la cabecera (ahora solo mes y año; el día ya lo marca la tira de días).',
+      'Cada anillo de macro vuelve a mostrar el objetivo exacto y lo que queda.',
+    ],
+  },
+  {
     version: '1.5.0',
     date: '2026-09-12',
     changes: [
