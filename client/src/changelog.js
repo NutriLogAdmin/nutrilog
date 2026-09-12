@@ -6,6 +6,15 @@
 
 export const CHANGELOG = [
   {
+    version: '1.2.0',
+    date: '2026-09-12',
+    changes: [
+      'El escáner de etiquetas ahora usa IA en vez de OCR clásico: lee mucho mejor la tabla nutricional y también adivina el nombre y la categoría del producto.',
+      'El tema (claro/oscuro) sigue automáticamente el de tu móvil u ordenador; el botón para cambiarlo a mano ahora también está en la pantalla de inicio de sesión.',
+      'Añadido el aviso de copyright en la pantalla de inicio de sesión.',
+    ],
+  },
+  {
     version: '1.1.0',
     date: '2026-09-03',
     changes: [
