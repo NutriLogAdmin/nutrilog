@@ -6,6 +6,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.4.1',
+    date: '2026-09-12',
+    changes: [
+      'Ajustado el tamaño de los números en las tarjetas de macros: con las 6 tarjetas se veían demasiado grandes.',
+    ],
+  },
+  {
     version: '1.4.0',
     date: '2026-09-12',
     changes: [

@@ -130,15 +130,13 @@ function MacroBar({ label, value, goal, color, bg, C }) {
   const pct = Math.min(100, (value / goal) * 100)
   const over = value > goal
   return (
-    <div style={{ background: bg, borderRadius: 14, padding: '10px 12px', minWidth: 0 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-        <div style={{ fontSize: 9, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
-        <div style={{ fontSize: 13, fontWeight: 800, color: over ? C.red : color }}>{round(value)}g</div>
-      </div>
+    <div style={{ background: bg, borderRadius: 14, padding: '8px 10px', minWidth: 0 }}>
+      <div style={{ fontSize: 8, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 3 }}>{label}</div>
+      <div style={{ fontSize: 11, fontWeight: 800, color: over ? C.red : color, marginBottom: 6 }}>{round(value)}g</div>
       <div style={{ height: 4, background: 'rgba(128,128,128,0.2)', borderRadius: 99, overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${pct}%`, background: over ? C.red : color, borderRadius: 99, transition: 'width 0.4s' }} />
       </div>
-      <div style={{ fontSize: 9, color: C.muted, marginTop: 4 }}>
+      <div style={{ fontSize: 8, color: C.muted, marginTop: 4 }}>
         obj. {goal}g · {over ? <span style={{ color: C.red }}>+{round(value - goal)}g</span> : `${round(goal - value)}g restantes`}
       </div>
     </div>
