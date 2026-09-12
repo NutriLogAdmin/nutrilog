@@ -1,5 +1,13 @@
 import { useState, useRef } from 'react'
-import { createWorker } from 'tesseract.js'
+
+const API = 'https://nutrilog-production-46b5.up.railway.app/api'
+
+function getHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('nutrilog_token')}`
+  }
+}
 
 const C = {
   bg: '#F7F7F5',
@@ -29,91 +37,36 @@ const CATEGORIES = [
   { key: 'salsas', label: '🫙 Salsas' },
 ]
 
-function extractNumber(text) {
-  // Extrae el último número de una línea (el valor nutricional suele ir al final)
-  const matches = text.match(/(\d+[.,]\d+|\d+)/g)
-  if (!matches) return null
-  return parseFloat(matches[matches.length - 1].replace(',', '.'))
-}
-
-function parseNutrition(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 1)
-  const result = { kcal100: '', protein100: '', carbs100: '', sugar100: '', satfat100: '', fiber100: '', salt100: '' }
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].toLowerCase()
-    const nextLine = (lines[i + 1] || '').toLowerCase()
-
-    // Energía — busca kcal explícitamente, ignora kJ
-    if (!result.kcal100 && (line.includes('kcal') || line.includes('energético') || line.includes('energetico') || line.includes('energia'))) {
-      // Formato "190 kj/45 kcal" — coger el número después de "/"
-      const slashMatch = line.match(/\/\s*(\d+[.,]?\d*)\s*kcal/)
-      if (slashMatch) {
-        result.kcal100 = String(Math.round(parseFloat(slashMatch[1].replace(',', '.'))))
-        continue
+// Reduce la foto a ~1024px de lado antes de mandarla: la IA no necesita más resolución
+// para leer una etiqueta, y el coste de la llamada depende directamente del tamaño.
+function resizeImage(file, maxSide = 1024, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      let { width, height } = img
+      if (width > height && width > maxSide) {
+        height = Math.round(height * maxSide / width)
+        width = maxSide
+      } else if (height > maxSide) {
+        width = Math.round(width * maxSide / height)
+        height = maxSide
       }
-      // Formato "45 kcal" solo
-      const kcalMatch = line.match(/(\d+[.,]?\d*)\s*kcal/)
-      if (kcalMatch) {
-        result.kcal100 = String(Math.round(parseFloat(kcalMatch[1].replace(',', '.'))))
-        continue
-      }
-      // Si solo hay kJ, convertir
-      const kjMatch = line.match(/(\d+[.,]?\d*)\s*kj/)
-      if (kjMatch && !result.kcal100) {
-        result.kcal100 = String(Math.round(parseFloat(kjMatch[1].replace(',', '.')) / 4.184))
-      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+      URL.revokeObjectURL(url)
+      const dataUrl = canvas.toDataURL('image/jpeg', quality)
+      resolve({ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' })
     }
-
-    // Grasas totales (no saturadas)
-    if (!result.satfat100 === false && line.match(/^grasas\b/) && !line.includes('saturad')) {
-      const val = extractNumber(line) ?? extractNumber(nextLine)
-      if (val !== null) result.fatTotal = val
-    }
-
-    // Grasas saturadas
-    if (!result.satfat100 && (line.includes('saturad') && !line.includes('insaturad'))) {
-      const val = extractNumber(line) ?? extractNumber(nextLine)
-      if (val !== null) result.satfat100 = String(val)
-    }
-
-    // Hidratos
-    if (!result.carbs100 && (line.includes('hidratos') || line.includes('carbohidrato'))) {
-      const val = extractNumber(line) ?? extractNumber(nextLine)
-      if (val !== null) result.carbs100 = String(val)
-    }
-
-    // Azúcares
-    if (!result.sugar100 && (line.includes('azúcar') || line.includes('azucar') || line.includes('sugar'))) {
-      const val = extractNumber(line) ?? extractNumber(nextLine)
-      if (val !== null) result.sugar100 = String(val)
-    }
-
-    // Fibra
-    if (!result.fiber100 && (line.includes('fibra') || line.includes('fiber'))) {
-      const val = extractNumber(line) ?? extractNumber(nextLine)
-      if (val !== null) result.fiber100 = String(val)
-    }
-
-    // Proteínas
-    if (!result.protein100 && (line.includes('proteína') || line.includes('proteina') || line.includes('protein'))) {
-      const val = extractNumber(line) ?? extractNumber(nextLine)
-      if (val !== null) result.protein100 = String(val)
-    }
-
-    // Sal
-    if (!result.salt100 && line.match(/^sal\b/)) {
-      const val = extractNumber(line) ?? extractNumber(nextLine)
-      if (val !== null) result.salt100 = String(val)
-    }
-  }
-
-  return result
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se pudo leer la imagen')) }
+    img.src = url
+  })
 }
 
 export default function OcrScanner({ onResult, onClose }) {
   const [status, setStatus] = useState('idle')
-  const [progress, setProgress] = useState(0)
   const [preview, setPreview] = useState(null)
   const [extracted, setExtracted] = useState(null)
   const [name, setName] = useState('')
@@ -127,27 +80,35 @@ export default function OcrScanner({ onResult, onClose }) {
     setError('')
     setExtracted(null)
     setStatus('processing')
-    setProgress(0)
 
     const url = URL.createObjectURL(file)
     setPreview(url)
 
     try {
-      const worker = await createWorker('spa', 1, {
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            setProgress(Math.round(m.progress * 100))
-          }
-        }
+      const { base64, mediaType } = await resizeImage(file)
+      const res = await fetch(`${API}/foods/scan`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ image: base64, mediaType })
       })
-      const { data: { text } } = await worker.recognize(file)
-      await worker.terminate()
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Error al analizar la etiqueta')
 
-      const parsed = parseNutrition(text)
-      setExtracted(parsed)
+      setExtracted({
+        kcal100: String(data.kcal100 ?? ''),
+        protein100: String(data.protein100 ?? ''),
+        carbs100: String(data.carbs100 ?? ''),
+        sugar100: String(data.sugar100 ?? ''),
+        satfat100: String(data.satfat100 ?? ''),
+        fiber100: String(data.fiber100 ?? ''),
+        salt100: String(data.salt100 ?? ''),
+      })
+      if (data.name) setName(data.name)
+      if (data.category) setCategory(data.category)
+      if (data.unit) setUnit(data.unit)
       setStatus('done')
-    } catch {
-      setError('Error al procesar la imagen. Intenta con una foto más clara.')
+    } catch (err) {
+      setError(err.message || 'Error al procesar la imagen. Intenta con una foto más clara.')
       setStatus('idle')
     }
   }
@@ -164,7 +125,7 @@ export default function OcrScanner({ onResult, onClose }) {
   return (
     <div style={{ background: C.white, borderRadius: 20, padding: 16, border: `2px solid ${C.accent}`, marginBottom: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: C.accent }}>📷 Escanear etiqueta</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: C.accent }}>📷 Escanear etiqueta con IA</div>
         <button onClick={onClose} style={{ border: 'none', background: C.accentLight, color: C.accent, borderRadius: 20, padding: '4px 10px', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>✕ Cerrar</button>
       </div>
 
@@ -217,10 +178,7 @@ export default function OcrScanner({ onResult, onClose }) {
       {status === 'processing' && (
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           {preview && <img src={preview} alt="preview" style={{ width: '100%', borderRadius: 10, marginBottom: 12, maxHeight: 200, objectFit: 'cover' }} />}
-          <div style={{ fontSize: 13, color: C.muted, marginBottom: 8 }}>Analizando etiqueta... {progress}%</div>
-          <div style={{ height: 6, background: C.border, borderRadius: 99, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${progress}%`, background: C.accent, borderRadius: 99, transition: 'width 0.3s' }} />
-          </div>
+          <div style={{ fontSize: 13, color: C.muted }}>🔍 Analizando etiqueta con IA…</div>
         </div>
       )}
 

@@ -10,7 +10,9 @@ const app = express()
 const PORT = process.env.PORT || 3001
 
 app.use(cors())
-app.use(express.json())
+// Límite subido de 100kb (por defecto) a 10mb: la foto de la etiqueta viaja en base64
+// dentro del JSON de /api/foods/scan.
+app.use(express.json({ limit: '10mb' }))
 
 // Rutas públicas
 app.use('/api/auth', authRouter)

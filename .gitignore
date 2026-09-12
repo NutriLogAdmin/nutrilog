@@ -1,3 +1,7 @@
+# Notas internas del espacio de trabajo: nunca al repo público.
+# Docs/ incluye contexto médico y personal (diagnóstico, medicación, lesiones).
+Docs/
+
 # Logs
 logs
 *.log

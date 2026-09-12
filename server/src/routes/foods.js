@@ -118,4 +118,85 @@ router.post('/goal', async (req, res) => {
   res.json({ ok: true })
 })
 
+// Límite barato contra un uso descontrolado del escaneo con IA (cuesta dinero real por
+// llamada). En memoria: se reinicia con cada despliegue, y para el uso real de esta app
+// eso es más que suficiente.
+const SCAN_LIMIT_PER_DAY = 30
+const scanLog = new Map()
+function scanAllowed(userId) {
+  const now = Date.now()
+  const dayMs = 24 * 60 * 60 * 1000
+  const recientes = (scanLog.get(userId) || []).filter(t => now - t < dayMs)
+  if (recientes.length >= SCAN_LIMIT_PER_DAY) return false
+  recientes.push(now)
+  scanLog.set(userId, recientes)
+  return true
+}
+
+const SCAN_PROMPT = `Analiza esta foto de una etiqueta de información nutricional de un producto alimenticio.
+Devuelve ÚNICAMENTE un objeto JSON (sin texto antes ni después, sin bloques de código \`\`\`), con esta forma exacta:
+{
+  "name": "nombre del producto tal como aparece en el envase, o cadena vacía si no se ve",
+  "category": "una de estas, la que mejor encaje: frutas, verduras, carnes, pescados, lacteos, cereales, legumbres, bebidas, snacks, salsas, otros",
+  "unit": "g si es sólido, ml si es líquido",
+  "kcal100": número — kcal por 100g o 100ml. Si la etiqueta solo trae kJ, convierte dividiendo entre 4.184,
+  "protein100": número — proteínas por 100g/ml,
+  "carbs100": número — hidratos de carbono por 100g/ml,
+  "sugar100": número — de los cuales azúcares, por 100g/ml,
+  "satfat100": número — de las cuales saturadas, por 100g/ml,
+  "fiber100": número — fibra por 100g/ml,
+  "salt100": número — sal por 100g/ml
+}
+Usa siempre la columna "por 100g" o "por 100ml" de la tabla, nunca la de "por ración". Si un dato no aparece en la etiqueta, pon 0. Los números en formato decimal con punto, sin unidades ni texto dentro del valor.`
+
+// Analizar foto de etiqueta con Claude (vision) y devolver los campos ya estructurados
+router.post('/scan', async (req, res) => {
+  const { image, mediaType } = req.body
+  const userId = req.user.id
+
+  if (!image) {
+    return res.status(400).json({ error: 'Falta la imagen' })
+  }
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.status(500).json({ error: 'Falta configurar ANTHROPIC_API_KEY en el servidor' })
+  }
+  if (!scanAllowed(userId)) {
+    return res.status(429).json({ error: `Límite de ${SCAN_LIMIT_PER_DAY} escaneos por día alcanzado. Inténtalo mañana.` })
+  }
+
+  try {
+    const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType || 'image/jpeg', data: image } },
+            { type: 'text', text: SCAN_PROMPT }
+          ]
+        }]
+      })
+    })
+    const data = await aiRes.json()
+    if (!aiRes.ok) {
+      console.error('Error de Anthropic API:', data)
+      return res.status(502).json({ error: data?.error?.message || 'Error al llamar a la IA' })
+    }
+    const raw = data.content?.[0]?.text || ''
+    const cleaned = raw.replace(/```json\s*|\s*```/g, '').trim()
+    const parsed = JSON.parse(cleaned)
+    res.json(parsed)
+  } catch (err) {
+    console.error('Error analizando etiqueta:', err)
+    res.status(500).json({ error: 'No se pudo analizar la imagen. Prueba con una foto más clara.' })
+  }
+})
+
 module.exports = router
