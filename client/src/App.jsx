@@ -71,6 +71,21 @@ function formatHeaderDate(iso) {
   const txt = new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
   return txt.replace(/\./g, '')
 }
+const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+// La semana (lunes a domingo) que contiene `iso`, para la tira de días de la cabecera.
+function getWeekStrip(iso) {
+  const [y, m, d] = iso.split('-').map(Number)
+  const base = new Date(y, m - 1, d)
+  const sinceMonday = (base.getDay() + 6) % 7 // getDay(): 0=domingo..6=sábado
+  const monday = new Date(base)
+  monday.setDate(base.getDate() - sinceMonday)
+  return Array.from({ length: 7 }, (_, i) => {
+    const dt = new Date(monday)
+    dt.setDate(monday.getDate() + i)
+    const iso2 = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+    return { iso: iso2, num: dt.getDate(), letter: DAY_LETTERS[i] }
+  })
+}
 function round(n) { return Math.round((n + Number.EPSILON) * 10) / 10 }
 function calcFactor(amount) { return amount / 100 }
 
@@ -126,19 +141,23 @@ function CircleProgress({ value, max, size = 160, C }) {
   )
 }
 
-function MacroBar({ label, value, goal, color, bg, C }) {
-  const pct = Math.min(100, (value / goal) * 100)
+function MacroRing({ label, value, goal, color, C, size = 66 }) {
+  const pct = Math.min(1, value / goal)
   const over = value > goal
+  const r = size / 2 - 5
+  const circumference = 2 * Math.PI * r
+  const offset = circumference * (1 - pct)
+  const ringColor = over ? C.red : color
   return (
-    <div style={{ background: bg, borderRadius: 14, padding: '8px 10px', minWidth: 0 }}>
-      <div style={{ fontSize: 8, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 3 }}>{label}</div>
-      <div style={{ fontSize: 11, fontWeight: 800, color: over ? C.red : color, marginBottom: 6 }}>{round(value)}g</div>
-      <div style={{ height: 4, background: 'rgba(128,128,128,0.2)', borderRadius: 99, overflow: 'hidden' }}>
-        <div style={{ height: '100%', width: `${pct}%`, background: over ? C.red : color, borderRadius: 99, transition: 'width 0.4s' }} />
-      </div>
-      <div style={{ fontSize: 8, color: C.muted, marginTop: 4 }}>
-        obj. {goal}g · {over ? <span style={{ color: C.red }}>+{round(value - goal)}g</span> : `${round(goal - value)}g restantes`}
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 0 }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.border} strokeWidth="6" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={ringColor} strokeWidth="6"
+          strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`} style={{ transition: 'stroke-dashoffset 0.4s' }} />
+        <text x={size / 2} y={size / 2 + 4} textAnchor="middle" fontSize="13" fontWeight="800" fill={C.text}>{round(value)}</text>
+      </svg>
+      <div style={{ fontSize: 9, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'center', lineHeight: 1.2 }}>{label}</div>
     </div>
   )
 }
@@ -400,18 +419,41 @@ export default function App() {
         <div style={{ background: C.white, padding: '14px 20px', borderBottom: `1px solid ${C.border}`, position: 'sticky', top: 0, zIndex: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: 10, letterSpacing: 2, color: C.accent, fontWeight: 700, textTransform: 'uppercase' }}>NutriLog</div>
-              <div style={{ position: 'relative', display: 'inline-block' }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{formatHeaderDate(date)}</div>
-                <input type="date" value={date} max={todayISO()} onChange={e => setDate(e.target.value)}
-                  style={{ position: 'absolute', inset: 0, opacity: 0, border: 'none', cursor: 'pointer' }} />
-              </div>
+              <div style={{ fontSize: 9, letterSpacing: 2, color: C.accent, fontWeight: 700, textTransform: 'uppercase' }}>NutriLog</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: C.text, marginTop: 1 }}>Hola, {username} 👋</div>
+              <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{formatHeaderDate(date)}</div>
             </div>
             <div onClick={() => setShowProfile(true)} style={{ cursor: 'pointer' }}>
-              <AvatarDisplay avatarData={avatarData} username={username} size={34} />
+              <AvatarDisplay avatarData={avatarData} username={username} size={40} />
             </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 10 }}>
+
+          {/* Tira de días de la semana */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 12 }}>
+            {getWeekStrip(date).map(d => {
+              const selected = d.iso === date
+              const isToday = d.iso === todayISO()
+              return (
+                <div key={d.iso} onClick={() => setDate(d.iso)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer' }}>
+                  <div style={{ fontSize: 10, color: C.muted, fontWeight: 600 }}>{d.letter}</div>
+                  <div style={{
+                    width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 13, fontWeight: 700, boxSizing: 'border-box',
+                    background: selected ? C.accent : 'transparent',
+                    color: selected ? '#fff' : C.text,
+                    border: isToday ? `2px solid ${C.green}` : '2px solid transparent',
+                  }}>{d.num}</div>
+                </div>
+              )
+            })}
+            <div style={{ position: 'relative', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: 16 }}>📅</span>
+              <input type="date" value={date} max={todayISO()} onChange={e => setDate(e.target.value)}
+                style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={() => exportDayPDF(date, username)} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.accent, padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>📄 Día</button>
               <button onClick={() => exportWeekPDF(username)} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.accent, padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>📊 Semana</button>
@@ -451,13 +493,13 @@ export default function App() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
-                  <MacroBar label="Proteína" value={totals.protein} goal={macroGoals.protein} color={C.blue} bg={C.blueLight} C={C} />
-                  <MacroBar label="Hidratos" value={totals.carbs} goal={macroGoals.carbs} color={C.yellow} bg={C.yellowLight} C={C} />
-                  <MacroBar label="Grasas sat." value={totals.satfat} goal={macroGoals.satfat} color={C.red} bg={C.redLight} C={C} />
-                  <MacroBar label="Sal" value={totals.salt} goal={macroGoals.salt} color={C.purple} bg={C.purpleLight} C={C} />
-                  <MacroBar label="Fibra" value={totals.fiber} goal={macroGoals.fiber} color={C.teal} bg={C.tealLight} C={C} />
-                  <MacroBar label="Azúcar" value={totals.sugar} goal={macroGoals.sugar} color={C.green} bg={C.greenLight} C={C} />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, justifyItems: 'center' }}>
+                  <MacroRing label="Proteína" value={totals.protein} goal={macroGoals.protein} color={C.blue} C={C} />
+                  <MacroRing label="Hidratos" value={totals.carbs} goal={macroGoals.carbs} color={C.yellow} C={C} />
+                  <MacroRing label="Grasas sat." value={totals.satfat} goal={macroGoals.satfat} color={C.red} C={C} />
+                  <MacroRing label="Sal" value={totals.salt} goal={macroGoals.salt} color={C.purple} C={C} />
+                  <MacroRing label="Fibra" value={totals.fiber} goal={macroGoals.fiber} color={C.teal} C={C} />
+                  <MacroRing label="Azúcar" value={totals.sugar} goal={macroGoals.sugar} color={C.green} C={C} />
                 </div>
               </div>
 

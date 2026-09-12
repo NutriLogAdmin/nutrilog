@@ -6,6 +6,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.5.0',
+    date: '2026-09-12',
+    changes: [
+      'Nueva cabecera con saludo y una tira de días de la semana para cambiar de fecha con un toque, con el día de hoy siempre marcado.',
+      'Los macros (proteína, hidratos, grasas, sal, fibra, azúcar) ahora se ven como anillos de progreso en vez de barras.',
+    ],
+  },
+  {
     version: '1.4.1',
     date: '2026-09-12',
     changes: [
