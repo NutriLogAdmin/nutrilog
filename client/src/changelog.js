@@ -6,6 +6,15 @@
 
 export const CHANGELOG = [
   {
+    version: '1.3.0',
+    date: '2026-09-12',
+    changes: [
+      'Arreglado el diseño en móvil: ya no se puede mover la pantalla hacia los lados, solo hacia arriba y abajo.',
+      'La fecha de la cabecera queda alineada con el título "NutriLog".',
+      'Los botones de la cabecera (Día, Semana, tema, Salir) se ordenan bien en cualquier tamaño de pantalla.',
+    ],
+  },
+  {
     version: '1.2.0',
     date: '2026-09-12',
     changes: [

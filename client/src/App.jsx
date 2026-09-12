@@ -66,6 +66,11 @@ function getHeaders() {
   return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
 }
 function todayISO() { return new Date().toISOString().slice(0, 10) }
+function formatHeaderDate(iso) {
+  const [y, m, d] = iso.split('-').map(Number)
+  const txt = new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+  return txt.replace(/\./g, '')
+}
 function round(n) { return Math.round((n + Number.EPSILON) * 10) / 10 }
 function calcFactor(amount) { return amount / 100 }
 
@@ -119,7 +124,7 @@ function MacroBar({ label, value, goal, color, bg, C }) {
   const pct = Math.min(100, (value / goal) * 100)
   const over = value > goal
   return (
-    <div style={{ background: bg, borderRadius: 14, padding: '10px 12px' }}>
+    <div style={{ background: bg, borderRadius: 14, padding: '10px 12px', minWidth: 0 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
         <div style={{ fontSize: 9, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
         <div style={{ fontSize: 13, fontWeight: 800, color: over ? C.red : color }}>{round(value)}g</div>
@@ -384,20 +389,27 @@ export default function App() {
       <div style={{ maxWidth: mainMaxWidth, width: '100%', margin: '0 auto' }}>
 
         {/* Header */}
-        <div style={{ background: C.white, padding: '14px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
-          <div>
-            <div style={{ fontSize: 10, letterSpacing: 2, color: C.accent, fontWeight: 700, textTransform: 'uppercase' }}>NutriLog</div>
-            <input type="date" value={date} max={todayISO()} onChange={e => setDate(e.target.value)}
-              style={{ border: 'none', background: 'none', fontSize: 15, fontWeight: 600, color: C.text, padding: 0, cursor: 'pointer' }} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <button onClick={() => exportDayPDF(date, username)} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.accent, padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>📄 Día</button>
-            <button onClick={() => exportWeekPDF(username)} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.accent, padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>📊 Semana</button>
-            <button onClick={toggleDark} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.muted, padding: '5px 10px', borderRadius: 20, fontSize: 13, cursor: 'pointer' }}>
-              {darkMode ? '☀️' : '🌙'}
-            </button>
+        <div style={{ background: C.white, padding: '14px 20px', borderBottom: `1px solid ${C.border}`, position: 'sticky', top: 0, zIndex: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 10, letterSpacing: 2, color: C.accent, fontWeight: 700, textTransform: 'uppercase' }}>NutriLog</div>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{formatHeaderDate(date)}</div>
+                <input type="date" value={date} max={todayISO()} onChange={e => setDate(e.target.value)}
+                  style={{ position: 'absolute', inset: 0, opacity: 0, border: 'none', cursor: 'pointer' }} />
+              </div>
+            </div>
             <div onClick={() => setShowProfile(true)} style={{ cursor: 'pointer' }}>
               <AvatarDisplay avatarData={avatarData} username={username} size={34} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <button onClick={() => exportDayPDF(date, username)} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.accent, padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>📄 Día</button>
+              <button onClick={() => exportWeekPDF(username)} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.accent, padding: '5px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>📊 Semana</button>
+              <button onClick={toggleDark} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.muted, padding: '5px 10px', borderRadius: 20, fontSize: 13, cursor: 'pointer' }}>
+                {darkMode ? '☀️' : '🌙'}
+              </button>
             </div>
             <button onClick={handleLogout} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.muted, padding: '5px 10px', borderRadius: 20, fontSize: 12, cursor: 'pointer' }}>Salir</button>
           </div>
@@ -416,7 +428,7 @@ export default function App() {
                     <div style={{ fontSize: 28, fontWeight: 800, color: C.text }}>{round(totals.kcal)}</div>
                     <div style={{ fontSize: 11, color: C.muted }}>kcal</div>
                   </div>
-                  <CircleProgress value={totals.kcal} max={goal} size={160} C={C} />
+                  <CircleProgress value={totals.kcal} max={goal} size={isDesktop ? 160 : 130} C={C} />
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 11, color: C.muted, marginBottom: 2 }}>Objetivo</div>
                     {editGoal ? (
@@ -431,7 +443,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                   <MacroBar label="Proteína" value={totals.protein} goal={macroGoals.protein} color={C.blue} bg={C.blueLight} C={C} />
                   <MacroBar label="Hidratos" value={totals.carbs} goal={macroGoals.carbs} color={C.yellow} bg={C.yellowLight} C={C} />
                   <MacroBar label="Grasas sat." value={totals.satfat} goal={macroGoals.satfat} color={C.red} bg={C.redLight} C={C} />
@@ -512,16 +524,16 @@ export default function App() {
                     <form onSubmit={createFoodInline} style={{ marginTop: 12, background: C.bg, borderRadius: 12, padding: 12 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: C.accent, marginBottom: 8 }}>Nuevo alimento</div>
                       <input type="text" value={newFood.name} placeholder="Nombre" onChange={e => setNewFood({ ...newFood, name: e.target.value })} style={{ ...inputStyle, marginBottom: 8 }} />
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
-                        <select value={newFood.category} onChange={e => setNewFood({ ...newFood, category: e.target.value })} style={{ ...inputStyle, height: 42 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 8, marginBottom: 8 }}>
+                        <select value={newFood.category} onChange={e => setNewFood({ ...newFood, category: e.target.value })} style={{ ...inputStyle, height: 42, minWidth: 0 }}>
                           {CATEGORIES.filter(c => c.key !== 'todos').map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                         </select>
-                        <select value={newFood.unit} onChange={e => setNewFood({ ...newFood, unit: e.target.value })} style={{ ...inputStyle, height: 42 }}>
+                        <select value={newFood.unit} onChange={e => setNewFood({ ...newFood, unit: e.target.value })} style={{ ...inputStyle, height: 42, minWidth: 0 }}>
                           <option value="g">g (sólido)</option>
                           <option value="ml">ml (líquido)</option>
                         </select>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                         {[['Kcal/100', 'kcal100'], ['Proteína (g)', 'protein100'], ['Hidratos (g)', 'carbs100'], ['Azúcares (g)', 'sugar100'], ['Grasas sat. (g)', 'satfat100'], ['Fibra (g)', 'fiber100'], ['Sal (g)', 'salt100']].map(([label, key]) => (
                           <div key={key}>
                             <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>{label}</div>
@@ -643,22 +655,22 @@ export default function App() {
                         <Label C={C}>Nombre</Label>
                         <input type="text" value={newFood.name} placeholder="Ej: Leche entera" onChange={e => setNewFood({ ...newFood, name: e.target.value })} style={inputStyle} />
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-                        <div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 8, marginBottom: 10 }}>
+                        <div style={{ minWidth: 0 }}>
                           <Label C={C}>Categoría</Label>
-                          <select value={newFood.category} onChange={e => setNewFood({ ...newFood, category: e.target.value })} style={{ ...inputStyle, height: 42 }}>
+                          <select value={newFood.category} onChange={e => setNewFood({ ...newFood, category: e.target.value })} style={{ ...inputStyle, height: 42, minWidth: 0 }}>
                             {CATEGORIES.filter(c => c.key !== 'todos').map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                           </select>
                         </div>
-                        <div>
+                        <div style={{ minWidth: 0 }}>
                           <Label C={C}>Unidad</Label>
-                          <select value={newFood.unit} onChange={e => setNewFood({ ...newFood, unit: e.target.value })} style={{ ...inputStyle, height: 42 }}>
+                          <select value={newFood.unit} onChange={e => setNewFood({ ...newFood, unit: e.target.value })} style={{ ...inputStyle, height: 42, minWidth: 0 }}>
                             <option value="g">g (sólido)</option>
                             <option value="ml">ml (líquido)</option>
                           </select>
                         </div>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                         {[['Kcal/100g·ml','kcal100'],['Proteína (g)','protein100'],['Hidratos (g)','carbs100'],['Azúcares (g)','sugar100'],['Grasas sat. (g)','satfat100'],['Fibra (g)','fiber100'],['Sal (g)','salt100']].map(([label, key]) => (
                           <div key={key}>
                             <Label C={C}>{label}</Label>
