@@ -51,6 +51,13 @@ const MACRO_REFS = [
     why: 'Regula el tránsito intestinal, mejora la saciedad y el control glucémico. Especialmente importante en dietas de déficit calórico para controlar el apetito.',
     source: 'EFSA 2010 · Dietary Guidelines for Americans 2020',
   },
+  {
+    macro: 'Azúcar',
+    emoji: '🍬',
+    range: 'Menos del 10% de las calorías (OMS) · máximo 40g/día en NutriLog',
+    why: 'El exceso de azúcares libres se asocia a triglicéridos elevados y mayor riesgo cardiovascular. La OMS marca el 10% de las calorías como límite general (un 5% adicional da beneficio extra); la American Heart Association fija un tope fijo más estricto por motivos cardiovasculares (36g en hombres, 25g en mujeres). NutriLog calcula el 10% de tus kcal y lo recorta a 40g si sale más alto, para no superar ese límite cardiovascular aunque tu objetivo calórico sea generoso.',
+    source: 'OMS / WHO, Guideline: Sugars intake for adults and children (2015) · American Heart Association, Added Sugars',
+  },
 ]
 
 function getHeaders() {
@@ -114,6 +121,7 @@ export default function Profile({ username, onClose, onAvatarUpdate, darkMode, m
         goal_satfat: editMacros.satfat,
         goal_salt: editMacros.salt,
         goal_fiber: editMacros.fiber,
+        goal_sugar: editMacros.sugar,
       })
     })
     onMacrosUpdate(editMacros)
@@ -208,15 +216,16 @@ export default function Profile({ username, onClose, onAvatarUpdate, darkMode, m
                 style={{ width: 90, border: `2px solid ${C.accent}`, background: C.white, color: C.text, padding: '8px 10px', borderRadius: 10, fontSize: 16, fontWeight: 800, textAlign: 'right' }} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 16 }}>
               {[
                 ['Proteína (g)', 'protein', '#3B82F6'],
                 ['Hidratos (g)', 'carbs', '#F59E0B'],
                 ['Grasas sat. (g)', 'satfat', '#EF4444'],
                 ['Sal (g)', 'salt', '#8B5CF6'],
                 ['Fibra (g)', 'fiber', '#14B8A6'],
+                ['Azúcar (g)', 'sugar', '#EC4899'],
               ].map(([label, key, color]) => (
-                <div key={key} style={{ background: C.bg, borderRadius: 12, padding: '10px 12px' }}>
+                <div key={key} style={{ background: C.bg, borderRadius: 12, padding: '10px 12px', minWidth: 0 }}>
                   <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{label}</div>
                   <input type="number" value={editMacros[key]} onChange={e => setEditMacros({ ...editMacros, [key]: parseFloat(e.target.value)||0 })}
                     style={{ width: '100%', border: `2px solid ${color}`, background: C.white, color: C.text, padding: '8px 10px', borderRadius: 8, fontSize: 16, fontWeight: 800, boxSizing: 'border-box' }} />

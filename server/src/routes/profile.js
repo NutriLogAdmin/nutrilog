@@ -5,7 +5,7 @@ const pool = require('../database')
 // Obtener perfil completo
 router.get('/', async (req, res) => {
   const result = await pool.query(
-    'SELECT id, username, avatar, weight, height, activity_level, goal_type, goal_kcal, goal_protein, goal_carbs, goal_satfat, goal_salt, goal_fiber FROM users WHERE id = $1',
+    'SELECT id, username, avatar, weight, height, activity_level, goal_type, goal_kcal, goal_protein, goal_carbs, goal_satfat, goal_salt, goal_fiber, goal_sugar FROM users WHERE id = $1',
     [req.user.id]
   )
   res.json(result.rows[0] || {})
@@ -27,14 +27,14 @@ router.put('/goal-kcal', async (req, res) => {
 
 // Guardar objetivos del usuario
 router.put('/goals', async (req, res) => {
-  const { weight, height, activity_level, goal_type, goal_kcal, goal_protein, goal_carbs, goal_satfat, goal_salt, goal_fiber } = req.body
+  const { weight, height, activity_level, goal_type, goal_kcal, goal_protein, goal_carbs, goal_satfat, goal_salt, goal_fiber, goal_sugar } = req.body
   await pool.query(`
     UPDATE users SET
       weight=$1, height=$2, activity_level=$3, goal_type=$4,
       goal_kcal=$5, goal_protein=$6, goal_carbs=$7,
-      goal_satfat=$8, goal_salt=$9, goal_fiber=$10
-    WHERE id=$11
-  `, [weight, height, activity_level, goal_type, goal_kcal, goal_protein, goal_carbs, goal_satfat, goal_salt, goal_fiber, req.user.id])
+      goal_satfat=$8, goal_salt=$9, goal_fiber=$10, goal_sugar=$11
+    WHERE id=$12
+  `, [weight, height, activity_level, goal_type, goal_kcal, goal_protein, goal_carbs, goal_satfat, goal_salt, goal_fiber, goal_sugar, req.user.id])
   res.json({ ok: true })
 })
 

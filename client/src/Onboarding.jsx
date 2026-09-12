@@ -47,6 +47,11 @@ function calcMacros(kcal, weight, goalType) {
   const carbsKcal = kcal - proteinKcal - fatKcal
   const carbs = Math.round(carbsKcal / 4)
 
+  // Azúcar: 10% de las kcal en gramos (límite general de la OMS), con un techo de 40g
+  // inspirado en el límite cardiovascular de la American Heart Association (36g en hombres,
+  // 25g en mujeres) — más conservador que el 10% de la OMS a partir de dietas de ~1600 kcal.
+  const sugar = Math.round(Math.min(kcal * 0.10 / 4, 40))
+
   return {
     goal_kcal: kcal,
     goal_protein: protein,
@@ -54,6 +59,7 @@ function calcMacros(kcal, weight, goalType) {
     goal_satfat: satfat,
     goal_salt: goalType === 'deficit' || goalType === 'recomp' ? 4 : 5,
     goal_fiber: 30,
+    goal_sugar: sugar,
   }
 }
 
@@ -225,15 +231,16 @@ export default function Onboarding({ username, onComplete }) {
               <div style={{ fontSize: 13, color: C.muted }}>kcal / día objetivo</div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
               {[
                 ['Proteína', 'goal_protein', 'g', C.blue, C.blueLight],
                 ['Hidratos', 'goal_carbs', 'g', '#F59E0B', '#FFFBEB'],
                 ['Grasas sat.', 'goal_satfat', 'g', C.red, C.redLight],
                 ['Sal', 'goal_salt', 'g', '#8B5CF6', '#F5F3FF'],
                 ['Fibra', 'goal_fiber', 'g', '#14B8A6', '#F0FDFA'],
+                ['Azúcar', 'goal_sugar', 'g', '#EC4899', '#FDF2F8'],
               ].map(([label, key, unit, color, bg]) => (
-                <div key={key} style={{ background: bg, borderRadius: 12, padding: '10px 12px' }}>
+                <div key={key} style={{ background: bg, borderRadius: 12, padding: '10px 12px', minWidth: 0 }}>
                   <div style={{ fontSize: 9, color: C.muted, fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
                   {editingMacros ? (
                     <input type="number" value={customMacros[key]}

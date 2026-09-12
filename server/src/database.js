@@ -66,6 +66,7 @@ async function migrateDB() {
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS goal_satfat REAL DEFAULT NULL`)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS goal_salt REAL DEFAULT NULL`)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS goal_fiber REAL DEFAULT NULL`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS goal_sugar REAL DEFAULT NULL`)
     console.log('Migración OK')
   } catch (err) {
     console.error('Error en migración:', err)

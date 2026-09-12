@@ -6,6 +6,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.4.0',
+    date: '2026-09-12',
+    changes: [
+      'Nueva tarjeta de objetivo de azúcar, con un límite basado en las recomendaciones de la OMS y la American Heart Association (editable en Mi Perfil).',
+      'Fibra ahora se ve como una tarjeta más, igual que el resto de objetivos.',
+    ],
+  },
+  {
     version: '1.3.1',
     date: '2026-09-12',
     changes: [

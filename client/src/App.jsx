@@ -40,7 +40,7 @@ const PRESET_AVATARS = [
   {id:'av9',e:'🌟'},{id:'av10',e:'🦁'}
 ]
 
-const DEFAULT_GOALS = { protein: 163, carbs: 230, satfat: 12, salt: 4, fiber: 30, kcal: 2400 }
+const DEFAULT_GOALS = { protein: 163, carbs: 230, satfat: 12, salt: 4, fiber: 30, sugar: 40, kcal: 2400 }
 const PLAN_USERS = ['Daniel', 'daniel']
 
 function getColors(dark) {
@@ -217,7 +217,7 @@ export default function App() {
   }
 
   function handleOnboardingComplete(macros) {
-    setMacroGoals({ protein: macros.goal_protein, carbs: macros.goal_carbs, satfat: macros.goal_satfat, salt: macros.goal_salt, fiber: macros.goal_fiber, kcal: macros.goal_kcal })
+    setMacroGoals({ protein: macros.goal_protein, carbs: macros.goal_carbs, satfat: macros.goal_satfat, salt: macros.goal_salt, fiber: macros.goal_fiber, sugar: macros.goal_sugar, kcal: macros.goal_kcal })
     setGoal(macros.goal_kcal)
     // Usuario recién creado: se marca al día para que no le salga el pop-up de novedades.
     localStorage.setItem('nutrilog_changelog_seen', LATEST_VERSION)
@@ -244,7 +244,11 @@ export default function App() {
       const data = await res.json()
       if (data.avatar) setAvatarData(data.avatar)
       if (data.goal_kcal) {
-        setMacroGoals({ protein: data.goal_protein, carbs: data.goal_carbs, satfat: data.goal_satfat, salt: data.goal_salt, fiber: data.goal_fiber, kcal: data.goal_kcal })
+        // goal_sugar es un campo nuevo: si el usuario ya tenía objetivos guardados de antes,
+        // aún no lo tiene en la BD (queda null) hasta que visite Perfil y lo guarde una vez.
+        // Mientras tanto, se calcula igual que en el onboarding: 10% de las kcal, tope 40g.
+        const sugarFallback = Math.round(Math.min(data.goal_kcal * 0.10 / 4, 40))
+        setMacroGoals({ protein: data.goal_protein, carbs: data.goal_carbs, satfat: data.goal_satfat, salt: data.goal_salt, fiber: data.goal_fiber, sugar: data.goal_sugar ?? sugarFallback, kcal: data.goal_kcal })
         setGoal(data.goal_kcal)
       } else {
         setNeedsOnboarding(true)
@@ -449,19 +453,13 @@ export default function App() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
                   <MacroBar label="Proteína" value={totals.protein} goal={macroGoals.protein} color={C.blue} bg={C.blueLight} C={C} />
                   <MacroBar label="Hidratos" value={totals.carbs} goal={macroGoals.carbs} color={C.yellow} bg={C.yellowLight} C={C} />
                   <MacroBar label="Grasas sat." value={totals.satfat} goal={macroGoals.satfat} color={C.red} bg={C.redLight} C={C} />
                   <MacroBar label="Sal" value={totals.salt} goal={macroGoals.salt} color={C.purple} bg={C.purpleLight} C={C} />
-                </div>
-
-                <div style={{ marginTop: 8, background: C.tealLight, borderRadius: 14, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontSize: 11, color: C.teal, fontWeight: 700 }}>Fibra</div>
-                  <div style={{ flex: 1, margin: '0 10px', height: 4, background: 'rgba(128,128,128,0.2)', borderRadius: 99, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${Math.min(100, (totals.fiber/macroGoals.fiber)*100)}%`, background: C.teal, borderRadius: 99, transition: 'width 0.4s' }} />
-                  </div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: C.teal }}>{round(totals.fiber)}g <span style={{ fontSize: 10, fontWeight: 400, color: C.muted }}>/ {macroGoals.fiber}g</span></div>
+                  <MacroBar label="Fibra" value={totals.fiber} goal={macroGoals.fiber} color={C.teal} bg={C.tealLight} C={C} />
+                  <MacroBar label="Azúcar" value={totals.sugar} goal={macroGoals.sugar} color={C.green} bg={C.greenLight} C={C} />
                 </div>
               </div>
 
