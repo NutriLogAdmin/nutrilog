@@ -6,6 +6,15 @@
 
 export const CHANGELOG = [
   {
+    version: '1.5.2',
+    date: '2026-09-12',
+    changes: [
+      'Arreglado un margen blanco que se quedaba pegado a un lado en móvil al usar los formularios.',
+      'Quitada la línea del mes bajo el saludo (quedaba redundante con la tira de días).',
+      'Los días de la tira ahora son cuadraditos con borde, no círculos.',
+    ],
+  },
+  {
     version: '1.5.1',
     date: '2026-09-12',
     changes: [

@@ -66,13 +66,6 @@ function getHeaders() {
   return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
 }
 function todayISO() { return new Date().toISOString().slice(0, 10) }
-// Mes y año, sin el día: el día ya lo marca el círculo resaltado en la tira de la semana,
-// repetirlo en texto (antes "12 sept 2026" junto a un "12" ya visible debajo) era redundante.
-function formatHeaderMonth(iso) {
-  const [y, m, d] = iso.split('-').map(Number)
-  const txt = new Date(y, m - 1, d).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-  return txt.charAt(0).toUpperCase() + txt.slice(1)
-}
 const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 // La semana (lunes a domingo) que contiene `iso`, para la tira de días de la cabecera.
 function getWeekStrip(iso) {
@@ -426,7 +419,6 @@ export default function App() {
             <div>
               <div style={{ fontSize: 9, letterSpacing: 2, color: C.accent, fontWeight: 700, textTransform: 'uppercase' }}>NutriLog</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: C.text, marginTop: 1 }}>Hola, {username} 👋</div>
-              <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{formatHeaderMonth(date)}</div>
             </div>
             <div onClick={() => setShowProfile(true)} style={{ cursor: 'pointer' }}>
               <AvatarDisplay avatarData={avatarData} username={username} size={40} />
@@ -438,23 +430,27 @@ export default function App() {
             {getWeekStrip(date).map(d => {
               const selected = d.iso === date
               const isToday = d.iso === todayISO()
+              // Cuadradito, no círculo: borde tenue a juego con el tema (blanco en oscuro,
+              // gris oscuro suave en claro) por defecto; hoy pisa ese borde con uno verde;
+              // el seleccionado se rellena de naranja encima de cualquiera de los dos.
+              const baseBorder = darkMode ? '#FFFFFF' : '#333333'
               return (
-                <div key={d.iso} onClick={() => setDate(d.iso)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer' }}>
+                <div key={d.iso} onClick={() => setDate(d.iso)} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer' }}>
                   <div style={{ fontSize: 10, color: C.muted, fontWeight: 600 }}>{d.letter}</div>
                   <div style={{
-                    width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 30, height: 30, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 13, fontWeight: 700, boxSizing: 'border-box',
                     background: selected ? C.accent : 'transparent',
                     color: selected ? '#fff' : C.text,
-                    border: isToday ? `2px solid ${C.green}` : '2px solid transparent',
+                    border: `2px solid ${isToday ? C.green : baseBorder}`,
                   }}>{d.num}</div>
                 </div>
               )
             })}
-            <div style={{ position: 'relative', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ position: 'relative', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
               <span style={{ fontSize: 16 }}>📅</span>
               <input type="date" value={date} max={todayISO()} onChange={e => setDate(e.target.value)}
-                style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
             </div>
           </div>
 
@@ -584,7 +580,7 @@ export default function App() {
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                         {[['Kcal/100', 'kcal100'], ['Proteína (g)', 'protein100'], ['Hidratos (g)', 'carbs100'], ['Azúcares (g)', 'sugar100'], ['Grasas sat. (g)', 'satfat100'], ['Fibra (g)', 'fiber100'], ['Sal (g)', 'salt100']].map(([label, key]) => (
-                          <div key={key}>
+                          <div key={key} style={{ minWidth: 0 }}>
                             <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>{label}</div>
                             <input type="number" value={newFood[key]} placeholder="0" onChange={e => setNewFood({ ...newFood, [key]: e.target.value })} style={inputStyle} />
                           </div>
@@ -721,7 +717,7 @@ export default function App() {
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                         {[['Kcal/100g·ml','kcal100'],['Proteína (g)','protein100'],['Hidratos (g)','carbs100'],['Azúcares (g)','sugar100'],['Grasas sat. (g)','satfat100'],['Fibra (g)','fiber100'],['Sal (g)','salt100']].map(([label, key]) => (
-                          <div key={key}>
+                          <div key={key} style={{ minWidth: 0 }}>
                             <Label C={C}>{label}</Label>
                             <input type="number" value={newFood[key]} placeholder="0" onChange={e => setNewFood({ ...newFood, [key]: e.target.value })} style={inputStyle} />
                           </div>

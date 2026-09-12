@@ -3,5 +3,11 @@
    margen del navegador. */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-body { overflow-x: hidden; }
+/* overflow-x:hidden solo no basta en móvil: un elemento que se pase por unos pocos
+   píxeles no se ve hasta que el usuario desliza el dedo hacia el lado, y en iOS ese
+   desliz puede quedarse "enganchado" ahí. touch-action:pan-y le dice directamente al
+   dedo que aquí solo hay gesto vertical — sin eso no hay forma de estar seguros de que
+   la página no se pueda mover de lado, por pequeño que sea el desborde real. */
+html, body, #root { overflow-x: hidden; max-width: 100vw; }
+html, body { touch-action: pan-y; }
 img { max-width: 100%; }
