@@ -6,6 +6,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.3.1',
+    date: '2026-09-12',
+    changes: [
+      'Arreglado el anillo de kcal en móvil: el trazo se salía de la caja por el cambio de tamaño anterior.',
+    ],
+  },
+  {
     version: '1.3.0',
     date: '2026-09-12',
     changes: [

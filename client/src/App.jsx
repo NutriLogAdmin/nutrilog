@@ -94,7 +94,13 @@ function AvatarDisplay({ avatarData, username, size = 32 }) {
 
 function CircleProgress({ value, max, size = 160, C }) {
   const pct = Math.min(1, value / max)
-  const r = 68, cx = size / 2, cy = size / 2
+  // Todo el trazado se diseñó para size=160 (r=68, trazo 12, offsets de texto). En vez de
+  // fijarlo, se escala en bloque: a size=160 sale exactamente igual que antes; a cualquier
+  // otro tamaño (el círculo más pequeño del móvil) mantiene las mismas proporciones en vez
+  // de que el radio se salga de la caja.
+  const scale = size / 160
+  const r = 68 * scale, cx = size / 2, cy = size / 2
+  const strokeWidth = 12 * scale
   const startAngle = -210, endAngle = 30
   const currentAngle = startAngle + (endAngle - startAngle) * pct
   function polarToXY(angle, radius) {
@@ -109,11 +115,11 @@ function CircleProgress({ value, max, size = 160, C }) {
   const color = over ? C.red : pct > 0.85 ? C.yellow : C.accent
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <path d={describeArc(startAngle, endAngle)} fill="none" stroke={C.border} strokeWidth="12" strokeLinecap="round" />
-      {pct > 0 && <path d={describeArc(startAngle, currentAngle)} fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" style={{ transition: 'all 0.5s ease' }} />}
-      <text x={cx} y={cy - 8} textAnchor="middle" fontSize="30" fontWeight="700" fill={C.text}>{round(value)}</text>
-      <text x={cx} y={cy + 14} textAnchor="middle" fontSize="11" fill={C.muted}>kcal</text>
-      <text x={cx} y={cy + 30} textAnchor="middle" fontSize="10" fill={color} fontWeight="600">
+      <path d={describeArc(startAngle, endAngle)} fill="none" stroke={C.border} strokeWidth={strokeWidth} strokeLinecap="round" />
+      {pct > 0 && <path d={describeArc(startAngle, currentAngle)} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" style={{ transition: 'all 0.5s ease' }} />}
+      <text x={cx} y={cy - 8 * scale} textAnchor="middle" fontSize={30 * scale} fontWeight="700" fill={C.text}>{round(value)}</text>
+      <text x={cx} y={cy + 14 * scale} textAnchor="middle" fontSize={11 * scale} fill={C.muted}>kcal</text>
+      <text x={cx} y={cy + 30 * scale} textAnchor="middle" fontSize={10 * scale} fill={color} fontWeight="600">
         {over ? `+${round(value - max)} exceso` : `${round(max - value)} restantes`}
       </text>
     </svg>
