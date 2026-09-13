@@ -6,6 +6,7 @@ const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 function validateRegister(username, password) {
   const u = username.trim()
   if (u.length < 3 || /\s/.test(u)) return 'El usuario debe tener al menos 3 caracteres y no puede llevar espacios.'
+  if (u.includes('@')) return 'El usuario no puede ser un correo electrónico — elige un nombre de usuario.'
   if (password.length < 8 || !/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
     return 'La contraseña debe tener al menos 8 caracteres e incluir una letra y un número.'
   }
@@ -19,6 +20,7 @@ export default function Login({ onLogin, darkMode, onToggleDark, C }) {
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
   const [mode, setMode] = useState('login')
+  const [showForgot, setShowForgot] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -134,6 +136,21 @@ export default function Login({ onLogin, darkMode, onToggleDark, C }) {
             }}>
               {loading ? 'Cargando...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
             </button>
+
+            {mode === 'login' && (
+              <div style={{ textAlign: 'center', marginTop: 14 }}>
+                <span onClick={() => setShowForgot(!showForgot)} style={{ fontSize: 12, color: C.muted, cursor: 'pointer', textDecoration: 'underline' }}>
+                  ¿Has olvidado tu contraseña?
+                </span>
+                {showForgot && (
+                  <div style={{ marginTop: 10, background: C.accentLight, border: `1px solid ${C.accentMid}`, borderRadius: 10, padding: '10px 14px', fontSize: 12, color: C.accent, textAlign: 'left' }}>
+                    NutriLog no envía correos de recuperación. Pide a Daniel que te la
+                    restablezca — dile tu nombre de usuario y te pasará una contraseña
+                    nueva por otro medio (WhatsApp, en persona...).
+                  </div>
+                )}
+              </div>
+            )}
           </form>
         </div>
 

@@ -6,6 +6,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.6.0',
+    date: '2026-09-13',
+    changes: [
+      'Nuevo enlace "¿Has olvidado tu contraseña?" en el login.',
+      'El registro ya no admite un correo electrónico como nombre de usuario.',
+    ],
+  },
+  {
     version: '1.5.2',
     date: '2026-09-12',
     changes: [

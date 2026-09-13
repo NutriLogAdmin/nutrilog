@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
+// Debe coincidir con PLAN_USERS en client/src/App.jsx y ADMIN_USERS en server/src/routes/auth.js.
+const ADMIN_USERS = ['Daniel', 'daniel']
 
 const PRESET_AVATARS = [
   { id: 'av1', emoji: '🧑‍💻', label: 'Techie' },
@@ -88,7 +90,12 @@ export default function Profile({ username, onClose, onAvatarUpdate, darkMode, m
   const [editMacros, setEditMacros] = useState(null)
   const [savingMacros, setSavingMacros] = useState(false)
   const [savedMacros, setSavedMacros] = useState(false)
+  const [resetUsername, setResetUsername] = useState('')
+  const [resetPassword, setResetPassword] = useState('')
+  const [resetStatus, setResetStatus] = useState(null) // { ok: bool, msg: string }
+  const [resetting, setResetting] = useState(false)
   const fileRef = useRef()
+  const isAdmin = ADMIN_USERS.includes(username)
 
   useEffect(() => {
     async function load() {
@@ -129,6 +136,29 @@ export default function Profile({ username, onClose, onAvatarUpdate, darkMode, m
     setTimeout(() => setSavedMacros(false), 2000)
   }
 
+  async function handleAdminReset(e) {
+    e.preventDefault()
+    setResetStatus(null)
+    setResetting(true)
+    try {
+      const res = await fetch(`${API}/auth/admin-reset-password`, {
+        method: 'PUT', headers: getHeaders(),
+        body: JSON.stringify({ username: resetUsername.trim(), newPassword: resetPassword })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setResetStatus({ ok: false, msg: data.error || 'No se pudo cambiar la contraseña' })
+      } else {
+        setResetStatus({ ok: true, msg: `Contraseña de "${resetUsername.trim()}" actualizada. Pásasela ya por otro medio.` })
+        setResetPassword('')
+      }
+    } catch {
+      setResetStatus({ ok: false, msg: 'Error de conexión con el servidor' })
+    } finally {
+      setResetting(false)
+    }
+  }
+
   function handleFileUpload(e) {
     const file = e.target.files[0]
     if (!file) return
@@ -165,8 +195,11 @@ export default function Profile({ username, onClose, onAvatarUpdate, darkMode, m
 
         {/* Tabs */}
         <div style={{ display: 'flex', background: C.bg, borderRadius: 12, padding: 4, gap: 4, marginBottom: 16 }}>
-          {[['avatar', '🖼️ Avatar'], ['macros', '🎯 Mis objetivos'], ['refs', '📚 Fuentes']].map(([key, label]) => (
-            <button key={key} onClick={() => setTab(key)} style={{ flex: 1, padding: '8px 4px', fontSize: 11, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 9, background: tab === key ? C.accent : 'transparent', color: tab === key ? '#fff' : C.muted }}>
+          {[
+            ['avatar', '🖼️ Avatar'], ['macros', '🎯 Mis objetivos'], ['refs', '📚 Fuentes'],
+            ...(isAdmin ? [['admin', '🔑 Usuarios']] : []),
+          ].map(([key, label]) => (
+            <button key={key} onClick={() => setTab(key)} style={{ flex: 1, minWidth: 0, padding: '8px 2px', fontSize: 10, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 9, background: tab === key ? C.accent : 'transparent', color: tab === key ? '#fff' : C.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {label}
             </button>
           ))}
@@ -263,6 +296,42 @@ export default function Profile({ username, onClose, onAvatarUpdate, darkMode, m
             <div style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 8, lineHeight: 1.6 }}>
               Estos valores son orientativos. Consulta siempre con un profesional de la salud o nutricionista para una planificación personalizada.
             </div>
+          </div>
+        )}
+
+        {/* Tab Admin — solo visible para Daniel */}
+        {tab === 'admin' && isAdmin && (
+          <div>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 14, lineHeight: 1.5 }}>
+              NutriLog no envía correos de recuperación. Si alguien no puede entrar, pon aquí
+              su nombre de usuario y una contraseña nueva, y pásasela tú por otro medio.
+            </div>
+            <form onSubmit={handleAdminReset}>
+              <div style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Usuario</div>
+                <input type="text" value={resetUsername} onChange={e => setResetUsername(e.target.value)}
+                  placeholder="Nombre de usuario exacto"
+                  style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Contraseña nueva</div>
+                <input type="text" value={resetPassword} onChange={e => setResetPassword(e.target.value)}
+                  placeholder="Mínimo 8 caracteres, con letra y número"
+                  style={{ width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' }} />
+              </div>
+              {resetStatus && (
+                <div style={{ background: resetStatus.ok ? C.bg : '#FEF2F2', border: `1px solid ${resetStatus.ok ? C.green : C.red}`, borderRadius: 10, padding: '10px 14px', fontSize: 12, color: resetStatus.ok ? C.green : C.red, marginBottom: 14 }}>
+                  {resetStatus.msg}
+                </div>
+              )}
+              <button type="submit" disabled={resetting || !resetUsername.trim() || !resetPassword} style={{
+                width: '100%', padding: '14px', background: C.accent, color: '#fff',
+                border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14,
+                cursor: resetting ? 'not-allowed' : 'pointer', opacity: (resetting || !resetUsername.trim() || !resetPassword) ? 0.6 : 1
+              }}>
+                {resetting ? 'Cambiando...' : 'Cambiar contraseña'}
+              </button>
+            </form>
           </div>
         )}
       </div>
