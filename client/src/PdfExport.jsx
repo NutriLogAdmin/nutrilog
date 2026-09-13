@@ -44,6 +44,14 @@ async function fetchGoal() {
   return data.goal_kcal || 2500
 }
 
+async function fetchActivity(from, to) {
+  const res = await fetch(`${API}/activity?from=${from}&to=${to}`, { headers: getHeaders() })
+  const data = await res.json()
+  return Array.isArray(data) ? data : []
+}
+
+const SESSION_LABELS = { torso: 'Torso', piernas: 'Piernas', core: 'Core', cardio: 'Cardio' }
+
 function calcTotals(entries) {
   return entries.reduce((acc, e) => {
     const f = calcFactor(e.amount)
@@ -195,7 +203,7 @@ export async function exportDayPDF(date, username) {
 
 export async function exportWeekPDF(username) {
   const dates = Array.from({ length: 7 }, (_, i) => daysAgoISO(6 - i))
-  const goal = await fetchGoal()
+  const [goal, activity] = await Promise.all([fetchGoal(), fetchActivity(dates[0], dates[6])])
 
   const weekData = await Promise.all(dates.map(async date => {
     const entries = await fetchEntries(date)
@@ -280,7 +288,54 @@ export async function exportWeekPDF(username) {
   y = addMacroRow(doc, 'Sal total', weekTotals.salt, MACRO_GOALS.salt * 7, 'g', y)
   y = addMacroRow(doc, 'Fibra total', weekTotals.fiber, MACRO_GOALS.fiber * 7, 'g', y)
 
+  // Actividad física de la semana
   y += 8
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(50, 50, 50)
+  doc.text('Actividad física de la semana', 14, y)
+  y += 6
+  doc.line(14, y, 196, y)
+  y += 4
+
+  if (activity.length === 0) {
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(120, 120, 120)
+    doc.text('Sin actividad registrada esta semana.', 14, y)
+    y += 8
+  } else {
+    for (const date of dates) {
+      const dayActivity = activity.filter(a => a.date === date)
+      if (dayActivity.length === 0) continue
+      if (y > 260) { doc.addPage(); y = 20 }
+
+      doc.setFillColor(239, 246, 255)
+      doc.rect(14, y, 182, 7, 'F')
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(59, 130, 246)
+      doc.text(formatDate(date), 16, y + 5)
+      y += 9
+
+      for (const a of dayActivity) {
+        if (y > 270) { doc.addPage(); y = 20 }
+        doc.setFontSize(8)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(80, 80, 80)
+        doc.text(`${SESSION_LABELS[a.session_type] || a.session_type} · ${a.exercise_name}`, 18, y)
+        doc.setTextColor(120, 120, 120)
+        const detail = a.session_type === 'cardio'
+          ? `${a.duration_min ?? 0} min`
+          : `${a.sets ?? 0}x${a.reps ?? 0}${a.weight ? ` · ${a.weight}kg` : ''}`
+        doc.text(detail, 150, y)
+        y += 5
+      }
+      y += 3
+    }
+  }
+
+  y += 5
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(50, 50, 50)

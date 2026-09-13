@@ -6,6 +6,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.7.0',
+    date: '2026-09-13',
+    changes: [
+      'Nueva pestaña "🏋️ Entreno" para registrar lo que entrenas cada día (fuerza, piernas, core o cardio).',
+      'El PDF semanal ahora incluye tu actividad física de la semana.',
+    ],
+  },
+  {
     version: '1.6.0',
     date: '2026-09-13',
     changes: [

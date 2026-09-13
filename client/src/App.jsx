@@ -17,6 +17,20 @@ const MEALS = [
   { key: 'cena', label: 'Cena', emoji: '🌙' },
 ]
 
+const SESSION_TYPES = [
+  { key: 'torso', label: 'Torso', emoji: '💪' },
+  { key: 'piernas', label: 'Piernas', emoji: '🦵' },
+  { key: 'core', label: 'Core', emoji: '🎯' },
+  { key: 'cardio', label: 'Cardio', emoji: '🏃' },
+]
+// Sugerencias rápidas por tipo de sesión — texto libre, no un catálogo cerrado.
+const EXERCISE_SUGGESTIONS = {
+  torso: ['Press banca', 'Remo serrucho', 'Curl bíceps', 'Fondos tríceps'],
+  piernas: ['Sentadillas', 'Leg extension', 'Curl femoral', 'Gemelos'],
+  core: ['Plancha', 'Puente de glúteos', 'Elevación de piernas', 'Crunch'],
+  cardio: ['Elíptica', 'Andar', 'Comba'],
+}
+
 const CATEGORIES = [
   { key: 'todos', label: '🔍 Todos', emoji: '🔍' },
   { key: 'frutas', label: '🍎 Frutas', emoji: '🍎' },
@@ -198,6 +212,9 @@ export default function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 900)
   const [whatsNew, setWhatsNew] = useState(null)
   const [inlineCreate, setInlineCreate] = useState(false)
+  const [activityLog, setActivityLog] = useState([])
+  const [showActivityForm, setShowActivityForm] = useState(false)
+  const [newActivity, setNewActivity] = useState({ session_type: 'torso', exercise_name: '', sets: '', reps: '', weight: '', duration_min: '' })
 
   useEffect(() => {
     const handler = () => setIsDesktop(window.innerWidth >= 900)
@@ -222,7 +239,7 @@ export default function App() {
   }
 
   const canSeePlan = PLAN_USERS.includes(username)
-  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo'], ...(canSeePlan ? [['plan', 'Mi Plan']] : [])]
+  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo'], ['entreno', '🏋️ Entreno'], ...(canSeePlan ? [['plan', 'Mi Plan']] : [])]
 
   function handleLogin(tkn, user) { setToken(tkn); setUsername(user) }
   function handleLogout() {
@@ -280,12 +297,42 @@ export default function App() {
 
   useEffect(() => { if (token) loadEntries() }, [date, token])
   useEffect(() => { if (token) loadFoods() }, [token])
+  useEffect(() => { if (token) loadActivity() }, [date, token])
 
   async function loadEntries() {
     const res = await fetch(`${API}/foods/entries?date=${date}`, { headers: getHeaders() })
     if (res.status === 401) { handleLogout(); return }
     const data = await res.json()
     setEntries(Array.isArray(data) ? data : [])
+  }
+
+  async function loadActivity() {
+    const res = await fetch(`${API}/activity?from=${date}&to=${date}`, { headers: getHeaders() })
+    if (res.status === 401) { handleLogout(); return }
+    const data = await res.json()
+    setActivityLog(Array.isArray(data) ? data : [])
+  }
+
+  async function addActivity(e) {
+    e.preventDefault()
+    if (!newActivity.exercise_name.trim()) return
+    await fetch(`${API}/activity`, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({
+        date, session_type: newActivity.session_type, exercise_name: newActivity.exercise_name.trim(),
+        sets: newActivity.sets ? parseInt(newActivity.sets) : null,
+        reps: newActivity.reps ? parseInt(newActivity.reps) : null,
+        weight: newActivity.weight ? parseFloat(newActivity.weight) : null,
+        duration_min: newActivity.duration_min ? parseFloat(newActivity.duration_min) : null,
+      })
+    })
+    setNewActivity({ ...newActivity, exercise_name: '', sets: '', reps: '', weight: '', duration_min: '' })
+    loadActivity()
+  }
+
+  async function deleteActivity(id) {
+    await fetch(`${API}/activity/${id}`, { method: 'DELETE', headers: getHeaders() })
+    loadActivity()
   }
 
   async function loadFoods() {
@@ -767,6 +814,86 @@ export default function App() {
                       ))
                     }
                   </div>
+                </div>
+              )}
+
+              {/* Vista Entreno */}
+              {view === 'entreno' && (
+                <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
+                  <button onClick={() => setShowActivityForm(!showActivityForm)} style={{ width: '100%', padding: '13px', background: showActivityForm ? C.bg : C.accent, color: showActivityForm ? C.muted : '#fff', border: showActivityForm ? `1px solid ${C.border}` : 'none', borderRadius: 16, fontWeight: 700, fontSize: 13, cursor: 'pointer', marginBottom: 12 }}>
+                    {showActivityForm ? '✕ Cancelar' : '+ Añadir actividad'}
+                  </button>
+
+                  {showActivityForm && (
+                    <form onSubmit={addActivity} style={{ background: C.white, borderRadius: 20, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+                        {SESSION_TYPES.map(t => (
+                          <button key={t.key} type="button" onClick={() => setNewActivity({ ...newActivity, session_type: t.key })}
+                            style={{ padding: '6px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', background: newActivity.session_type === t.key ? C.accent : C.bg, color: newActivity.session_type === t.key ? '#fff' : C.muted, fontSize: 12, fontWeight: 600 }}>
+                            {t.emoji} {t.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <input type="text" value={newActivity.exercise_name} placeholder="Ej: Press banca" onChange={e => setNewActivity({ ...newActivity, exercise_name: e.target.value })} style={{ ...inputStyle, marginBottom: 8 }} />
+
+                      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 10 }}>
+                        {(EXERCISE_SUGGESTIONS[newActivity.session_type] || []).map(name => (
+                          <button key={name} type="button" onClick={() => setNewActivity({ ...newActivity, exercise_name: name })}
+                            style={{ padding: '6px 12px', borderRadius: 20, border: `1px solid ${C.border}`, background: C.white, color: C.muted, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                            {name}
+                          </button>
+                        ))}
+                      </div>
+
+                      {newActivity.session_type === 'cardio' ? (
+                        <div style={{ marginBottom: 8 }}>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Minutos</div>
+                          <input type="number" value={newActivity.duration_min} placeholder="0" onChange={e => setNewActivity({ ...newActivity, duration_min: e.target.value })} style={inputStyle} />
+                        </div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 8 }}>
+                          <div>
+                            <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Series</div>
+                            <input type="number" value={newActivity.sets} placeholder="0" onChange={e => setNewActivity({ ...newActivity, sets: e.target.value })} style={inputStyle} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Reps</div>
+                            <input type="number" value={newActivity.reps} placeholder="0" onChange={e => setNewActivity({ ...newActivity, reps: e.target.value })} style={inputStyle} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Peso (kg)</div>
+                            <input type="number" value={newActivity.weight} placeholder="0" onChange={e => setNewActivity({ ...newActivity, weight: e.target.value })} style={inputStyle} />
+                          </div>
+                        </div>
+                      )}
+
+                      <button type="submit" style={{ width: '100%', padding: '13px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                        Guardar
+                      </button>
+                    </form>
+                  )}
+
+                  {activityLog.length === 0
+                    ? <div style={{ textAlign: 'center', color: C.muted, fontSize: 14, padding: '40px 0' }}>Sin actividad registrada este día.</div>
+                    : activityLog.map(a => {
+                      const t = SESSION_TYPES.find(s => s.key === a.session_type)
+                      return (
+                        <div key={a.id} style={{ background: C.white, borderRadius: 16, padding: '14px 16px', marginBottom: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                            <span style={{ fontSize: 22, flexShrink: 0 }}>{t?.emoji || '🏋️'}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{a.exercise_name}</div>
+                              <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
+                                {t?.label || a.session_type} · {a.session_type === 'cardio' ? `${a.duration_min ?? 0} min` : `${a.sets ?? 0}x${a.reps ?? 0}${a.weight ? ` · ${a.weight}kg` : ''}`}
+                              </div>
+                            </div>
+                          </div>
+                          <button onClick={() => deleteActivity(a.id)} style={{ border: 'none', background: C.redLight, color: C.red, cursor: 'pointer', borderRadius: 8, width: 28, height: 28, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
+                        </div>
+                      )
+                    })
+                  }
                 </div>
               )}
 

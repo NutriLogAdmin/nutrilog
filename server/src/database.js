@@ -45,6 +45,20 @@ async function initDB() {
       kcal_goal REAL NOT NULL DEFAULT 2500,
       UNIQUE(user_id, date)
     );
+
+    CREATE TABLE IF NOT EXISTS activity_log (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      date TEXT NOT NULL,
+      session_type TEXT NOT NULL,
+      exercise_name TEXT NOT NULL,
+      sets INTEGER,
+      reps INTEGER,
+      weight REAL,
+      duration_min REAL,
+      notes TEXT DEFAULT '',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
   `)
   console.log('Base de datos PostgreSQL inicializada')
 }
