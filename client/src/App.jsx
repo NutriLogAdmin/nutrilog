@@ -219,6 +219,7 @@ export default function App() {
   const [activitySessions, setActivitySessions] = useState([])
   const [summaryType, setSummaryType] = useState('torso')
   const [sessionForm, setSessionForm] = useState({ kcal_active: '', kcal_total: '', hr_avg: '', effort: '' })
+  const [showSessionSummary, setShowSessionSummary] = useState(false)
   const [showActivityForm, setShowActivityForm] = useState(false)
   const [newActivity, setNewActivity] = useState({
     session_type: 'torso', exercise_name: '', sets: '', reps: '', weight: '', duration_min: '',
@@ -974,38 +975,44 @@ export default function App() {
 
                   {/* Resumen de la sesión: para Torso/Piernas/Core se mide una vez para todo el
                       entrenamiento (así lo da el reloj), no por ejercicio suelto. */}
-                  <div style={{ background: C.white, borderRadius: 20, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: C.text, marginBottom: 10 }}>📊 Resumen de la sesión</div>
-                    <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
-                      {SESSION_TYPES.filter(t => SUMMARY_SESSION_TYPES.includes(t.key)).map(t => (
-                        <button key={t.key} type="button" onClick={() => setSummaryType(t.key)}
-                          style={{ padding: '6px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', background: summaryType === t.key ? C.accent : C.bg, color: summaryType === t.key ? '#fff' : C.muted, fontSize: 12, fontWeight: 600 }}>
-                          {t.emoji} {t.label}
-                        </button>
-                      ))}
+                  <button onClick={() => setShowSessionSummary(!showSessionSummary)} style={{ width: '100%', padding: '13px', background: C.white, color: C.text, border: `1px solid ${C.border}`, borderRadius: 16, fontWeight: 700, fontSize: 13, cursor: 'pointer', marginBottom: 12, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>📊 Resumen de la sesión</span>
+                    <span style={{ color: C.muted, fontSize: 11 }}>{showSessionSummary ? '▲' : '▼'}</span>
+                  </button>
+
+                  {showSessionSummary && (
+                    <div style={{ background: C.white, borderRadius: 20, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+                        {SESSION_TYPES.filter(t => SUMMARY_SESSION_TYPES.includes(t.key)).map(t => (
+                          <button key={t.key} type="button" onClick={() => setSummaryType(t.key)}
+                            style={{ padding: '6px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', background: summaryType === t.key ? C.accent : C.bg, color: summaryType === t.key ? '#fff' : C.muted, fontSize: 12, fontWeight: 600 }}>
+                            {t.emoji} {t.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
+                        <div>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal activas</div>
+                          <input type="number" value={sessionForm.kcal_active} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, kcal_active: e.target.value })} style={inputStyle} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal totales</div>
+                          <input type="number" value={sessionForm.kcal_total} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, kcal_total: e.target.value })} style={inputStyle} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>FC media (lpm)</div>
+                          <input type="number" value={sessionForm.hr_avg} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, hr_avg: e.target.value })} style={inputStyle} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Esfuerzo (1-10)</div>
+                          <input type="number" min="1" max="10" value={sessionForm.effort} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, effort: e.target.value })} style={inputStyle} />
+                        </div>
+                      </div>
+                      <button type="button" onClick={saveSessionSummary} style={{ width: '100%', padding: '11px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                        Guardar resumen
+                      </button>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
-                      <div>
-                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal activas</div>
-                        <input type="number" value={sessionForm.kcal_active} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, kcal_active: e.target.value })} style={inputStyle} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal totales</div>
-                        <input type="number" value={sessionForm.kcal_total} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, kcal_total: e.target.value })} style={inputStyle} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>FC media (lpm)</div>
-                        <input type="number" value={sessionForm.hr_avg} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, hr_avg: e.target.value })} style={inputStyle} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Esfuerzo (1-10)</div>
-                        <input type="number" min="1" max="10" value={sessionForm.effort} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, effort: e.target.value })} style={inputStyle} />
-                      </div>
-                    </div>
-                    <button type="button" onClick={saveSessionSummary} style={{ width: '100%', padding: '11px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-                      Guardar resumen
-                    </button>
-                  </div>
+                  )}
 
                   {activityLog.length === 0
                     ? <div style={{ textAlign: 'center', color: C.muted, fontSize: 14, padding: '40px 0' }}>Sin actividad registrada este día.</div>
