@@ -50,6 +50,12 @@ async function fetchActivity(from, to) {
   return Array.isArray(data) ? data : []
 }
 
+async function fetchActivitySessions(from, to) {
+  const res = await fetch(`${API}/activity/sessions?from=${from}&to=${to}`, { headers: getHeaders() })
+  const data = await res.json()
+  return Array.isArray(data) ? data : []
+}
+
 const SESSION_LABELS = { torso: 'Torso', piernas: 'Piernas', core: 'Core', cardio: 'Cardio' }
 
 function calcTotals(entries) {
@@ -203,7 +209,9 @@ export async function exportDayPDF(date, username) {
 
 export async function exportWeekPDF(username) {
   const dates = Array.from({ length: 7 }, (_, i) => daysAgoISO(6 - i))
-  const [goal, activity] = await Promise.all([fetchGoal(), fetchActivity(dates[0], dates[6])])
+  const [goal, activity, activitySessions] = await Promise.all([
+    fetchGoal(), fetchActivity(dates[0], dates[6]), fetchActivitySessions(dates[0], dates[6]),
+  ])
 
   const weekData = await Promise.all(dates.map(async date => {
     const entries = await fetchEntries(date)
@@ -307,7 +315,8 @@ export async function exportWeekPDF(username) {
   } else {
     for (const date of dates) {
       const dayActivity = activity.filter(a => a.date === date)
-      if (dayActivity.length === 0) continue
+      const daySessions = activitySessions.filter(s => s.date === date)
+      if (dayActivity.length === 0 && daySessions.length === 0) continue
       if (y > 260) { doc.addPage(); y = 20 }
 
       doc.setFillColor(239, 246, 255)
@@ -348,6 +357,22 @@ export async function exportWeekPDF(username) {
           doc.setFontSize(8)
           y += 5
         }
+      }
+
+      for (const s of daySessions) {
+        const summaryExtras = []
+        if (s.kcal_active != null) summaryExtras.push(`${s.kcal_active} kcal act.`)
+        if (s.kcal_total != null) summaryExtras.push(`${s.kcal_total} kcal tot.`)
+        if (s.hr_avg != null) summaryExtras.push(`${s.hr_avg} lpm`)
+        if (s.effort != null) summaryExtras.push(`esfuerzo ${s.effort}/10`)
+        if (summaryExtras.length === 0) continue
+        if (y > 270) { doc.addPage(); y = 20 }
+        doc.setFontSize(8)
+        doc.setFont('helvetica', 'italic')
+        doc.setTextColor(120, 120, 120)
+        doc.text(`Resumen sesión ${SESSION_LABELS[s.session_type] || s.session_type}: ${summaryExtras.join(' · ')}`, 18, y)
+        doc.setFont('helvetica', 'normal')
+        y += 5
       }
       y += 3
     }

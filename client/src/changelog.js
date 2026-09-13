@@ -9,8 +9,10 @@ export const CHANGELOG = [
     version: '1.8.0',
     date: '2026-09-13',
     changes: [
-      'La pestaña "🏋️ Entreno" ahora admite kilocalorías activas/totales, frecuencia cardíaca media, esfuerzo (1-10) e intervalo, para cualquier ejercicio.',
+      'Nuevo "📊 Resumen de la sesión" en Torso/Piernas/Core: kilocalorías activas/totales, frecuencia cardíaca media y esfuerzo (1-10) de todo el entrenamiento, en vez de repetirlo en cada ejercicio.',
+      'En Cardio (Elíptica, Andar...) esos mismos datos, más intervalo, se anotan en el propio ejercicio.',
       'Si el ejercicio se llama "Andar", además puedes anotar distancia, ritmo medio y desnivel.',
+      'Añadido "Abdominales" como sugerencia rápida también en Torso y Piernas.',
     ],
   },
   {

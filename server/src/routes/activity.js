@@ -44,6 +44,39 @@ router.post('/', async (req, res) => {
   res.status(201).json(result.rows[0])
 })
 
+// Resumen de sesión (torso/piernas/core): un dato de reloj para todo el entrenamiento,
+// no uno por cada ejercicio suelto.
+router.get('/sessions', async (req, res) => {
+  const { from, to } = req.query
+  const userId = req.user.id
+  if (!from || !to) {
+    return res.status(400).json({ error: 'from y to son obligatorios' })
+  }
+  const result = await pool.query(`
+    SELECT date, session_type, kcal_active, kcal_total, hr_avg, effort
+    FROM activity_sessions
+    WHERE user_id = $1 AND date BETWEEN $2 AND $3
+  `, [userId, from, to])
+  res.json(result.rows)
+})
+
+// Guardar/actualizar el resumen de una sesión — un registro por usuario+fecha+tipo
+router.put('/sessions', async (req, res) => {
+  const { date, session_type, kcal_active, kcal_total, hr_avg, effort } = req.body
+  const userId = req.user.id
+  if (!date || !session_type) {
+    return res.status(400).json({ error: 'date y session_type son obligatorios' })
+  }
+  const result = await pool.query(`
+    INSERT INTO activity_sessions (user_id, date, session_type, kcal_active, kcal_total, hr_avg, effort)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    ON CONFLICT (user_id, date, session_type)
+    DO UPDATE SET kcal_active=$4, kcal_total=$5, hr_avg=$6, effort=$7
+    RETURNING *
+  `, [userId, date, session_type, kcal_active || null, kcal_total || null, hr_avg || null, effort || null])
+  res.json(result.rows[0])
+})
+
 // Editar una entrada de actividad — solo si es del usuario
 router.put('/:id', async (req, res) => {
   const {

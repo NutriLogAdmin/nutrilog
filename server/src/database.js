@@ -59,6 +59,21 @@ async function initDB() {
       notes TEXT DEFAULT '',
       created_at TIMESTAMP DEFAULT NOW()
     );
+
+    -- Resumen de una sesión completa (torso/piernas/core): el reloj mide kcal/FC/esfuerzo
+    -- para todo el entrenamiento, no por ejercicio suelto, así que va aparte de activity_log.
+    CREATE TABLE IF NOT EXISTS activity_sessions (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      date TEXT NOT NULL,
+      session_type TEXT NOT NULL,
+      kcal_active REAL,
+      kcal_total REAL,
+      hr_avg INTEGER,
+      effort INTEGER,
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(user_id, date, session_type)
+    );
   `)
   console.log('Base de datos PostgreSQL inicializada')
 }

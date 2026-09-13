@@ -25,11 +25,14 @@ const SESSION_TYPES = [
 ]
 // Sugerencias rápidas por tipo de sesión — texto libre, no un catálogo cerrado.
 const EXERCISE_SUGGESTIONS = {
-  torso: ['Press banca', 'Remo serrucho', 'Curl bíceps', 'Fondos tríceps'],
-  piernas: ['Sentadillas', 'Leg extension', 'Curl femoral', 'Gemelos'],
+  torso: ['Press banca', 'Remo serrucho', 'Curl bíceps', 'Fondos tríceps', 'Abdominales'],
+  piernas: ['Sentadillas', 'Leg extension', 'Curl femoral', 'Gemelos', 'Abdominales'],
   core: ['Plancha', 'Puente de glúteos', 'Elevación de piernas', 'Crunch'],
   cardio: ['Elíptica', 'Andar', 'Comba'],
 }
+// Tipos de sesión que se miden entera (varios ejercicios, un solo dato de reloj para todo):
+// llevan un resumen aparte en vez de repetir kcal/FC/esfuerzo en cada ejercicio.
+const SUMMARY_SESSION_TYPES = ['torso', 'piernas', 'core']
 
 const CATEGORIES = [
   { key: 'todos', label: '🔍 Todos', emoji: '🔍' },
@@ -213,6 +216,9 @@ export default function App() {
   const [whatsNew, setWhatsNew] = useState(null)
   const [inlineCreate, setInlineCreate] = useState(false)
   const [activityLog, setActivityLog] = useState([])
+  const [activitySessions, setActivitySessions] = useState([])
+  const [summaryType, setSummaryType] = useState('torso')
+  const [sessionForm, setSessionForm] = useState({ kcal_active: '', kcal_total: '', hr_avg: '', effort: '' })
   const [showActivityForm, setShowActivityForm] = useState(false)
   const [newActivity, setNewActivity] = useState({
     session_type: 'torso', exercise_name: '', sets: '', reps: '', weight: '', duration_min: '',
@@ -225,6 +231,16 @@ export default function App() {
     distance_km: '', pace_avg: '', elevation_m: '',
   }
   const isAndar = newActivity.exercise_name.trim().toLowerCase() === 'andar'
+
+  // El resumen de sesión se guarda una vez por día+tipo, no por ejercicio: al cambiar de
+  // tipo o de día, se recarga con lo ya guardado (o vacío si no hay nada todavía).
+  useEffect(() => {
+    const s = activitySessions.find(s => s.session_type === summaryType)
+    setSessionForm({
+      kcal_active: s?.kcal_active ?? '', kcal_total: s?.kcal_total ?? '',
+      hr_avg: s?.hr_avg ?? '', effort: s?.effort ?? '',
+    })
+  }, [summaryType, activitySessions])
 
   useEffect(() => {
     const handler = () => setIsDesktop(window.innerWidth >= 900)
@@ -317,10 +333,29 @@ export default function App() {
   }
 
   async function loadActivity() {
-    const res = await fetch(`${API}/activity?from=${date}&to=${date}`, { headers: getHeaders() })
-    if (res.status === 401) { handleLogout(); return }
+    const [res, sres] = await Promise.all([
+      fetch(`${API}/activity?from=${date}&to=${date}`, { headers: getHeaders() }),
+      fetch(`${API}/activity/sessions?from=${date}&to=${date}`, { headers: getHeaders() }),
+    ])
+    if (res.status === 401 || sres.status === 401) { handleLogout(); return }
     const data = await res.json()
+    const sdata = await sres.json()
     setActivityLog(Array.isArray(data) ? data : [])
+    setActivitySessions(Array.isArray(sdata) ? sdata : [])
+  }
+
+  async function saveSessionSummary() {
+    await fetch(`${API}/activity/sessions`, {
+      method: 'PUT', headers: getHeaders(),
+      body: JSON.stringify({
+        date, session_type: summaryType,
+        kcal_active: sessionForm.kcal_active ? parseFloat(sessionForm.kcal_active) : null,
+        kcal_total: sessionForm.kcal_total ? parseFloat(sessionForm.kcal_total) : null,
+        hr_avg: sessionForm.hr_avg ? parseInt(sessionForm.hr_avg) : null,
+        effort: sessionForm.effort ? parseInt(sessionForm.effort) : null,
+      })
+    })
+    loadActivity()
   }
 
   async function addActivity(e) {
@@ -903,35 +938,74 @@ export default function App() {
                         </div>
                       )}
 
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 8 }}>
-                        <div>
-                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal activas</div>
-                          <input type="number" value={newActivity.kcal_active} placeholder="0" onChange={e => setNewActivity({ ...newActivity, kcal_active: e.target.value })} style={inputStyle} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal totales</div>
-                          <input type="number" value={newActivity.kcal_total} placeholder="0" onChange={e => setNewActivity({ ...newActivity, kcal_total: e.target.value })} style={inputStyle} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>FC media (lpm)</div>
-                          <input type="number" value={newActivity.hr_avg} placeholder="0" onChange={e => setNewActivity({ ...newActivity, hr_avg: e.target.value })} style={inputStyle} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Esfuerzo (1-10)</div>
-                          <input type="number" min="1" max="10" value={newActivity.effort} placeholder="0" onChange={e => setNewActivity({ ...newActivity, effort: e.target.value })} style={inputStyle} />
-                        </div>
-                      </div>
+                      {newActivity.session_type === 'cardio' && (
+                        <>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 8 }}>
+                            <div>
+                              <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal activas</div>
+                              <input type="number" value={newActivity.kcal_active} placeholder="0" onChange={e => setNewActivity({ ...newActivity, kcal_active: e.target.value })} style={inputStyle} />
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal totales</div>
+                              <input type="number" value={newActivity.kcal_total} placeholder="0" onChange={e => setNewActivity({ ...newActivity, kcal_total: e.target.value })} style={inputStyle} />
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>FC media (lpm)</div>
+                              <input type="number" value={newActivity.hr_avg} placeholder="0" onChange={e => setNewActivity({ ...newActivity, hr_avg: e.target.value })} style={inputStyle} />
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Esfuerzo (1-10)</div>
+                              <input type="number" min="1" max="10" value={newActivity.effort} placeholder="0" onChange={e => setNewActivity({ ...newActivity, effort: e.target.value })} style={inputStyle} />
+                            </div>
+                          </div>
 
-                      <div style={{ marginBottom: 8 }}>
-                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Intervalo</div>
-                        <input type="text" value={newActivity.intervals} placeholder={`Ej: 1km 18'26" · 101lpm`} onChange={e => setNewActivity({ ...newActivity, intervals: e.target.value })} style={inputStyle} />
-                      </div>
+                          <div style={{ marginBottom: 8 }}>
+                            <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Intervalo</div>
+                            <input type="text" value={newActivity.intervals} placeholder={`Ej: 1km 18'26" · 101lpm`} onChange={e => setNewActivity({ ...newActivity, intervals: e.target.value })} style={inputStyle} />
+                          </div>
+                        </>
+                      )}
 
                       <button type="submit" style={{ width: '100%', padding: '13px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
                         Guardar
                       </button>
                     </form>
                   )}
+
+                  {/* Resumen de la sesión: para Torso/Piernas/Core se mide una vez para todo el
+                      entrenamiento (así lo da el reloj), no por ejercicio suelto. */}
+                  <div style={{ background: C.white, borderRadius: 20, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: C.text, marginBottom: 10 }}>📊 Resumen de la sesión</div>
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+                      {SESSION_TYPES.filter(t => SUMMARY_SESSION_TYPES.includes(t.key)).map(t => (
+                        <button key={t.key} type="button" onClick={() => setSummaryType(t.key)}
+                          style={{ padding: '6px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', background: summaryType === t.key ? C.accent : C.bg, color: summaryType === t.key ? '#fff' : C.muted, fontSize: 12, fontWeight: 600 }}>
+                          {t.emoji} {t.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
+                      <div>
+                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal activas</div>
+                        <input type="number" value={sessionForm.kcal_active} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, kcal_active: e.target.value })} style={inputStyle} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal totales</div>
+                        <input type="number" value={sessionForm.kcal_total} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, kcal_total: e.target.value })} style={inputStyle} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>FC media (lpm)</div>
+                        <input type="number" value={sessionForm.hr_avg} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, hr_avg: e.target.value })} style={inputStyle} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Esfuerzo (1-10)</div>
+                        <input type="number" min="1" max="10" value={sessionForm.effort} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, effort: e.target.value })} style={inputStyle} />
+                      </div>
+                    </div>
+                    <button type="button" onClick={saveSessionSummary} style={{ width: '100%', padding: '11px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                      Guardar resumen
+                    </button>
+                  </div>
 
                   {activityLog.length === 0
                     ? <div style={{ textAlign: 'center', color: C.muted, fontSize: 14, padding: '40px 0' }}>Sin actividad registrada este día.</div>
