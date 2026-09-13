@@ -109,7 +109,9 @@ function addMacroRow(doc, label, value, goal, unit, y) {
 }
 
 export async function exportDayPDF(date, username) {
-  const [entries, goal] = await Promise.all([fetchEntries(date), fetchGoal()])
+  const [entries, goal, activity, activitySessions] = await Promise.all([
+    fetchEntries(date), fetchGoal(), fetchActivity(date, date), fetchActivitySessions(date, date),
+  ])
   const totals = calcTotals(entries)
   const doc = new jsPDF()
 
@@ -195,6 +197,67 @@ export async function exportDayPDF(date, username) {
       y += 6
     }
     y += 2
+  }
+
+  // Actividad física del día
+  if (activity.length > 0 || activitySessions.length > 0) {
+    y += 6
+    if (y > 260) { doc.addPage(); y = 20 }
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(50, 50, 50)
+    doc.text('Actividad física', 14, y)
+    y += 6
+    doc.line(14, y, 196, y)
+    y += 4
+
+    for (const a of activity) {
+      if (y > 270) { doc.addPage(); y = 20 }
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(80, 80, 80)
+      doc.text(`${SESSION_LABELS[a.session_type] || a.session_type} · ${a.exercise_name}`, 18, y)
+      doc.setTextColor(120, 120, 120)
+      const detail = a.session_type === 'cardio'
+        ? `${a.duration_min ?? 0} min`
+        : `${a.sets ?? 0}x${a.reps ?? 0}${a.weight ? ` · ${a.weight}kg` : ''}`
+      doc.text(detail, 150, y)
+      y += 5
+
+      const extras = []
+      if (a.distance_km != null) extras.push(`${a.distance_km} km`)
+      if (a.pace_avg) extras.push(a.pace_avg)
+      if (a.elevation_m != null) extras.push(`${a.elevation_m}m desnivel`)
+      if (a.kcal_active != null) extras.push(`${a.kcal_active} kcal act.`)
+      if (a.kcal_total != null) extras.push(`${a.kcal_total} kcal tot.`)
+      if (a.hr_avg != null) extras.push(`${a.hr_avg} lpm`)
+      if (a.effort != null) extras.push(`esfuerzo ${a.effort}/10`)
+      if (a.intervals) extras.push(a.intervals)
+      if (extras.length > 0) {
+        if (y > 270) { doc.addPage(); y = 20 }
+        doc.setFontSize(7)
+        doc.setTextColor(150, 150, 150)
+        doc.text(extras.join(' · '), 18, y)
+        doc.setFontSize(8)
+        y += 5
+      }
+    }
+
+    for (const s of activitySessions) {
+      const summaryExtras = []
+      if (s.kcal_active != null) summaryExtras.push(`${s.kcal_active} kcal act.`)
+      if (s.kcal_total != null) summaryExtras.push(`${s.kcal_total} kcal tot.`)
+      if (s.hr_avg != null) summaryExtras.push(`${s.hr_avg} lpm`)
+      if (s.effort != null) summaryExtras.push(`esfuerzo ${s.effort}/10`)
+      if (summaryExtras.length === 0) continue
+      if (y > 270) { doc.addPage(); y = 20 }
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'italic')
+      doc.setTextColor(120, 120, 120)
+      doc.text(`Resumen sesión ${SESSION_LABELS[s.session_type] || s.session_type}: ${summaryExtras.join(' · ')}`, 18, y)
+      doc.setFont('helvetica', 'normal')
+      y += 5
+    }
   }
 
   // Footer

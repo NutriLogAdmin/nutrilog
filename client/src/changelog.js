@@ -6,6 +6,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.9.0',
+    date: '2026-09-13',
+    changes: [
+      'Arreglado: el PDF diario ("📄 Día") ya incluye tu actividad física, igual que el semanal.',
+    ],
+  },
+  {
     version: '1.8.0',
     date: '2026-09-13',
     changes: [
