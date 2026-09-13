@@ -330,6 +330,24 @@ export async function exportWeekPDF(username) {
           : `${a.sets ?? 0}x${a.reps ?? 0}${a.weight ? ` · ${a.weight}kg` : ''}`
         doc.text(detail, 150, y)
         y += 5
+
+        const extras = []
+        if (a.distance_km != null) extras.push(`${a.distance_km} km`)
+        if (a.pace_avg) extras.push(a.pace_avg)
+        if (a.elevation_m != null) extras.push(`${a.elevation_m}m desnivel`)
+        if (a.kcal_active != null) extras.push(`${a.kcal_active} kcal act.`)
+        if (a.kcal_total != null) extras.push(`${a.kcal_total} kcal tot.`)
+        if (a.hr_avg != null) extras.push(`${a.hr_avg} lpm`)
+        if (a.effort != null) extras.push(`esfuerzo ${a.effort}/10`)
+        if (a.intervals) extras.push(a.intervals)
+        if (extras.length > 0) {
+          if (y > 270) { doc.addPage(); y = 20 }
+          doc.setFontSize(7)
+          doc.setTextColor(150, 150, 150)
+          doc.text(extras.join(' · '), 18, y)
+          doc.setFontSize(8)
+          y += 5
+        }
       }
       y += 3
     }

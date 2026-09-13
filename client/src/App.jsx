@@ -214,7 +214,17 @@ export default function App() {
   const [inlineCreate, setInlineCreate] = useState(false)
   const [activityLog, setActivityLog] = useState([])
   const [showActivityForm, setShowActivityForm] = useState(false)
-  const [newActivity, setNewActivity] = useState({ session_type: 'torso', exercise_name: '', sets: '', reps: '', weight: '', duration_min: '' })
+  const [newActivity, setNewActivity] = useState({
+    session_type: 'torso', exercise_name: '', sets: '', reps: '', weight: '', duration_min: '',
+    kcal_active: '', kcal_total: '', hr_avg: '', effort: '', intervals: '',
+    distance_km: '', pace_avg: '', elevation_m: '',
+  })
+  const ACTIVITY_RESET = {
+    exercise_name: '', sets: '', reps: '', weight: '', duration_min: '',
+    kcal_active: '', kcal_total: '', hr_avg: '', effort: '', intervals: '',
+    distance_km: '', pace_avg: '', elevation_m: '',
+  }
+  const isAndar = newActivity.exercise_name.trim().toLowerCase() === 'andar'
 
   useEffect(() => {
     const handler = () => setIsDesktop(window.innerWidth >= 900)
@@ -324,9 +334,17 @@ export default function App() {
         reps: newActivity.reps ? parseInt(newActivity.reps) : null,
         weight: newActivity.weight ? parseFloat(newActivity.weight) : null,
         duration_min: newActivity.duration_min ? parseFloat(newActivity.duration_min) : null,
+        kcal_active: newActivity.kcal_active ? parseFloat(newActivity.kcal_active) : null,
+        kcal_total: newActivity.kcal_total ? parseFloat(newActivity.kcal_total) : null,
+        hr_avg: newActivity.hr_avg ? parseInt(newActivity.hr_avg) : null,
+        effort: newActivity.effort ? parseInt(newActivity.effort) : null,
+        intervals: newActivity.intervals.trim() || null,
+        distance_km: isAndar && newActivity.distance_km ? parseFloat(newActivity.distance_km) : null,
+        pace_avg: isAndar ? (newActivity.pace_avg.trim() || null) : null,
+        elevation_m: isAndar && newActivity.elevation_m ? parseFloat(newActivity.elevation_m) : null,
       })
     })
-    setNewActivity({ ...newActivity, exercise_name: '', sets: '', reps: '', weight: '', duration_min: '' })
+    setNewActivity({ ...newActivity, ...ACTIVITY_RESET })
     loadActivity()
   }
 
@@ -868,6 +886,47 @@ export default function App() {
                         </div>
                       )}
 
+                      {isAndar && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 8 }}>
+                          <div>
+                            <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Distancia (km)</div>
+                            <input type="number" step="0.01" value={newActivity.distance_km} placeholder="0" onChange={e => setNewActivity({ ...newActivity, distance_km: e.target.value })} style={inputStyle} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Ritmo medio</div>
+                            <input type="text" value={newActivity.pace_avg} placeholder={`17'35"/km`} onChange={e => setNewActivity({ ...newActivity, pace_avg: e.target.value })} style={inputStyle} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Desnivel (m)</div>
+                            <input type="number" value={newActivity.elevation_m} placeholder="0" onChange={e => setNewActivity({ ...newActivity, elevation_m: e.target.value })} style={inputStyle} />
+                          </div>
+                        </div>
+                      )}
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 8 }}>
+                        <div>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal activas</div>
+                          <input type="number" value={newActivity.kcal_active} placeholder="0" onChange={e => setNewActivity({ ...newActivity, kcal_active: e.target.value })} style={inputStyle} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal totales</div>
+                          <input type="number" value={newActivity.kcal_total} placeholder="0" onChange={e => setNewActivity({ ...newActivity, kcal_total: e.target.value })} style={inputStyle} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>FC media (lpm)</div>
+                          <input type="number" value={newActivity.hr_avg} placeholder="0" onChange={e => setNewActivity({ ...newActivity, hr_avg: e.target.value })} style={inputStyle} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Esfuerzo (1-10)</div>
+                          <input type="number" min="1" max="10" value={newActivity.effort} placeholder="0" onChange={e => setNewActivity({ ...newActivity, effort: e.target.value })} style={inputStyle} />
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: 8 }}>
+                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Intervalo</div>
+                        <input type="text" value={newActivity.intervals} placeholder={`Ej: 1km 18'26" · 101lpm`} onChange={e => setNewActivity({ ...newActivity, intervals: e.target.value })} style={inputStyle} />
+                      </div>
+
                       <button type="submit" style={{ width: '100%', padding: '13px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
                         Guardar
                       </button>
@@ -878,6 +937,15 @@ export default function App() {
                     ? <div style={{ textAlign: 'center', color: C.muted, fontSize: 14, padding: '40px 0' }}>Sin actividad registrada este día.</div>
                     : activityLog.map(a => {
                       const t = SESSION_TYPES.find(s => s.key === a.session_type)
+                      const extras = []
+                      if (a.distance_km != null) extras.push(`${a.distance_km} km`)
+                      if (a.pace_avg) extras.push(a.pace_avg)
+                      if (a.elevation_m != null) extras.push(`${a.elevation_m}m desnivel`)
+                      if (a.kcal_active != null) extras.push(`${a.kcal_active} kcal act.`)
+                      if (a.kcal_total != null) extras.push(`${a.kcal_total} kcal tot.`)
+                      if (a.hr_avg != null) extras.push(`${a.hr_avg} lpm`)
+                      if (a.effort != null) extras.push(`esfuerzo ${a.effort}/10`)
+                      if (a.intervals) extras.push(a.intervals)
                       return (
                         <div key={a.id} style={{ background: C.white, borderRadius: 16, padding: '14px 16px', marginBottom: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
@@ -887,6 +955,9 @@ export default function App() {
                               <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
                                 {t?.label || a.session_type} · {a.session_type === 'cardio' ? `${a.duration_min ?? 0} min` : `${a.sets ?? 0}x${a.reps ?? 0}${a.weight ? ` · ${a.weight}kg` : ''}`}
                               </div>
+                              {extras.length > 0 && (
+                                <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{extras.join(' · ')}</div>
+                              )}
                             </div>
                           </div>
                           <button onClick={() => deleteActivity(a.id)} style={{ border: 'none', background: C.redLight, color: C.red, cursor: 'pointer', borderRadius: 8, width: 28, height: 28, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>

@@ -6,6 +6,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.8.0',
+    date: '2026-09-13',
+    changes: [
+      'La pestaña "🏋️ Entreno" ahora admite kilocalorías activas/totales, frecuencia cardíaca media, esfuerzo (1-10) e intervalo, para cualquier ejercicio.',
+      'Si el ejercicio se llama "Andar", además puedes anotar distancia, ritmo medio y desnivel.',
+    ],
+  },
+  {
     version: '1.7.0',
     date: '2026-09-13',
     changes: [
