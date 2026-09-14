@@ -52,29 +52,39 @@ router.get('/sessions', async (req, res) => {
   if (!from || !to) {
     return res.status(400).json({ error: 'from y to son obligatorios' })
   }
-  const result = await pool.query(`
-    SELECT date, session_type, kcal_active, kcal_total, hr_avg, effort
-    FROM activity_sessions
-    WHERE user_id = $1 AND date BETWEEN $2 AND $3
-  `, [userId, from, to])
-  res.json(result.rows)
+  try {
+    const result = await pool.query(`
+      SELECT date, session_type, duration_min, kcal_active, kcal_total, hr_avg, effort
+      FROM activity_sessions
+      WHERE user_id = $1 AND date BETWEEN $2 AND $3
+    `, [userId, from, to])
+    res.json(result.rows)
+  } catch (err) {
+    console.error('Error en GET /activity/sessions:', err)
+    res.status(500).json({ error: err.message })
+  }
 })
 
 // Guardar/actualizar el resumen de una sesión — un registro por usuario+fecha+tipo
 router.put('/sessions', async (req, res) => {
-  const { date, session_type, kcal_active, kcal_total, hr_avg, effort } = req.body
+  const { date, session_type, duration_min, kcal_active, kcal_total, hr_avg, effort } = req.body
   const userId = req.user.id
   if (!date || !session_type) {
     return res.status(400).json({ error: 'date y session_type son obligatorios' })
   }
-  const result = await pool.query(`
-    INSERT INTO activity_sessions (user_id, date, session_type, kcal_active, kcal_total, hr_avg, effort)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
-    ON CONFLICT (user_id, date, session_type)
-    DO UPDATE SET kcal_active=$4, kcal_total=$5, hr_avg=$6, effort=$7
-    RETURNING *
-  `, [userId, date, session_type, kcal_active || null, kcal_total || null, hr_avg || null, effort || null])
-  res.json(result.rows[0])
+  try {
+    const result = await pool.query(`
+      INSERT INTO activity_sessions (user_id, date, session_type, duration_min, kcal_active, kcal_total, hr_avg, effort)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      ON CONFLICT (user_id, date, session_type)
+      DO UPDATE SET duration_min=$4, kcal_active=$5, kcal_total=$6, hr_avg=$7, effort=$8
+      RETURNING *
+    `, [userId, date, session_type, duration_min || null, kcal_active || null, kcal_total || null, hr_avg || null, effort || null])
+    res.json(result.rows[0])
+  } catch (err) {
+    console.error('Error en PUT /activity/sessions:', err)
+    res.status(500).json({ error: err.message })
+  }
 })
 
 // Editar una entrada de actividad — solo si es del usuario

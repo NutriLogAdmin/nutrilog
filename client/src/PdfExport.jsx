@@ -13,6 +13,15 @@ function getHeaders() {
 function round(n) { return Math.round((n + Number.EPSILON) * 10) / 10 }
 function calcFactor(amount) { return amount / 100 }
 
+// Minutos decimales → "mm:ss", igual que en App.jsx.
+function formatDuration(min) {
+  if (min == null) return ''
+  const totalSeconds = Math.round(min * 60)
+  const mm = Math.floor(totalSeconds / 60)
+  const ss = totalSeconds % 60
+  return `${mm}:${String(ss).padStart(2, '0')}`
+}
+
 function formatDate(iso) {
   const [y, m, d] = iso.split('-')
   return `${d}/${m}/${y}`
@@ -219,7 +228,7 @@ export async function exportDayPDF(date, username) {
       doc.text(`${SESSION_LABELS[a.session_type] || a.session_type} · ${a.exercise_name}`, 18, y)
       doc.setTextColor(120, 120, 120)
       const detail = a.session_type === 'cardio'
-        ? `${a.duration_min ?? 0} min`
+        ? `${formatDuration(a.duration_min) || 0} min`
         : `${a.sets ?? 0}x${a.reps ?? 0}${a.weight ? ` · ${a.weight}kg` : ''}`
       doc.text(detail, 150, y)
       y += 5
@@ -245,6 +254,7 @@ export async function exportDayPDF(date, username) {
 
     for (const s of activitySessions) {
       const summaryExtras = []
+      if (s.duration_min != null) summaryExtras.push(`${formatDuration(s.duration_min)} min`)
       if (s.kcal_active != null) summaryExtras.push(`${s.kcal_active} kcal act.`)
       if (s.kcal_total != null) summaryExtras.push(`${s.kcal_total} kcal tot.`)
       if (s.hr_avg != null) summaryExtras.push(`${s.hr_avg} lpm`)
@@ -398,7 +408,7 @@ export async function exportWeekPDF(username) {
         doc.text(`${SESSION_LABELS[a.session_type] || a.session_type} · ${a.exercise_name}`, 18, y)
         doc.setTextColor(120, 120, 120)
         const detail = a.session_type === 'cardio'
-          ? `${a.duration_min ?? 0} min`
+          ? `${formatDuration(a.duration_min) || 0} min`
           : `${a.sets ?? 0}x${a.reps ?? 0}${a.weight ? ` · ${a.weight}kg` : ''}`
         doc.text(detail, 150, y)
         y += 5
@@ -424,6 +434,7 @@ export async function exportWeekPDF(username) {
 
       for (const s of daySessions) {
         const summaryExtras = []
+        if (s.duration_min != null) summaryExtras.push(`${formatDuration(s.duration_min)} min`)
         if (s.kcal_active != null) summaryExtras.push(`${s.kcal_active} kcal act.`)
         if (s.kcal_total != null) summaryExtras.push(`${s.kcal_total} kcal tot.`)
         if (s.hr_avg != null) summaryExtras.push(`${s.hr_avg} lpm`)

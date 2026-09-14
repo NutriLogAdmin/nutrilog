@@ -62,6 +62,30 @@ async function fetchPlanDay(dateStr) {
   }
 }
 
+// "23:08" (mm:ss) o "1:02:08" (h:mm:ss) → minutos decimales. Sin ":", se trata como
+// minutos enteros (compatible con lo que había antes de poder escribir mm:ss).
+function parseDuration(str) {
+  const s = String(str).trim()
+  if (!s) return null
+  if (!s.includes(':')) {
+    const n = parseFloat(s)
+    return isNaN(n) ? null : n
+  }
+  const parts = s.split(':').map(p => parseInt(p, 10) || 0)
+  if (parts.length === 2) return parts[0] + parts[1] / 60
+  if (parts.length === 3) return parts[0] * 60 + parts[1] + parts[2] / 60
+  return null
+}
+
+// Minutos decimales → "mm:ss", para volver a mostrar en el campo lo ya guardado.
+function formatDuration(min) {
+  if (min == null) return ''
+  const totalSeconds = Math.round(min * 60)
+  const mm = Math.floor(totalSeconds / 60)
+  const ss = totalSeconds % 60
+  return `${mm}:${String(ss).padStart(2, '0')}`
+}
+
 const SESSION_TYPES = [
   { key: 'torso', label: 'Torso', emoji: '💪' },
   { key: 'piernas', label: 'Piernas', emoji: '🦵' },
@@ -264,7 +288,7 @@ export default function App() {
   const [activityLog, setActivityLog] = useState([])
   const [activitySessions, setActivitySessions] = useState([])
   const [summaryType, setSummaryType] = useState('torso')
-  const [sessionForm, setSessionForm] = useState({ kcal_active: '', kcal_total: '', hr_avg: '', effort: '' })
+  const [sessionForm, setSessionForm] = useState({ duration_min: '', kcal_active: '', kcal_total: '', hr_avg: '', effort: '' })
   const [showSessionSummary, setShowSessionSummary] = useState(false)
   const [showActivityForm, setShowActivityForm] = useState(false)
   const [newActivity, setNewActivity] = useState({
@@ -284,6 +308,7 @@ export default function App() {
   useEffect(() => {
     const s = activitySessions.find(s => s.session_type === summaryType)
     setSessionForm({
+      duration_min: s?.duration_min != null ? formatDuration(s.duration_min) : '',
       kcal_active: s?.kcal_active ?? '', kcal_total: s?.kcal_total ?? '',
       hr_avg: s?.hr_avg ?? '', effort: s?.effort ?? '',
     })
@@ -396,16 +421,22 @@ export default function App() {
   }
 
   async function saveSessionSummary() {
-    await fetch(`${API}/activity/sessions`, {
+    const res = await fetch(`${API}/activity/sessions`, {
       method: 'PUT', headers: getHeaders(),
       body: JSON.stringify({
         date, session_type: summaryType,
+        duration_min: parseDuration(sessionForm.duration_min),
         kcal_active: sessionForm.kcal_active ? parseFloat(sessionForm.kcal_active) : null,
         kcal_total: sessionForm.kcal_total ? parseFloat(sessionForm.kcal_total) : null,
         hr_avg: sessionForm.hr_avg ? parseInt(sessionForm.hr_avg) : null,
         effort: sessionForm.effort ? parseInt(sessionForm.effort) : null,
       })
     })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      alert(`No se pudo guardar el resumen: ${err.error || res.status}`)
+      return
+    }
     loadActivity()
   }
 
@@ -419,7 +450,7 @@ export default function App() {
         sets: newActivity.sets ? parseInt(newActivity.sets) : null,
         reps: newActivity.reps ? parseInt(newActivity.reps) : null,
         weight: newActivity.weight ? parseFloat(newActivity.weight) : null,
-        duration_min: newActivity.duration_min ? parseFloat(newActivity.duration_min) : null,
+        duration_min: parseDuration(newActivity.duration_min),
         kcal_active: newActivity.kcal_active ? parseFloat(newActivity.kcal_active) : null,
         kcal_total: newActivity.kcal_total ? parseFloat(newActivity.kcal_total) : null,
         hr_avg: newActivity.hr_avg ? parseInt(newActivity.hr_avg) : null,
@@ -963,8 +994,8 @@ export default function App() {
 
                       {newActivity.session_type === 'cardio' ? (
                         <div style={{ marginBottom: 8 }}>
-                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Minutos</div>
-                          <input type="number" value={newActivity.duration_min} placeholder="0" onChange={e => setNewActivity({ ...newActivity, duration_min: e.target.value })} style={inputStyle} />
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Duración (mm:ss)</div>
+                          <input type="text" value={newActivity.duration_min} placeholder="23:08" onChange={e => setNewActivity({ ...newActivity, duration_min: e.target.value })} style={inputStyle} />
                         </div>
                       ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 8 }}>
@@ -1053,6 +1084,10 @@ export default function App() {
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
                         <div>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Duración (mm:ss)</div>
+                          <input type="text" value={sessionForm.duration_min} placeholder="54:02" onChange={e => setSessionForm({ ...sessionForm, duration_min: e.target.value })} style={inputStyle} />
+                        </div>
+                        <div>
                           <div style={{ fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }}>Kcal activas</div>
                           <input type="number" value={sessionForm.kcal_active} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, kcal_active: e.target.value })} style={inputStyle} />
                         </div>
@@ -1095,7 +1130,7 @@ export default function App() {
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{a.exercise_name}</div>
                               <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
-                                {t?.label || a.session_type} · {a.session_type === 'cardio' ? `${a.duration_min ?? 0} min` : `${a.sets ?? 0}x${a.reps ?? 0}${a.weight ? ` · ${a.weight}kg` : ''}`}
+                                {t?.label || a.session_type} · {a.session_type === 'cardio' ? `${formatDuration(a.duration_min) || 0} min` : `${a.sets ?? 0}x${a.reps ?? 0}${a.weight ? ` · ${a.weight}kg` : ''}`}
                               </div>
                               {extras.length > 0 && (
                                 <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{extras.join(' · ')}</div>
