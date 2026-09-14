@@ -290,6 +290,8 @@ export default function App() {
   const [summaryType, setSummaryType] = useState('torso')
   const [sessionForm, setSessionForm] = useState({ duration_min: '', kcal_active: '', kcal_total: '', hr_avg: '', effort: '' })
   const [showSessionSummary, setShowSessionSummary] = useState(false)
+  const [savingSummary, setSavingSummary] = useState(false)
+  const [summarySaved, setSummarySaved] = useState(false)
   const [showActivityForm, setShowActivityForm] = useState(false)
   const [newActivity, setNewActivity] = useState({
     session_type: 'torso', exercise_name: '', sets: '', reps: '', weight: '', duration_min: '',
@@ -421,23 +423,33 @@ export default function App() {
   }
 
   async function saveSessionSummary() {
-    const res = await fetch(`${API}/activity/sessions`, {
-      method: 'PUT', headers: getHeaders(),
-      body: JSON.stringify({
-        date, session_type: summaryType,
-        duration_min: parseDuration(sessionForm.duration_min),
-        kcal_active: sessionForm.kcal_active ? parseFloat(sessionForm.kcal_active) : null,
-        kcal_total: sessionForm.kcal_total ? parseFloat(sessionForm.kcal_total) : null,
-        hr_avg: sessionForm.hr_avg ? parseInt(sessionForm.hr_avg) : null,
-        effort: sessionForm.effort ? parseInt(sessionForm.effort) : null,
+    setSavingSummary(true)
+    setSummarySaved(false)
+    try {
+      const res = await fetch(`${API}/activity/sessions`, {
+        method: 'PUT', headers: getHeaders(),
+        body: JSON.stringify({
+          date, session_type: summaryType,
+          duration_min: parseDuration(sessionForm.duration_min),
+          kcal_active: sessionForm.kcal_active ? parseFloat(sessionForm.kcal_active) : null,
+          kcal_total: sessionForm.kcal_total ? parseFloat(sessionForm.kcal_total) : null,
+          hr_avg: sessionForm.hr_avg ? parseInt(sessionForm.hr_avg) : null,
+          effort: sessionForm.effort ? parseInt(sessionForm.effort) : null,
+        })
       })
-    })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      alert(`No se pudo guardar el resumen: ${err.error || res.status}`)
-      return
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        alert(`No se pudo guardar el resumen: ${err.error || res.status}`)
+        return
+      }
+      await loadActivity()
+      setSummarySaved(true)
+      setTimeout(() => setSummarySaved(false), 3000)
+    } catch (err) {
+      alert(`No se pudo guardar el resumen — fallo de red: ${err.message}`)
+    } finally {
+      setSavingSummary(false)
     }
-    loadActivity()
   }
 
   async function addActivity(e) {
@@ -1104,8 +1116,8 @@ export default function App() {
                           <input type="number" min="1" max="10" value={sessionForm.effort} placeholder="0" onChange={e => setSessionForm({ ...sessionForm, effort: e.target.value })} style={inputStyle} />
                         </div>
                       </div>
-                      <button type="button" onClick={saveSessionSummary} style={{ width: '100%', padding: '11px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-                        Guardar resumen
+                      <button type="button" onClick={saveSessionSummary} disabled={savingSummary} style={{ width: '100%', padding: '11px', background: summarySaved ? C.green : C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 13, cursor: savingSummary ? 'default' : 'pointer', opacity: savingSummary ? 0.7 : 1 }}>
+                        {savingSummary ? 'Guardando…' : summarySaved ? '✓ Guardado' : 'Guardar resumen'}
                       </button>
                     </div>
                   )}
