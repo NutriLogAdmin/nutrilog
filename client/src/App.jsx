@@ -1122,6 +1122,25 @@ export default function App() {
                     </div>
                   )}
 
+                  {/* Resúmenes ya guardados de hoy — visibles aunque el editor esté plegado,
+                      que es justo lo que Daniel esperaba ver y no veía. */}
+                  {activitySessions.map(s => {
+                    const t = SESSION_TYPES.find(x => x.key === s.session_type)
+                    const parts = []
+                    if (s.duration_min != null) parts.push(`${formatDuration(s.duration_min)} min`)
+                    if (s.kcal_active != null) parts.push(`${s.kcal_active} kcal act.`)
+                    if (s.kcal_total != null) parts.push(`${s.kcal_total} kcal tot.`)
+                    if (s.hr_avg != null) parts.push(`${s.hr_avg} lpm`)
+                    if (s.effort != null) parts.push(`esfuerzo ${s.effort}/10`)
+                    if (parts.length === 0) return null
+                    return (
+                      <div key={s.session_type} style={{ background: C.white, borderRadius: 16, padding: '12px 16px', marginBottom: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: C.accent, marginBottom: 4 }}>📊 Resumen {t?.label || s.session_type}</div>
+                        <div style={{ fontSize: 12, color: C.muted }}>{parts.join(' · ')}</div>
+                      </div>
+                    )
+                  })}
+
                   {activityLog.length === 0
                     ? <div style={{ textAlign: 'center', color: C.muted, fontSize: 14, padding: '40px 0' }}>Sin actividad registrada este día.</div>
                     : activityLog.map(a => {
