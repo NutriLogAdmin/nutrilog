@@ -17,6 +17,51 @@ const MEALS = [
   { key: 'cena', label: 'Cena', emoji: '🌙' },
 ]
 
+const PLAN_MONTH_ABBR = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+const PLAN_WEEKDAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+
+// Semanas del plan: bloques de 7 días desde el lunes en/antes del día 1 del mes.
+// El mes casi nunca encaja en exactamente 4 semanas de 7 días — la 4ª absorbe lo que
+// sobre (así lo definió Daniel: del 21 al 30 de septiembre es toda "S4", aunque sean
+// más de 7 días). Devuelve null si la fecha no coincide con ningún día del plan.
+function getPlanDayId(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const current = new Date(y, m - 1, d)
+  const firstOfMonth = new Date(y, m - 1, 1)
+  const daysSinceMonday = (firstOfMonth.getDay() + 6) % 7
+  const anchorMonday = new Date(y, m - 1, 1 - daysSinceMonday)
+  const diffDays = Math.round((current - anchorMonday) / 86400000)
+  const weekNum = Math.min(4, Math.floor(diffDays / 7) + 1)
+  return { weekId: `${PLAN_MONTH_ABBR[m - 1]}${weekNum}`, weekdayName: PLAN_WEEKDAY_NAMES[current.getDay()] }
+}
+
+// Trocea el HTML del plan (ya público en /nutrilog/) para sacar solo el día de hoy —
+// sin ejercicios ni tips generales, tal como pidió Daniel. Si el HTML cambia de
+// estructura (mes nuevo con otro formato) esto simplemente no encuentra nada y la
+// miniventana no aparece, en vez de romper la app.
+async function fetchPlanDay(dateStr) {
+  const { weekId, weekdayName } = getPlanDayId(dateStr)
+  try {
+    const res = await fetch('/nutrilog/plan_trigliceridos.html')
+    const html = await res.text()
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    const weekSection = doc.getElementById(weekId)
+    if (!weekSection) return null
+    const dayCard = Array.from(weekSection.querySelectorAll('.day-card'))
+      .find(card => card.querySelector('.day-header')?.textContent.includes(weekdayName))
+    if (!dayCard) return null
+    const headerText = dayCard.querySelector('.day-header').textContent.trim()
+    const meals = Array.from(dayCard.querySelectorAll('.meal-row')).map(row => ({
+      label: row.querySelector('.meal-label')?.textContent.trim() || '',
+      text: row.querySelector('.meal-text')?.textContent.trim() || '',
+    }))
+    return { headerText, meals }
+  } catch (err) {
+    console.error('No se pudo cargar el plan del día:', err)
+    return null
+  }
+}
+
 const SESSION_TYPES = [
   { key: 'torso', label: 'Torso', emoji: '💪' },
   { key: 'piernas', label: 'Piernas', emoji: '🦵' },
@@ -215,6 +260,7 @@ export default function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 900)
   const [whatsNew, setWhatsNew] = useState(null)
   const [inlineCreate, setInlineCreate] = useState(false)
+  const [planToday, setPlanToday] = useState(null)
   const [activityLog, setActivityLog] = useState([])
   const [activitySessions, setActivitySessions] = useState([])
   const [summaryType, setSummaryType] = useState('torso')
@@ -325,6 +371,10 @@ export default function App() {
   useEffect(() => { if (token) loadEntries() }, [date, token])
   useEffect(() => { if (token) loadFoods() }, [token])
   useEffect(() => { if (token) loadActivity() }, [date, token])
+  useEffect(() => {
+    if (!token || !canSeePlan) { setPlanToday(null); return }
+    fetchPlanDay(date).then(setPlanToday)
+  }, [date, token, canSeePlan])
 
   async function loadEntries() {
     const res = await fetch(`${API}/foods/entries?date=${date}`, { headers: getHeaders() })
@@ -724,6 +774,17 @@ export default function App() {
               {/* Vista Registro */}
               {view === 'registro' && (
                 <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
+                  {canSeePlan && planToday && (
+                    <div style={{ background: C.accentLight, border: `1px solid ${C.accent}33`, borderRadius: 16, padding: '12px 14px', marginBottom: 12 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: C.accent, textTransform: 'uppercase', marginBottom: 6 }}>📋 {planToday.headerText}</div>
+                      {planToday.meals.map((m, i) => (
+                        <div key={i} style={{ fontSize: 12, color: C.text, marginBottom: 3 }}>
+                          <strong>{m.label}:</strong> {m.text}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {MEALS.map(meal => {
                     const mealEntries = entries.filter(e => (e.meal || 'comida') === meal.key)
                     const mealKcal = mealEntries.reduce((sum, e) => sum + e.kcal100 * calcFactor(e.amount), 0)
