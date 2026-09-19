@@ -11,3 +11,7 @@ html, body { margin: 0; padding: 0; }
 html, body, #root { overflow-x: hidden; max-width: 100vw; }
 html, body { touch-action: pan-y; }
 img { max-width: 100%; }
+
+/* Entrada suave de la tarjeta del carrusel de recetas al cambiar de una a otra. */
+@keyframes nl-slide-in { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .nl-slide { animation: none !important; } }
