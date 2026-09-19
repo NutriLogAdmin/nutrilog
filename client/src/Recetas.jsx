@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { palette } from './Consejos'
 
 const COLOR_LABELS = [['green', 'Verde'], ['blue', 'Azul'], ['amber', 'Ámbar'], ['red', 'Rojo'], ['purple', 'Morado'], ['gray', 'Gris']]
-const EMPTY_FORM = { color: 'green', title: '', badge: '', intro: '', steps: '', tip: '', is_public: false }
+const EMPTY_FORM = { color: 'green', title: '', badge: '', intro: '', steps: '', tip: '', macros: '', is_public: false }
 
 // Recetas propias y las que otros usuarios han compartido. Solo el autor edita o borra.
 export default function Recetas({ API, getHeaders, C, inputStyle, canImport }) {
@@ -41,7 +41,7 @@ export default function Recetas({ API, getHeaders, C, inputStyle, canImport }) {
     if (!form.title.trim() || !form.steps.trim()) return
     setSaving(true)
     try {
-      const body = { title: form.title, badge: form.badge, color: form.color, intro: form.intro, steps: form.steps, tip: form.tip, is_public: form.is_public }
+      const body = { title: form.title, badge: form.badge, color: form.color, intro: form.intro, steps: form.steps, tip: form.tip, macros: form.macros, is_public: form.is_public }
       if (form.id) await request(`/recipes/${form.id}`, 'PUT', body)
       else await request('/recipes', 'POST', body)
       setForm(null)
@@ -67,7 +67,8 @@ export default function Recetas({ API, getHeaders, C, inputStyle, canImport }) {
     try {
       const parsed = JSON.parse(importText)
       const list = Array.isArray(parsed) ? parsed : parsed.recipes
-      await request('/recipes/import', 'POST', { recipes: list })
+      const replace = !Array.isArray(parsed) && parsed.replace === true
+      await request('/recipes/import', 'POST', { recipes: list, replace })
       setImportText('')
       setShowImport(false)
       await load()
@@ -79,7 +80,6 @@ export default function Recetas({ API, getHeaders, C, inputStyle, canImport }) {
   const label = { fontSize: 10, color: C.muted, marginBottom: 2, fontWeight: 700, textTransform: 'uppercase' }
   const q = search.trim().toLowerCase()
   const visible = q ? recipes.filter(r => r.title.toLowerCase().includes(q)) : recipes
-  const hasOwn = recipes.some(r => r.mine)
 
   if (!loaded) return <div style={{ textAlign: 'center', color: C.muted, padding: '30px 0', fontSize: 13 }}>Cargando…</div>
 
@@ -120,6 +120,10 @@ export default function Recetas({ API, getHeaders, C, inputStyle, canImport }) {
           <div style={{ marginBottom: 10 }}>
             <div style={label}>Truco final (opcional)</div>
             <textarea value={form.tip} rows={2} maxLength={2000} onChange={e => setForm({ ...form, tip: e.target.value })} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <div style={label}>Macros (opcional)</div>
+            <textarea value={form.macros} rows={2} maxLength={1000} placeholder="Por 100 g: 95 kcal · Proteína 6g · Hidratos 13g…" onChange={e => setForm({ ...form, macros: e.target.value })} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: C.text, marginBottom: 12, cursor: 'pointer' }}>
             <input type="checkbox" checked={form.is_public} onChange={e => setForm({ ...form, is_public: e.target.checked })} />
@@ -176,6 +180,12 @@ export default function Recetas({ API, getHeaders, C, inputStyle, canImport }) {
                   )
                 })}
                 {r.tip && <div style={{ background: C.yellowLight, borderLeft: `3px solid ${C.yellow}`, borderRadius: 10, padding: '10px 12px', marginTop: 4, fontSize: 13, lineHeight: 1.5, color: C.text, whiteSpace: 'pre-wrap' }}>{r.tip}</div>}
+                {r.macros && (
+                  <div style={{ background: C.surface2, borderRadius: 10, padding: '10px 12px', marginTop: 8, fontSize: 12, lineHeight: 1.6, color: C.text, whiteSpace: 'pre-wrap' }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase', marginBottom: 2 }}>📊 Macros</div>
+                    {r.macros}
+                  </div>
+                )}
                 {r.mine && (
                   <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                     <button onClick={() => { setForm({ ...r }); window.scrollTo({ top: 0, behavior: 'smooth' }) }} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.muted, borderRadius: 10, padding: '6px 12px', fontSize: 12, cursor: 'pointer' }}>✏️ Editar</button>
@@ -188,7 +198,7 @@ export default function Recetas({ API, getHeaders, C, inputStyle, canImport }) {
         )
       })}
 
-      {canImport && !hasOwn && (
+      {canImport && (
         <div style={{ marginTop: 12 }}>
           <button onClick={() => setShowImport(!showImport)} style={{ border: `1px dashed ${C.border}`, background: 'transparent', color: C.muted, borderRadius: 12, padding: '8px 14px', fontSize: 12, cursor: 'pointer' }}>
             {showImport ? 'Ocultar importación' : '📥 Importar desde JSON'}

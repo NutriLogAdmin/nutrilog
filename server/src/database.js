@@ -147,6 +147,7 @@ async function migrateDB() {
     await pool.query(`ALTER TABLE activity_log ADD COLUMN IF NOT EXISTS pace_avg TEXT DEFAULT NULL`)
     await pool.query(`ALTER TABLE activity_log ADD COLUMN IF NOT EXISTS elevation_m REAL DEFAULT NULL`)
     await pool.query(`ALTER TABLE activity_sessions ADD COLUMN IF NOT EXISTS duration_min REAL DEFAULT NULL`)
+    await pool.query(`ALTER TABLE recipes ADD COLUMN IF NOT EXISTS macros TEXT DEFAULT ''`)
     console.log('Migración OK')
   } catch (err) {
     console.error('Error en migración:', err)

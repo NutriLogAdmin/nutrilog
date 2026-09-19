@@ -6,6 +6,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.13.0',
+    date: '2026-09-19',
+    changes: [
+      'Las recetas ahora pueden llevar sus macros (kcal, proteína, hidratos…) y se ven al abrir cada receta.',
+    ],
+  },
+  {
     version: '1.12.0',
     date: '2026-09-19',
     changes: [
