@@ -176,6 +176,12 @@ async function migrateDB() {
     await pool.query(`ALTER TABLE activity_log ADD COLUMN IF NOT EXISTS elevation_m REAL DEFAULT NULL`)
     await pool.query(`ALTER TABLE activity_sessions ADD COLUMN IF NOT EXISTS duration_min REAL DEFAULT NULL`)
     await pool.query(`ALTER TABLE recipes ADD COLUMN IF NOT EXISTS macros TEXT DEFAULT ''`)
+    // Macros estimados POR RACIÓN, en números, para poder recomendar recetas según lo que falte
+    // del día. El texto libre `macros` sigue existiendo para mostrarlo tal cual.
+    for (const col of ['serving_g', 'kcal', 'protein', 'carbs', 'satfat', 'sugar', 'fiber', 'salt']) {
+      await pool.query(`ALTER TABLE recipes ADD COLUMN IF NOT EXISTS ${col} REAL DEFAULT NULL`)
+    }
+    await pool.query(`ALTER TABLE recipes ADD COLUMN IF NOT EXISTS image TEXT DEFAULT NULL`)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS takes_supplements BOOLEAN DEFAULT FALSE`)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_month TEXT DEFAULT NULL`)
     // Se guarda el año de nacimiento aproximado y no la edad, para que la edad no se quede

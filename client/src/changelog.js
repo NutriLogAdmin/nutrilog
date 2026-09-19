@@ -6,6 +6,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.20.0',
+    date: '2026-09-19',
+    changes: [
+      'Nuevo carrusel de recetas en la pantalla principal: "Para hoy" con ideas distintas cada día y "Completa tu día", que detecta qué te falta (kcal, proteína, fibra) y te propone recetas para llegar a tu objetivo sin pasarte.',
+      'Las recetas ahora pueden llevar foto y macros por ración (estimados).',
+    ],
+  },
+  {
     version: '1.19.0',
     date: '2026-09-19',
     changes: [

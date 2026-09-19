@@ -8,6 +8,7 @@ import WhatsNew from './WhatsNew'
 import Consejos, { CardsSection } from './Consejos'
 import Progreso from './Progreso'
 import MiPlan from './MiPlan'
+import Carrusel from './Carrusel'
 import Compra from './Compra'
 import Recetas from './Recetas'
 import { unseenEntries, LATEST_VERSION } from './changelog'
@@ -933,6 +934,8 @@ export default function App() {
                       ))}
                     </div>
                   )}
+
+                  <Carrusel API={API} getHeaders={getHeaders} C={C} consumed={totals} goals={macroGoals} />
 
                   {MEALS.map(meal => {
                     const mealEntries = entries.filter(e => (e.meal || 'comida') === meal.key)
