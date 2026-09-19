@@ -144,7 +144,49 @@ const PRESET_AVATARS = [
 const DEFAULT_GOALS = { protein: 163, carbs: 230, satfat: 12, salt: 4, fiber: 30, sugar: 40, kcal: 2400 }
 const PLAN_USERS = ['Daniel', 'daniel']
 
-function getColors(dark) {
+// Temas de color. Cada uno pisa solo lo que cambia (acento y tintes de fondo) sobre la
+// paleta base, en claro y en oscuro; los colores semánticos (verde, rojo…) no se tocan.
+// «naranja» es la paleta base sin cambios.
+const THEMES = {
+  naranja: { name: 'Naranja', swatch: '#FF6B35', light: {}, dark: {} },
+  oceano: {
+    name: 'Océano', swatch: '#0EA5E9',
+    light: { bg: '#F3F8FB', border: '#DDE9F0', accent: '#0EA5E9', accentLight: '#E0F2FE', accentMid: '#7DD3FC' },
+    dark: { bg: '#0A1118', white: '#111C26', border: '#1F2E3B', accent: '#38BDF8', accentLight: '#0C2233', accentMid: '#0C4A6E' },
+  },
+  bosque: {
+    name: 'Bosque', swatch: '#16A34A',
+    light: { bg: '#F4F8F3', border: '#E0EADC', accent: '#16A34A', accentLight: '#E5F5E6', accentMid: '#86EFAC' },
+    dark: { bg: '#0C120C', white: '#131C13', border: '#233023', accent: '#22C55E', accentLight: '#0E2A14', accentMid: '#14532D' },
+  },
+  uva: {
+    name: 'Uva', swatch: '#8B5CF6',
+    light: { bg: '#F7F5FB', border: '#E7E1F2', accent: '#8B5CF6', accentLight: '#EDE9FE', accentMid: '#C4B5FD' },
+    dark: { bg: '#100C18', white: '#181222', border: '#2A2038', accent: '#A78BFA', accentLight: '#1D1433', accentMid: '#4C1D95' },
+  },
+  rosa: {
+    name: 'Rosa', swatch: '#EC4899',
+    light: { bg: '#FBF5F8', border: '#F1DFE8', accent: '#EC4899', accentLight: '#FCE7F3', accentMid: '#F9A8D4' },
+    dark: { bg: '#160B11', white: '#1F121A', border: '#361E2A', accent: '#F472B6', accentLight: '#2E1020', accentMid: '#831843' },
+  },
+  cafe: {
+    name: 'Café', swatch: '#B45309',
+    light: { bg: '#F6F1EA', white: '#FFFBF5', border: '#E8DDCC', accent: '#B45309', accentLight: '#F5E6D3', accentMid: '#DDB98A' },
+    dark: { bg: '#14100C', white: '#1D1712', border: '#33291F', accent: '#D97706', accentLight: '#2A1C10', accentMid: '#6B3A12' },
+  },
+  grafito: {
+    name: 'Grafito', swatch: '#64748B',
+    light: { bg: '#F4F5F7', border: '#E2E5EA', accent: '#64748B', accentLight: '#E8ECF1', accentMid: '#B8C2CF' },
+    dark: { bg: '#0E1013', white: '#171A1F', border: '#272C33', accent: '#94A3B8', accentLight: '#1B222B', accentMid: '#3A4756' },
+  },
+}
+
+function getColors(dark, theme = 'naranja') {
+  const base = getBaseColors(dark)
+  return { ...base, ...(THEMES[theme]?.[dark ? 'dark' : 'light'] || {}) }
+}
+
+function getBaseColors(dark) {
   return dark ? {
     bg: '#0F0F0F', white: '#1A1A1A', border: '#2E2E2E', text: '#F5F5F5',
     muted: '#888', mutedLight: '#555', accent: '#FF6B35', accentLight: '#2A1A12',
@@ -269,7 +311,11 @@ export default function App() {
     // Sin elección guardada: seguir el tema del sistema (móvil u ordenador).
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
   })
-  const C = getColors(darkMode)
+  const [theme, setTheme] = useState(() => {
+    try { const t = localStorage.getItem('nutrilog_theme'); return THEMES[t] ? t : 'naranja' } catch { return 'naranja' }
+  })
+  const [showThemes, setShowThemes] = useState(false)
+  const C = getColors(darkMode, theme)
 
   const [token, setToken] = useState(getToken())
   const [username, setUsername] = useState(localStorage.getItem('nutrilog_user') || '')
@@ -353,6 +399,11 @@ export default function App() {
     const next = !darkMode
     setDarkMode(next)
     localStorage.setItem('nutrilog_dark', String(next))
+  }
+
+  function changeTheme(key) {
+    setTheme(key)
+    try { localStorage.setItem('nutrilog_theme', key) } catch { /* sin almacenamiento: el tema vale solo para esta sesión */ }
   }
 
   const canSeePlan = PLAN_USERS.includes(username)
@@ -686,9 +737,21 @@ export default function App() {
               <button onClick={toggleDark} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.muted, padding: '5px 10px', borderRadius: 20, fontSize: 13, cursor: 'pointer' }}>
                 {darkMode ? '☀️' : '🌙'}
               </button>
+              <button onClick={() => setShowThemes(!showThemes)} style={{ border: `1px solid ${showThemes ? C.accent : C.border}`, background: C.white, color: C.muted, padding: '5px 10px', borderRadius: 20, fontSize: 13, cursor: 'pointer' }}>🎨</button>
             </div>
             <button onClick={handleLogout} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.muted, padding: '5px 10px', borderRadius: 20, fontSize: 12, cursor: 'pointer' }}>Salir</button>
           </div>
+
+          {showThemes && (
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12 }}>
+              {Object.entries(THEMES).map(([key, t]) => (
+                <button key={key} onClick={() => changeTheme(key)} title={t.name} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0 }}>
+                  <span style={{ width: 32, height: 32, borderRadius: 16, background: t.swatch, boxSizing: 'border-box', border: `3px solid ${theme === key ? C.text : C.border}` }} />
+                  <span style={{ fontSize: 10, color: theme === key ? C.text : C.muted, fontWeight: theme === key ? 700 : 500 }}>{t.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div style={{ padding: isDesktop ? '20px 24px' : '0 0 0' }}>
@@ -1276,7 +1339,7 @@ export default function App() {
       </div>
 
       {showProfile && (
-        <Profile username={username} onClose={() => setShowProfile(false)} onAvatarUpdate={av => setAvatarData(av)} darkMode={darkMode} macroGoals={macroGoals} onMacrosUpdate={macros => { setMacroGoals(macros); setGoal(macros.kcal) }} />
+        <Profile username={username} onClose={() => setShowProfile(false)} onAvatarUpdate={av => setAvatarData(av)} darkMode={darkMode} themeColors={{ bg: C.bg, white: C.white, border: C.border, accent: C.accent, accentLight: C.accentLight, accentMid: C.accentMid }} macroGoals={macroGoals} onMacrosUpdate={macros => { setMacroGoals(macros); setGoal(macros.kcal) }} />
       )}
 
       {whatsNew && (

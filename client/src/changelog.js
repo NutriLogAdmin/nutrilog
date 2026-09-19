@@ -6,6 +6,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.17.0',
+    date: '2026-09-19',
+    changes: [
+      'Nuevos temas de color: pulsa el botón 🎨 de la cabecera y elige entre Naranja, Océano, Bosque, Uva, Rosa, Café y Grafito. Funcionan tanto en modo claro como oscuro.',
+    ],
+  },
+  {
     version: '1.16.0',
     date: '2026-09-19',
     changes: [

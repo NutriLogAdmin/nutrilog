@@ -81,8 +81,10 @@ function getColors(dark) {
   }
 }
 
-export default function Profile({ username, onClose, onAvatarUpdate, darkMode, macroGoals, onMacrosUpdate }) {
-  const C = getColors(darkMode)
+export default function Profile({ username, onClose, onAvatarUpdate, darkMode, macroGoals, onMacrosUpdate, themeColors }) {
+  // themeColors trae los colores del tema elegido en App; este componente conserva su propia
+  // paleta base para el resto de tonos.
+  const C = { ...getColors(darkMode), ...themeColors }
   const [avatar, setAvatar] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
