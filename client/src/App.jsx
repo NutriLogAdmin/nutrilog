@@ -7,6 +7,7 @@ import { exportDayPDF, exportWeekPDF } from './PdfExport'
 import WhatsNew from './WhatsNew'
 import Consejos from './Consejos'
 import Compra from './Compra'
+import Recetas from './Recetas'
 import { unseenEntries, LATEST_VERSION } from './changelog'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
@@ -341,7 +342,7 @@ export default function App() {
   }
 
   const canSeePlan = PLAN_USERS.includes(username)
-  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo'], ['entreno', '🏋️ Entreno'], ['consejos', '💡 Consejos'], ['compra', '🛒 Compra'], ...(canSeePlan ? [['plan', 'Mi Plan']] : [])]
+  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo'], ['entreno', '🏋️ Entreno'], ['consejos', '💡 Consejos'], ['compra', '🛒 Compra'], ['recetas', '🍳 Recetas'], ...(canSeePlan ? [['plan', 'Mi Plan']] : [])]
 
   function handleLogin(tkn, user) { setToken(tkn); setUsername(user) }
   function handleLogout() {
@@ -704,7 +705,7 @@ export default function App() {
               {isDesktop && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
                   {tabs.map(([key, label]) => (
-                    <button key={key} onClick={() => setView(key)} style={{ padding: '12px 4px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: `1px solid ${view === key ? C.accent : C.border}`, borderRadius: 14, background: view === key ? C.accent : C.white, color: view === key ? '#fff' : C.muted, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: 'all 0.2s' }}>{label}</button>
+                    <button key={key} onClick={() => setView(key)} style={{ ...(key === 'plan' ? { gridColumn: 1, gridRow: 4 } : {}), padding: '12px 4px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: `1px solid ${view === key ? C.accent : C.border}`, borderRadius: 14, background: view === key ? C.accent : C.white, color: view === key ? '#fff' : C.muted, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: 'all 0.2s' }}>{label}</button>
                   ))}
                 </div>
               )}
@@ -716,7 +717,7 @@ export default function App() {
               {!isDesktop && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', margin: '16px 16px 0', gap: 8 }}>
                   {tabs.map(([key, label]) => (
-                    <button key={key} onClick={() => setView(key)} style={{ padding: '12px 4px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: `1px solid ${view === key ? C.accent : C.border}`, borderRadius: 14, background: view === key ? C.accent : C.white, color: view === key ? '#fff' : C.muted, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: 'all 0.2s' }}>{label}</button>
+                    <button key={key} onClick={() => setView(key)} style={{ ...(key === 'plan' ? { gridColumn: 1, gridRow: 4 } : {}), padding: '12px 4px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: `1px solid ${view === key ? C.accent : C.border}`, borderRadius: 14, background: view === key ? C.accent : C.white, color: view === key ? '#fff' : C.muted, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: 'all 0.2s' }}>{label}</button>
                   ))}
                 </div>
               )}
@@ -1189,6 +1190,13 @@ export default function App() {
               {view === 'compra' && (
                 <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
                   <Compra API={API} getHeaders={getHeaders} C={C} inputStyle={inputStyle} canImport={canSeePlan} />
+                </div>
+              )}
+
+              {/* Vista Recetas */}
+              {view === 'recetas' && (
+                <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
+                  <Recetas API={API} getHeaders={getHeaders} C={C} inputStyle={inputStyle} canImport={canSeePlan} />
                 </div>
               )}
 

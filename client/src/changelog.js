@@ -6,6 +6,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.12.0',
+    date: '2026-09-19',
+    changes: [
+      'Nueva pestaña "🍳 Recetas": consulta recetas paso a paso y sube las tuyas. Puedes compartirlas con los demás usuarios o dejarlas solo para ti.',
+    ],
+  },
+  {
     version: '1.11.0',
     date: '2026-09-19',
     changes: [

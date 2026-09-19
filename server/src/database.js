@@ -99,6 +99,21 @@ async function initDB() {
       checked BOOLEAN NOT NULL DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT NOW()
     );
+
+    -- Recetas: cada una es de su autor, y solo la ven otros si is_public es TRUE.
+    -- Los pasos van en un solo texto, uno por línea.
+    CREATE TABLE IF NOT EXISTS recipes (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      title TEXT NOT NULL,
+      badge TEXT DEFAULT '',
+      color TEXT NOT NULL DEFAULT 'gray',
+      intro TEXT DEFAULT '',
+      steps TEXT NOT NULL,
+      tip TEXT DEFAULT '',
+      is_public BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
   `)
   console.log('Base de datos PostgreSQL inicializada')
 }
