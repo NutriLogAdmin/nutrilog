@@ -481,6 +481,28 @@ export default function App() {
   useEffect(() => { if (token) loadEntries() }, [date, token])
   useEffect(() => { if (token) loadFoods() }, [token])
   useEffect(() => { if (token) loadActivity() }, [date, token])
+
+  // GitHub Pages sirve index.html con Cache-Control: max-age=600, así que un móvil puede seguir
+  // con la versión vieja hasta 10 min (o más si la app está en la pantalla de inicio). Se pide
+  // el index.html sin caché y, si apunta a otro bundle que el que está corriendo, se avisa.
+  const [newVersion, setNewVersion] = useState(false)
+  useEffect(() => {
+    const running = document.querySelector('script[type="module"][src*="/assets/"]')
+    if (!running) return undefined // en desarrollo no hay bundle con hash
+    const runningName = running.src.split('/').pop()
+    async function check() {
+      try {
+        const res = await fetch(`${import.meta.env.BASE_URL}?v=${Date.now()}`, { cache: 'no-store' })
+        const m = /assets\/(index-[^"']+\.js)/.exec(await res.text())
+        if (m && m[1] !== runningName) setNewVersion(true)
+      } catch { /* sin red no se puede comprobar; se reintenta luego */ }
+    }
+    check()
+    const onVisible = () => { if (document.visibilityState === 'visible') check() }
+    document.addEventListener('visibilitychange', onVisible)
+    const timer = setInterval(check, 5 * 60 * 1000)
+    return () => { document.removeEventListener('visibilitychange', onVisible); clearInterval(timer) }
+  }, [])
   useEffect(() => {
     if (!token || !canSeePlan) { setPlanToday(null); return }
     fetchPlanDay(date).then(setPlanToday)
@@ -1333,6 +1355,13 @@ export default function App() {
             </div>
           </div>
         </div>
+
+        {newVersion && (
+          <div style={{ position: 'fixed', left: 12, right: 12, bottom: 12, zIndex: 200, maxWidth: 456, margin: '0 auto', background: C.text, color: C.bg, borderRadius: 14, padding: '10px 12px 10px 16px', display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }}>
+            <div style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>Hay una versión nueva de NutriLog</div>
+            <button onClick={() => window.location.reload()} style={{ border: 'none', background: C.accent, color: '#fff', borderRadius: 10, padding: '8px 14px', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Actualizar</button>
+          </div>
+        )}
 
         {/* Footer */}
         <div style={{ textAlign: 'center', padding: '24px 16px', marginTop: 8 }}>
