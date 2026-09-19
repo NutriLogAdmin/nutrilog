@@ -6,6 +6,15 @@
 
 export const CHANGELOG = [
   {
+    version: '1.18.0',
+    date: '2026-09-19',
+    changes: [
+      'Nuevo botón "🔄 Rota los platos" en Mi Plan: cuando empieza un mes nuevo, la app arma tus semanas con tus platos, sin repetir y sin juntar dos platos de cuchara el mismo día.',
+      'Nueva pastilla "🍽️ Mis platos" en Mi Plan para añadir tus propios platos a la rotación.',
+      'Tu objetivo diario (kcal y macros) aparece ahora arriba de la pantalla principal.',
+    ],
+  },
+  {
     version: '1.17.0',
     date: '2026-09-19',
     changes: [

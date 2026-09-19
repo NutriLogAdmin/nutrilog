@@ -911,6 +911,18 @@ export default function App() {
               {/* Vista Registro */}
               {view === 'registro' && (
                 <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
+                  <div style={{ background: C.white, borderRadius: 16, padding: '12px 14px', marginBottom: 12, border: `1px solid ${C.border}` }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: C.text, textTransform: 'uppercase', marginBottom: 8 }}>🎯 Objetivo diario</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
+                      {[['Kcal', macroGoals.kcal, ''], ['Proteína', macroGoals.protein, 'g'], ['Hidratos', macroGoals.carbs, 'g'], ['G. sat.', macroGoals.satfat, 'g'], ['Sal', macroGoals.salt, 'g'], ['Fibra', macroGoals.fiber, 'g'], ['Azúcar', macroGoals.sugar, 'g']].map(([name, val, unit]) => (
+                        <div key={name} style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: C.accent }}>{val == null ? '—' : `${val}${unit}`}</div>
+                          <div style={{ fontSize: 10, color: C.muted, marginTop: 1 }}>{name}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   {canSeePlan && planToday && (
                     <div style={{ background: C.accentLight, border: `1px solid ${C.accent}33`, borderRadius: 16, padding: '12px 14px', marginBottom: 12 }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: C.accent, textTransform: 'uppercase', marginBottom: 6 }}>📋 {planToday.headerText}</div>

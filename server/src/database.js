@@ -100,6 +100,18 @@ async function initDB() {
       created_at TIMESTAMP DEFAULT NOW()
     );
 
+    -- Platos de cada usuario para la rotación mensual. kind: legumbre, pasta, arroz, huevo,
+    -- pescado, carne (principales), verdura, ensalada, crema (primeros y guarniciones) o
+    -- siempre (se añade a todas las comidas de ese tipo). meal: comida | cena.
+    CREATE TABLE IF NOT EXISTS dishes (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      name TEXT NOT NULL,
+      kind TEXT NOT NULL,
+      meal TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
     -- Seguimiento de peso y medidas: un registro por usuario y fecha (si se repite la fecha,
     -- se actualiza). Todas las medidas son opcionales salvo la fecha.
     CREATE TABLE IF NOT EXISTS body_measurements (
@@ -165,6 +177,7 @@ async function migrateDB() {
     await pool.query(`ALTER TABLE activity_sessions ADD COLUMN IF NOT EXISTS duration_min REAL DEFAULT NULL`)
     await pool.query(`ALTER TABLE recipes ADD COLUMN IF NOT EXISTS macros TEXT DEFAULT ''`)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS takes_supplements BOOLEAN DEFAULT FALSE`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_month TEXT DEFAULT NULL`)
     console.log('Migración OK')
   } catch (err) {
     console.error('Error en migración:', err)
