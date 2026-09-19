@@ -101,7 +101,7 @@ export default function Carrusel({ API, getHeaders, C, consumed, goals }) {
       onPointerEnter={e => { if (e.pointerType === 'mouse') setHover(true) }}
       onPointerLeave={e => { if (e.pointerType === 'mouse') setHover(false) }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
-        <button onClick={() => changeMode('hoy')} style={pill('hoy')}>✨ Para hoy</button>
+        <button onClick={() => changeMode('hoy')} style={pill('hoy')}>✨ Sugerencia para hoy</button>
         <button onClick={() => changeMode('completa')} style={pill('completa')}>🎯 Completa tu día</button>
       </div>
 
@@ -113,7 +113,7 @@ export default function Carrusel({ API, getHeaders, C, consumed, goals }) {
           {n > 1 && <button onClick={() => go(-1)} style={arrow} aria-label="Anterior">‹</button>}
           <div key={r.id} className="nl-slide" onClick={() => setOpenId(openId === r.id ? null : r.id)}
             style={{ flex: 1, minWidth: 0, background: C.white, borderRadius: 16, overflow: 'hidden', border: `${openId === r.id ? 2 : 1}px solid ${openId === r.id ? C.accent : C.border}`, cursor: 'pointer', animation: 'nl-slide-in 0.45s ease' }}>
-            <div style={{ height: 130, background: r.image ? `center / cover no-repeat url("${r.image}")` : `linear-gradient(135deg, ${light}, ${main}55)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ aspectRatio: '16 / 10', background: r.image ? `center / cover no-repeat url("${r.image}")` : `linear-gradient(135deg, ${light}, ${main}55)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {!r.image && <span style={{ fontSize: 52 }}>{emojiOf(r.title)}</span>}
             </div>
             <div style={{ padding: '10px 12px 12px' }}>

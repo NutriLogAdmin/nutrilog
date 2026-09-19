@@ -912,6 +912,8 @@ export default function App() {
               {/* Vista Registro */}
               {view === 'registro' && (
                 <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
+                  <Carrusel API={API} getHeaders={getHeaders} C={C} consumed={totals} goals={macroGoals} />
+
                   <div style={{ background: C.white, borderRadius: 16, padding: '12px 14px', marginBottom: 12, border: `1px solid ${C.border}` }}>
                     <div style={{ fontSize: 11, fontWeight: 800, color: C.text, textTransform: 'uppercase', marginBottom: 8 }}>🎯 Objetivo diario</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
@@ -934,8 +936,6 @@ export default function App() {
                       ))}
                     </div>
                   )}
-
-                  <Carrusel API={API} getHeaders={getHeaders} C={C} consumed={totals} goals={macroGoals} />
 
                   {MEALS.map(meal => {
                     const mealEntries = entries.filter(e => (e.meal || 'comida') === meal.key)

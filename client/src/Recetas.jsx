@@ -59,7 +59,7 @@ export function RecipeDetail({ r, C, image }) {
   const rows = [['Kcal', r.kcal, ''], ['Proteína', r.protein, ' g'], ['Hidratos', r.carbs, ' g'], ['Grasas sat.', r.satfat, ' g'], ['Azúcar', r.sugar, ' g'], ['Fibra', r.fiber, ' g'], ['Sal', r.salt, ' g']].filter(x => x[1] != null)
   return (
     <div>
-      {image && <img src={image} alt={r.title} style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 12, marginBottom: 10, display: 'block' }} />}
+      {image && <img src={image} alt={r.title} style={{ width: '100%', height: 'auto', maxHeight: 360, objectFit: 'contain', background: C.surface2, borderRadius: 12, marginBottom: 10, display: 'block' }} />}
       {r.intro && <div style={{ background: light, borderLeft: `3px solid ${main}`, borderRadius: 10, padding: '10px 12px', marginBottom: 10, fontSize: 13, lineHeight: 1.5, color: C.text, whiteSpace: 'pre-wrap' }}>{r.intro}</div>}
       {r.steps.split('\n').filter(l => l.trim()).map((line, i) => {
         const isIngredients = line.startsWith('Ingredientes:')
