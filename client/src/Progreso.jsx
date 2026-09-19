@@ -133,7 +133,7 @@ export default function Progreso({ API, getHeaders, C, inputStyle, canImport }) 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
             {stat('Cambio de peso', totalChange === null || weights.length < 2 ? '—' : `${signed(totalChange)} kg`, `desde ${fmtDate(first.date)}`, C.green, totalChange < 0 ? C.green : totalChange > 0 ? C.yellow : C.text)}
             {stat('Peso actual', `${fmt(last.weight)} kg`, fmtDate(last.date), C.blue)}
-            {stat('IMC actual', bmi ? fmt(Math.round(bmi * 10) / 10) : '—', bmi ? `con ${fmt(heightCm)} cm de altura` : 'añade tu altura en Perfil', C.purple)}
+            {stat('IMC actual', bmi ? fmt(Math.round(bmi * 10) / 10) : '—', bmi ? `con ${fmt(heightCm)} cm de altura` : 'añade tu altura en Perfil → Mis datos', C.purple)}
             {stat('Último cambio', lastChange === null ? '—' : `${signed(lastChange)} kg`, prev ? `vs ${fmtDate(prev.date)}` : 'primer registro', C.yellow, lastChange < 0 ? C.green : lastChange > 0 ? C.yellow : C.text)}
           </div>
         </div>

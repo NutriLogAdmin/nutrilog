@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { ACTIVITY_LEVELS, GOAL_TYPES, calcBMR, calcTDEE, calcMacros, calcBMI, bmiCategory } from './nutritionCalc'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 // Debe coincidir con PLAN_USERS en client/src/App.jsx y ADMIN_USERS en server/src/routes/auth.js.
@@ -96,6 +97,11 @@ export default function Profile({ username, onClose, onAvatarUpdate, darkMode, m
   const [resetPassword, setResetPassword] = useState('')
   const [resetStatus, setResetStatus] = useState(null) // { ok: bool, msg: string }
   const [resetting, setResetting] = useState(false)
+  const [body, setBody] = useState({ weight: '', height: '', age: '', gender: 'male', activity_level: '', goal_type: '' })
+  const [bodyLoaded, setBodyLoaded] = useState(false)
+  const [savingBody, setSavingBody] = useState(false)
+  const [savedBody, setSavedBody] = useState(false)
+  const [latestWeight, setLatestWeight] = useState(null) // { weight, date } del último registro de Progreso
   const fileRef = useRef()
   const isAdmin = ADMIN_USERS.includes(username)
 
@@ -105,6 +111,22 @@ export default function Profile({ username, onClose, onAvatarUpdate, darkMode, m
       const data = await res.json()
       if (data.avatar) setAvatar(data.avatar)
       if (macroGoals) setEditMacros({ ...macroGoals })
+      setBody({
+        weight: data.weight != null ? String(data.weight) : '',
+        height: data.height != null ? String(data.height) : '',
+        age: data.age != null ? String(data.age) : '',
+        gender: data.gender || 'male',
+        activity_level: data.activity_level || '',
+        goal_type: data.goal_type || '',
+      })
+      setBodyLoaded(true)
+      try {
+        const pr = await fetch(`${API}/progress`, { headers: getHeaders() })
+        if (pr.ok) {
+          const list = (await pr.json()).filter(e => e.weight != null)
+          if (list.length) setLatestWeight({ weight: list[list.length - 1].weight, date: list[list.length - 1].date })
+        }
+      } catch { /* sin el último peso de Progreso solo se pierde el atajo */ }
     }
     load()
   }, [])
@@ -136,6 +158,42 @@ export default function Profile({ username, onClose, onAvatarUpdate, darkMode, m
     onMacrosUpdate(editMacros)
     setSavingMacros(false); setSavedMacros(true)
     setTimeout(() => setSavedMacros(false), 2000)
+  }
+
+  // Guarda los datos corporales. Con recalc=true además recalcula los objetivos (kcal y
+  // macros) con la fórmula del alta y los guarda; sin él, los objetivos no se tocan.
+  async function saveBody(recalc) {
+    const w = parseFloat(String(body.weight).replace(',', '.'))
+    const h = parseFloat(String(body.height).replace(',', '.'))
+    const a = parseInt(body.age, 10)
+    const payload = { weight: w, height: h, age: a, gender: body.gender, activity_level: body.activity_level || undefined, goal_type: body.goal_type || undefined }
+    let macros = null
+    if (recalc) {
+      const level = ACTIVITY_LEVELS.find(x => x.key === body.activity_level)
+      const goal = GOAL_TYPES.find(x => x.key === body.goal_type)
+      if (!(w > 0 && h > 0 && a > 0 && level && goal)) { alert('Para recalcular hacen falta peso, altura, edad, nivel de actividad y objetivo.'); return }
+      const kcal = Math.round(calcTDEE(w, h, a, body.gender, level.factor) * (1 - goal.deficit))
+      macros = calcMacros(kcal, w, body.goal_type)
+      const ok = window.confirm(`Se sustituirán tus objetivos actuales por los recalculados: ${macros.goal_kcal} kcal, ${macros.goal_protein}g de proteína, ${macros.goal_carbs}g de hidratos… Los ajustes manuales que hayas hecho se pierden. ¿Seguimos?`)
+      if (!ok) return
+      Object.assign(payload, macros)
+    }
+    setSavingBody(true)
+    try {
+      const res = await fetch(`${API}/profile/goals`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify(payload) })
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.status)
+      if (macros) {
+        const next = { kcal: macros.goal_kcal, protein: macros.goal_protein, carbs: macros.goal_carbs, satfat: macros.goal_satfat, salt: macros.goal_salt, fiber: macros.goal_fiber, sugar: macros.goal_sugar }
+        setEditMacros(next)
+        onMacrosUpdate(next)
+      }
+      setSavedBody(true)
+      setTimeout(() => setSavedBody(false), 2500)
+    } catch (err) {
+      alert(`No se pudo guardar: ${err.message}`)
+    } finally {
+      setSavingBody(false)
+    }
   }
 
   async function handleAdminReset(e) {
@@ -198,7 +256,7 @@ export default function Profile({ username, onClose, onAvatarUpdate, darkMode, m
         {/* Tabs */}
         <div style={{ display: 'flex', background: C.bg, borderRadius: 12, padding: 4, gap: 4, marginBottom: 16 }}>
           {[
-            ['avatar', '🖼️ Avatar'], ['macros', '🎯 Mis objetivos'], ['refs', '📚 Fuentes'],
+            ['avatar', '🖼️ Avatar'], ['datos', '🧍 Mis datos'], ['macros', '🎯 Objetivos'], ['refs', '📚 Fuentes'],
             ...(isAdmin ? [['admin', '🔑 Usuarios']] : []),
           ].map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)} style={{ flex: 1, minWidth: 0, padding: '8px 2px', fontSize: 10, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 9, background: tab === key ? C.accent : 'transparent', color: tab === key ? '#fff' : C.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -234,6 +292,116 @@ export default function Profile({ username, onClose, onAvatarUpdate, darkMode, m
             )}
           </div>
         )}
+
+        {/* Tab Mis datos */}
+        {tab === 'datos' && bodyLoaded && (() => {
+          const w = parseFloat(String(body.weight).replace(',', '.'))
+          const h = parseFloat(String(body.height).replace(',', '.'))
+          const a = parseInt(body.age, 10)
+          const level = ACTIVITY_LEVELS.find(x => x.key === body.activity_level)
+          const goal = GOAL_TYPES.find(x => x.key === body.goal_type)
+          const bmi = w > 0 && h > 0 ? calcBMI(w, h) : null
+          const canTDEE = w > 0 && h > 0 && a > 0 && level
+          const bmr = canTDEE ? Math.round(calcBMR(w, h, a, body.gender)) : null
+          const tdee = canTDEE ? calcTDEE(w, h, a, body.gender, level.factor) : null
+          const recommended = tdee && goal ? Math.round(tdee * (1 - goal.deficit)) : null
+          const currentKcal = editMacros ? editMacros.kcal : null
+          const diff = recommended && currentKcal ? currentKcal - recommended : null
+          const lab = { fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }
+          const field = { width: '100%', border: `1.5px solid ${C.border}`, background: C.bg, color: C.text, padding: '10px 12px', borderRadius: 10, fontSize: 15, fontWeight: 600, boxSizing: 'border-box' }
+          const stat = (name, value, sub) => (
+            <div style={{ background: C.bg, borderRadius: 12, padding: '10px 12px', minWidth: 0 }}>
+              <div style={{ fontSize: 9, color: C.muted, fontWeight: 700, textTransform: 'uppercase' }}>{name}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: C.text, marginTop: 2 }}>{value}</div>
+              {sub && <div style={{ fontSize: 10, color: C.muted, marginTop: 1 }}>{sub}</div>}
+            </div>
+          )
+          return (
+            <div>
+              <div style={{ fontSize: 12, color: C.muted, marginBottom: 14, lineHeight: 1.5 }}>
+                Mantén estos datos al día: con ellos se calcula tu IMC y tu gasto diario, y puedes recalcular tus objetivos cuando cambien tu peso, tu actividad o tu meta.
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 6 }}>
+                <div>
+                  <div style={lab}>Peso actual (kg)</div>
+                  <input type="text" inputMode="decimal" value={body.weight} placeholder="86" onChange={e => setBody({ ...body, weight: e.target.value })} style={field} />
+                </div>
+                <div>
+                  <div style={lab}>Altura (cm)</div>
+                  <input type="text" inputMode="decimal" value={body.height} placeholder="169" onChange={e => setBody({ ...body, height: e.target.value })} style={field} />
+                </div>
+                <div>
+                  <div style={lab}>Edad</div>
+                  <input type="text" inputMode="numeric" value={body.age} placeholder="35" onChange={e => setBody({ ...body, age: e.target.value })} style={field} />
+                </div>
+                <div>
+                  <div style={lab}>Sexo</div>
+                  <select value={body.gender} onChange={e => setBody({ ...body, gender: e.target.value })} style={field}>
+                    <option value="male">Hombre</option>
+                    <option value="female">Mujer</option>
+                  </select>
+                </div>
+              </div>
+              {latestWeight && String(latestWeight.weight) !== String(body.weight).replace(',', '.') && (
+                <button onClick={() => setBody({ ...body, weight: String(latestWeight.weight) })} style={{ border: 'none', background: 'transparent', color: C.accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginBottom: 10 }}>
+                  ↺ Usar mi último peso de Progreso ({String(latestWeight.weight).replace('.', ',')} kg, {latestWeight.date.split('-').reverse().join('/')})
+                </button>
+              )}
+
+              <div style={{ ...lab, marginTop: 10 }}>¿Dónde te ubicas en actividad física?</div>
+              <div style={{ background: C.bg, borderRadius: 14, overflow: 'hidden', marginBottom: 14 }}>
+                {ACTIVITY_LEVELS.map((l, i) => (
+                  <div key={l.key} onClick={() => setBody({ ...body, activity_level: l.key })}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', cursor: 'pointer', background: body.activity_level === l.key ? C.accentLight : 'transparent', borderTop: i ? `1px solid ${C.border}` : 'none' }}>
+                    <span style={{ fontSize: 20 }}>{l.emoji}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: body.activity_level === l.key ? C.accent : C.text }}>{l.label}</div>
+                      <div style={{ fontSize: 11, color: C.muted }}>{l.desc}</div>
+                    </div>
+                    <span style={{ fontSize: 11, color: C.muted, flexShrink: 0 }}>×{l.factor}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div style={lab}>Tu objetivo</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 14 }}>
+                {GOAL_TYPES.map(g => (
+                  <div key={g.key} onClick={() => setBody({ ...body, goal_type: g.key })}
+                    style={{ padding: '10px', borderRadius: 12, cursor: 'pointer', textAlign: 'center', border: `2px solid ${body.goal_type === g.key ? C.accent : C.border}`, background: body.goal_type === g.key ? C.accentLight : C.white }}>
+                    <div style={{ fontSize: 22 }}>{g.emoji}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: body.goal_type === g.key ? C.accent : C.text }}>{g.label}</div>
+                    <div style={{ fontSize: 10, color: C.muted, marginTop: 1 }}>{g.desc}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
+                {stat('IMC', bmi ? `${(Math.round(bmi * 10) / 10).toString().replace('.', ',')}` : '—', bmi ? bmiCategory(bmi) : 'faltan peso y altura')}
+                {stat('Metabolismo basal', bmr ? `${bmr} kcal` : '—', bmr ? 'en reposo' : 'faltan edad y actividad')}
+                {stat('Gasto diario', tdee ? `${tdee} kcal` : '—', tdee ? 'con tu actividad' : '')}
+                {stat('Objetivo recomendado', recommended ? `${recommended} kcal` : '—', goal ? goal.label : 'elige un objetivo')}
+              </div>
+
+              {recommended && currentKcal ? (
+                <div style={{ background: C.accentLight, borderRadius: 12, padding: '10px 12px', fontSize: 12, color: C.text, lineHeight: 1.5, marginBottom: 14 }}>
+                  Tu objetivo actual es <strong>{currentKcal} kcal</strong>. Con estos datos se recomiendan <strong>{recommended} kcal</strong>
+                  {Math.abs(diff) < 50 ? ': estás alineado.' : diff > 0 ? `: ahora comes ${diff} kcal más de lo recomendado.` : `: ahora comes ${-diff} kcal menos de lo recomendado.`}
+                </div>
+              ) : <div style={{ marginBottom: 14 }} />}
+
+              <button onClick={() => saveBody(false)} disabled={savingBody} style={{ width: '100%', padding: '14px', background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: savingBody ? 'not-allowed' : 'pointer', opacity: savingBody ? 0.7 : 1, marginBottom: 8 }}>
+                {savingBody ? 'Guardando...' : savedBody ? '✓ Guardado' : 'Guardar mis datos'}
+              </button>
+              <button onClick={() => saveBody(true)} disabled={savingBody} style={{ width: '100%', padding: '12px', background: C.white, color: C.accent, border: `1.5px solid ${C.accent}`, borderRadius: 12, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                🔄 Guardar y recalcular mis objetivos
+              </button>
+              <div style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>
+                «Guardar mis datos» no toca tus objetivos. Recalcular usa la fórmula Mifflin-St Jeor y sustituye tus kcal y macros.
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Tab Macros */}
         {tab === 'macros' && editMacros && (

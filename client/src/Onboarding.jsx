@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ACTIVITY_LEVELS, GOAL_TYPES, calcTDEE, calcMacros } from './nutritionCalc'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
 
@@ -7,60 +8,6 @@ const C = {
   muted: '#888', accent: '#FF6B35', accentLight: '#FFF0EB', accentMid: '#FFB39A',
   green: '#22C55E', greenLight: '#DCFCE7', red: '#EF4444', redLight: '#FEF2F2',
   blue: '#3B82F6', blueLight: '#EFF6FF',
-}
-
-const ACTIVITY_LEVELS = [
-  { key: 'sedentary', label: 'Sedentario', desc: 'Poco o ningún ejercicio', factor: 1.2, emoji: '🛋️' },
-  { key: 'light', label: 'Ligero', desc: '1-3 días/semana', factor: 1.375, emoji: '🚶' },
-  { key: 'moderate', label: 'Moderado', desc: '3-5 días/semana', factor: 1.55, emoji: '🏃' },
-  { key: 'active', label: 'Activo', desc: '6-7 días/semana', factor: 1.725, emoji: '💪' },
-  { key: 'very_active', label: 'Muy activo', desc: 'Ejercicio intenso diario', factor: 1.9, emoji: '🏋️' },
-]
-
-const GOAL_TYPES = [
-  { key: 'deficit', label: 'Pérdida de peso', desc: 'Déficit calórico del 20%', emoji: '🔥', deficit: 0.20 },
-  { key: 'recomp', label: 'Recomposición', desc: 'Perder grasa + definición', emoji: '💪', deficit: 0.15 },
-  { key: 'maintenance', label: 'Mantenimiento', desc: 'Mantener peso actual', emoji: '⚖️', deficit: 0 },
-  { key: 'bulk', label: 'Volumen', desc: 'Ganar músculo', emoji: '🏋️', deficit: -0.10 },
-]
-
-function calcTDEE(weight, height, age = 30, gender = 'male', activityFactor) {
-  // Fórmula Mifflin-St Jeor
-  const bmr = gender === 'male'
-    ? 10 * weight + 6.25 * height - 5 * age + 5
-    : 10 * weight + 6.25 * height - 5 * age - 161
-  return Math.round(bmr * activityFactor)
-}
-
-function calcMacros(kcal, weight, goalType) {
-  // Proteína: 2g por kg de peso corporal para recomposición/deficit, 1.8g para mantenimiento
-  const proteinPerKg = goalType === 'bulk' ? 1.8 : 2.0
-  const protein = Math.round(weight * proteinPerKg)
-  const proteinKcal = protein * 4
-
-  // Grasas: 25% de las calorías totales
-  const fatKcal = kcal * 0.25
-  const fat = Math.round(fatKcal / 9)
-  const satfat = Math.round(fat * 0.4) // 40% de la grasa total como saturada máximo
-
-  // Hidratos: resto de calorías
-  const carbsKcal = kcal - proteinKcal - fatKcal
-  const carbs = Math.round(carbsKcal / 4)
-
-  // Azúcar: 10% de las kcal en gramos (límite general de la OMS), con un techo de 40g
-  // inspirado en el límite cardiovascular de la American Heart Association (36g en hombres,
-  // 25g en mujeres) — más conservador que el 10% de la OMS a partir de dietas de ~1600 kcal.
-  const sugar = Math.round(Math.min(kcal * 0.10 / 4, 40))
-
-  return {
-    goal_kcal: kcal,
-    goal_protein: protein,
-    goal_carbs: Math.max(0, carbs),
-    goal_satfat: satfat,
-    goal_salt: goalType === 'deficit' || goalType === 'recomp' ? 4 : 5,
-    goal_fiber: 30,
-    goal_sugar: sugar,
-  }
 }
 
 function getHeaders() {
@@ -106,6 +53,8 @@ export default function Onboarding({ username, onComplete }) {
       body: JSON.stringify({
         weight: parseFloat(weight),
         height: parseFloat(height),
+        age: parseInt(age),
+        gender,
         activity_level: activityLevel,
         goal_type: goalType,
         ...macros

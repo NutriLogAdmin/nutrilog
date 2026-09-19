@@ -178,6 +178,10 @@ async function migrateDB() {
     await pool.query(`ALTER TABLE recipes ADD COLUMN IF NOT EXISTS macros TEXT DEFAULT ''`)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS takes_supplements BOOLEAN DEFAULT FALSE`)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_month TEXT DEFAULT NULL`)
+    // Se guarda el año de nacimiento aproximado y no la edad, para que la edad no se quede
+    // vieja: age = año actual − birth_year.
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS birth_year INTEGER DEFAULT NULL`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS gender TEXT DEFAULT NULL`)
     console.log('Migración OK')
   } catch (err) {
     console.error('Error en migración:', err)

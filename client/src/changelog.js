@@ -6,6 +6,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.19.0',
+    date: '2026-09-19',
+    changes: [
+      'Nueva pestaña "🧍 Mis datos" en tu perfil: peso, altura, edad, sexo, nivel de actividad y objetivo, con tu IMC y tu gasto diario calculados. Puedes recalcular tus kcal y macros cuando cambien tus datos.',
+      'Arreglado: al guardar tus objetivos desde el perfil se borraban tu peso, altura y nivel de actividad. Si te pasó, vuelve a poner tus datos en "Mis datos".',
+    ],
+  },
+  {
     version: '1.18.0',
     date: '2026-09-19',
     changes: [
