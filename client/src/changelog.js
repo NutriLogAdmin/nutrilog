@@ -6,6 +6,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.10.0',
+    date: '2026-09-19',
+    changes: [
+      'Nueva pestaña "💡 Consejos": qué hacer cuando te entra ansiedad por comer, y tu propio horario de comidas (lo creas y editas tú).',
+    ],
+  },
+  {
     version: '1.9.0',
     date: '2026-09-13',
     changes: [

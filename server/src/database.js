@@ -74,6 +74,20 @@ async function initDB() {
       created_at TIMESTAMP DEFAULT NOW(),
       UNIQUE(user_id, date, session_type)
     );
+
+    -- Tarjetas de contenido editable por usuario (horarios, etc.). Cada usuario solo ve
+    -- y edita las suyas: no hay contenido compartido en esta tabla.
+    CREATE TABLE IF NOT EXISTS content_cards (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      section TEXT NOT NULL,
+      position INTEGER NOT NULL DEFAULT 0,
+      color TEXT NOT NULL DEFAULT 'gray',
+      time_label TEXT DEFAULT '',
+      title TEXT NOT NULL,
+      body TEXT DEFAULT '',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
   `)
   console.log('Base de datos PostgreSQL inicializada')
 }

@@ -5,6 +5,7 @@ import Profile from './Profile'
 import Onboarding from './Onboarding'
 import { exportDayPDF, exportWeekPDF } from './PdfExport'
 import WhatsNew from './WhatsNew'
+import Consejos from './Consejos'
 import { unseenEntries, LATEST_VERSION } from './changelog'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
@@ -339,7 +340,7 @@ export default function App() {
   }
 
   const canSeePlan = PLAN_USERS.includes(username)
-  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo'], ['entreno', '🏋️ Entreno'], ...(canSeePlan ? [['plan', 'Mi Plan']] : [])]
+  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo'], ['entreno', '🏋️ Entreno'], ['consejos', '💡 Consejos'], ...(canSeePlan ? [['plan', 'Mi Plan']] : [])]
 
   function handleLogin(tkn, user) { setToken(tkn); setUsername(user) }
   function handleLogout() {
@@ -700,9 +701,9 @@ export default function App() {
 
               {/* Tabs — en desktop solo en columna izquierda */}
               {isDesktop && (
-                <div style={{ background: C.white, borderRadius: 16, padding: 4, display: 'flex', gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ background: C.white, borderRadius: 16, padding: 4, display: 'flex', gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflowX: 'auto' }}>
                   {tabs.map(([key, label]) => (
-                    <button key={key} onClick={() => setView(key)} style={{ flex: 1, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12, background: view === key ? C.accent : 'transparent', color: view === key ? '#fff' : C.muted, transition: 'all 0.2s' }}>{label}</button>
+                    <button key={key} onClick={() => setView(key)} style={{ flex: '1 0 auto', padding: '10px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12, whiteSpace: 'nowrap', background: view === key ? C.accent : 'transparent', color: view === key ? '#fff' : C.muted, transition: 'all 0.2s' }}>{label}</button>
                   ))}
                 </div>
               )}
@@ -712,9 +713,9 @@ export default function App() {
             <div>
               {/* Tabs — en móvil */}
               {!isDesktop && (
-                <div style={{ display: 'flex', margin: '16px 16px 0', background: C.white, borderRadius: 16, padding: 4, gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', margin: '16px 16px 0', background: C.white, borderRadius: 16, padding: 4, gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflowX: 'auto' }}>
                   {tabs.map(([key, label]) => (
-                    <button key={key} onClick={() => setView(key)} style={{ flex: 1, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12, background: view === key ? C.accent : 'transparent', color: view === key ? '#fff' : C.muted, transition: 'all 0.2s' }}>{label}</button>
+                    <button key={key} onClick={() => setView(key)} style={{ flex: '1 0 auto', padding: '10px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12, whiteSpace: 'nowrap', background: view === key ? C.accent : 'transparent', color: view === key ? '#fff' : C.muted, transition: 'all 0.2s' }}>{label}</button>
                   ))}
                 </div>
               )}
@@ -1173,6 +1174,13 @@ export default function App() {
                       )
                     })
                   }
+                </div>
+              )}
+
+              {/* Vista Consejos */}
+              {view === 'consejos' && (
+                <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
+                  <Consejos API={API} getHeaders={getHeaders} C={C} inputStyle={inputStyle} canImport={canSeePlan} />
                 </div>
               )}
 
