@@ -6,6 +6,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.11.0',
+    date: '2026-09-19',
+    changes: [
+      'Nueva pestaña "🛒 Compra": tu lista de la compra por categorías, con casillas para marcar lo que ya tienes. Se guarda y la editas tú.',
+    ],
+  },
+  {
     version: '1.10.0',
     date: '2026-09-19',
     changes: [

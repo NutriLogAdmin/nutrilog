@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 const COLOR_LABELS = [['green', 'Verde'], ['blue', 'Azul'], ['amber', 'Ámbar'], ['red', 'Rojo'], ['purple', 'Morado'], ['gray', 'Gris']]
 const EMPTY_FORM = { color: 'gray', time_label: '', title: '', body: '' }
 
-function palette(C) {
+export function palette(C) {
   return {
     green: [C.green, C.greenLight], blue: [C.blue, C.blueLight], amber: [C.yellow, C.yellowLight],
     red: [C.red, C.redLight], purple: [C.purple, C.purpleLight], gray: [C.muted, C.surface2],

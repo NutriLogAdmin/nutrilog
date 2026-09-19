@@ -88,6 +88,17 @@ async function initDB() {
       body TEXT DEFAULT '',
       created_at TIMESTAMP DEFAULT NOW()
     );
+
+    -- Lista de la compra por usuario: cada elemento con su categoría y si está marcado.
+    CREATE TABLE IF NOT EXISTS shop_items (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      position INTEGER NOT NULL DEFAULT 0,
+      category TEXT NOT NULL DEFAULT 'Otros',
+      name TEXT NOT NULL,
+      checked BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
   `)
   console.log('Base de datos PostgreSQL inicializada')
 }

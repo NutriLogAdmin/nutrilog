@@ -6,6 +6,7 @@ import Onboarding from './Onboarding'
 import { exportDayPDF, exportWeekPDF } from './PdfExport'
 import WhatsNew from './WhatsNew'
 import Consejos from './Consejos'
+import Compra from './Compra'
 import { unseenEntries, LATEST_VERSION } from './changelog'
 
 const API = 'https://nutrilog-production-46b5.up.railway.app/api'
@@ -340,7 +341,7 @@ export default function App() {
   }
 
   const canSeePlan = PLAN_USERS.includes(username)
-  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo'], ['entreno', '🏋️ Entreno'], ['consejos', '💡 Consejos'], ...(canSeePlan ? [['plan', 'Mi Plan']] : [])]
+  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo'], ['entreno', '🏋️ Entreno'], ['consejos', '💡 Consejos'], ['compra', '🛒 Compra'], ...(canSeePlan ? [['plan', 'Mi Plan']] : [])]
 
   function handleLogin(tkn, user) { setToken(tkn); setUsername(user) }
   function handleLogout() {
@@ -1181,6 +1182,13 @@ export default function App() {
               {view === 'consejos' && (
                 <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
                   <Consejos API={API} getHeaders={getHeaders} C={C} inputStyle={inputStyle} canImport={canSeePlan} />
+                </div>
+              )}
+
+              {/* Vista Compra */}
+              {view === 'compra' && (
+                <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
+                  <Compra API={API} getHeaders={getHeaders} C={C} inputStyle={inputStyle} canImport={canSeePlan} />
                 </div>
               )}
 
