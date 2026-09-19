@@ -1,11 +1,35 @@
 import { useState, useEffect } from 'react'
-import { palette } from './Consejos'
+import { palette, CardsSection } from './Consejos'
 
 const COLOR_LABELS = [['green', 'Verde'], ['blue', 'Azul'], ['amber', 'Ámbar'], ['red', 'Rojo'], ['purple', 'Morado'], ['gray', 'Gris']]
 const EMPTY_FORM = { color: 'green', title: '', badge: '', intro: '', steps: '', tip: '', macros: '', is_public: false }
 
 // Recetas propias y las que otros usuarios han compartido. Solo el autor edita o borra.
-export default function Recetas({ API, getHeaders, C, inputStyle, canImport }) {
+const CANTIDADES_LABELS = { time: 'Cantidad (opcional)', timePh: '60–80g en seco', title: 'Alimento', titlePh: 'Pasta', body: 'Referencia visual', timeWidth: 96, timeMax: 110 }
+
+export default function Recetas(props) {
+  const [tab, setTab] = useState('recetas')
+  const { API, getHeaders, C, inputStyle, canImport } = props
+  const sub = [['recetas', '🍳 Recetas'], ['cantidades', '⚖️ Cantidades']]
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+        {sub.map(([key, name]) => (
+          <button key={key} onClick={() => setTab(key)}
+            style={{ padding: '7px 14px', borderRadius: 20, border: tab === key ? 'none' : `1px solid ${C.border}`, cursor: 'pointer', background: tab === key ? C.accent : C.white, color: tab === key ? '#fff' : C.muted, fontSize: 12, fontWeight: 700 }}>
+            {name}
+          </button>
+        ))}
+      </div>
+      {tab === 'recetas' && <RecetasLista {...props} />}
+      {tab === 'cantidades' && (
+        <CardsSection section="cantidades" emptyText="Aún no tienes nada aquí. Pulsa «+ Añadir» para apuntar las cantidades recomendadas de cada ingrediente." API={API} getHeaders={getHeaders} C={C} inputStyle={inputStyle} canImport={canImport} labels={CANTIDADES_LABELS} />
+      )}
+    </div>
+  )
+}
+
+function RecetasLista({ API, getHeaders, C, inputStyle, canImport }) {
   const [recipes, setRecipes] = useState([])
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState('')

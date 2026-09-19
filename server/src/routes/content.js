@@ -3,7 +3,7 @@ const router = express.Router()
 const pool = require('../database')
 
 // Secciones que admiten tarjetas propias. Se amplía cuando se añada una nueva pantalla.
-const SECTIONS = ['horarios', 'ejercicio', 'pesas', 'piernas', 'tabla', 'suplementos']
+const SECTIONS = ['horarios', 'ejercicio', 'pesas', 'piernas', 'tabla', 'suplementos', 'cantidades']
 const COLORS = ['green', 'blue', 'amber', 'red', 'purple', 'gray']
 
 function cleanCard(c) {

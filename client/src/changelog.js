@@ -6,6 +6,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.15.0',
+    date: '2026-09-19',
+    changes: [
+      'Recetas tiene ahora una subpestaña "⚖️ Cantidades" donde apuntas las cantidades recomendadas de cada ingrediente.',
+    ],
+  },
+  {
     version: '1.14.0',
     date: '2026-09-19',
     changes: [

@@ -41,7 +41,12 @@ function Ansiedad({ C }) {
 }
 
 // Tarjetas propias de cada usuario, guardadas en el servidor.
-export function CardsSection({ section, emptyText, API, getHeaders, C, inputStyle, canImport }) {
+const DEFAULT_LABELS = { time: 'Hora (opcional)', timePh: '8:00–9:00', title: 'Título', titlePh: 'Desayuno', body: 'Texto', timeWidth: 74 }
+
+// `labels` permite reutilizar las tarjetas con otro significado (p. ej. Cantidades:
+// alimento / cantidad / referencia visual) sin duplicar el componente.
+export function CardsSection({ section, emptyText, API, getHeaders, C, inputStyle, canImport, labels }) {
+  const L = { ...DEFAULT_LABELS, ...labels }
   const [cards, setCards] = useState([])
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState('')
@@ -157,15 +162,15 @@ export function CardsSection({ section, emptyText, API, getHeaders, C, inputStyl
             ))}
           </div>
           <div style={{ marginBottom: 8 }}>
-            <div style={label}>Hora (opcional)</div>
-            <input type="text" value={form.time_label} placeholder="8:00–9:00" maxLength={40} onChange={e => setForm({ ...form, time_label: e.target.value })} style={inputStyle} />
+            <div style={label}>{L.time}</div>
+            <input type="text" value={form.time_label} placeholder={L.timePh} maxLength={40} onChange={e => setForm({ ...form, time_label: e.target.value })} style={inputStyle} />
           </div>
           <div style={{ marginBottom: 8 }}>
-            <div style={label}>Título</div>
-            <input type="text" value={form.title} placeholder="Desayuno" maxLength={200} onChange={e => setForm({ ...form, title: e.target.value })} style={inputStyle} />
+            <div style={label}>{L.title}</div>
+            <input type="text" value={form.title} placeholder={L.titlePh} maxLength={200} onChange={e => setForm({ ...form, title: e.target.value })} style={inputStyle} />
           </div>
           <div style={{ marginBottom: 10 }}>
-            <div style={label}>Texto</div>
+            <div style={label}>{L.body}</div>
             <textarea value={form.body} rows={4} maxLength={4000} onChange={e => setForm({ ...form, body: e.target.value })} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
           </div>
           <button type="submit" disabled={saving} style={{ width: '100%', padding: 13, background: C.accent, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>
@@ -182,7 +187,7 @@ export function CardsSection({ section, emptyText, API, getHeaders, C, inputStyl
         const [main, light] = pal[card.color] || pal.gray
         return (
           <div key={card.id} style={{ background: light, borderLeft: `3px solid ${main}`, borderRadius: 12, padding: '12px 12px 12px 14px', marginBottom: 8, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            {card.time_label && <div style={{ fontSize: 12, fontWeight: 800, color: main, minWidth: 74, flexShrink: 0, paddingTop: 1 }}>{card.time_label}</div>}
+            {card.time_label && <div style={{ fontSize: 12, fontWeight: 800, color: main, minWidth: L.timeWidth, maxWidth: L.timeMax, flexShrink: 0, paddingTop: 1, overflowWrap: 'anywhere' }}>{card.time_label}</div>}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{card.title}</div>
               {card.body && <div style={{ fontSize: 12, color: C.muted, marginTop: 3, lineHeight: 1.5, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{card.body}</div>}
