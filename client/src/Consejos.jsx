@@ -161,10 +161,12 @@ export function CardsSection({ section, emptyText, API, getHeaders, C, inputStyl
               </button>
             ))}
           </div>
-          <div style={{ marginBottom: 8 }}>
-            <div style={label}>{L.time}</div>
-            <input type="text" value={form.time_label} placeholder={L.timePh} maxLength={40} onChange={e => setForm({ ...form, time_label: e.target.value })} style={inputStyle} />
-          </div>
+          {!L.hideTime && (
+            <div style={{ marginBottom: 8 }}>
+              <div style={label}>{L.time}</div>
+              <input type="text" value={form.time_label} placeholder={L.timePh} maxLength={40} onChange={e => setForm({ ...form, time_label: e.target.value })} style={inputStyle} />
+            </div>
+          )}
           <div style={{ marginBottom: 8 }}>
             <div style={label}>{L.title}</div>
             <input type="text" value={form.title} placeholder={L.titlePh} maxLength={200} onChange={e => setForm({ ...form, title: e.target.value })} style={inputStyle} />

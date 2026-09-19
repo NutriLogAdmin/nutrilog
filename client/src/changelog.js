@@ -6,6 +6,13 @@
 
 export const CHANGELOG = [
   {
+    version: '1.16.0',
+    date: '2026-09-19',
+    changes: [
+      'Nueva pestaña "📋 Mi Plan": las comidas de cada día, organizadas por semanas del mes (S1, S2, S3…). Las creas y editas tú, y la semana actual sale marcada.',
+    ],
+  },
+  {
     version: '1.15.0',
     date: '2026-09-19',
     changes: [
