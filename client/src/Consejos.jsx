@@ -215,7 +215,7 @@ export default function Consejos({ API, getHeaders, C, inputStyle, canImport }) 
   const sub = [['ansiedad', '🚨 Ansiedad'], ['horarios', '🕐 Horarios']]
   return (
     <div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto' }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
         {sub.map(([key, name]) => (
           <button key={key} onClick={() => setTab(key)}
             style={{ padding: '7px 14px', borderRadius: 20, border: tab === key ? 'none' : `1px solid ${C.border}`, cursor: 'pointer', background: tab === key ? C.accent : C.white, color: tab === key ? '#fff' : C.muted, fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>

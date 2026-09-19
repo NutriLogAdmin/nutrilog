@@ -701,9 +701,9 @@ export default function App() {
 
               {/* Tabs — en desktop solo en columna izquierda */}
               {isDesktop && (
-                <div style={{ background: C.white, borderRadius: 16, padding: 4, display: 'flex', gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflowX: 'auto' }}>
+                <div style={{ background: C.white, borderRadius: 16, padding: 4, display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   {tabs.map(([key, label]) => (
-                    <button key={key} onClick={() => setView(key)} style={{ flex: '1 0 auto', padding: '10px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12, whiteSpace: 'nowrap', background: view === key ? C.accent : 'transparent', color: view === key ? '#fff' : C.muted, transition: 'all 0.2s' }}>{label}</button>
+                    <button key={key} onClick={() => setView(key)} style={{ padding: '10px 4px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12, background: view === key ? C.accent : 'transparent', color: view === key ? '#fff' : C.muted, transition: 'all 0.2s' }}>{label}</button>
                   ))}
                 </div>
               )}
@@ -713,9 +713,9 @@ export default function App() {
             <div>
               {/* Tabs — en móvil */}
               {!isDesktop && (
-                <div style={{ display: 'flex', margin: '16px 16px 0', background: C.white, borderRadius: 16, padding: 4, gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflowX: 'auto' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', margin: '16px 16px 0', background: C.white, borderRadius: 16, padding: 4, gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   {tabs.map(([key, label]) => (
-                    <button key={key} onClick={() => setView(key)} style={{ flex: '1 0 auto', padding: '10px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12, whiteSpace: 'nowrap', background: view === key ? C.accent : 'transparent', color: view === key ? '#fff' : C.muted, transition: 'all 0.2s' }}>{label}</button>
+                    <button key={key} onClick={() => setView(key)} style={{ padding: '10px 4px', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', borderRadius: 12, background: view === key ? C.accent : 'transparent', color: view === key ? '#fff' : C.muted, transition: 'all 0.2s' }}>{label}</button>
                   ))}
                 </div>
               )}
