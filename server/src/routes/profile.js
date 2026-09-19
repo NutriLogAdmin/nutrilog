@@ -5,7 +5,7 @@ const pool = require('../database')
 // Obtener perfil completo
 router.get('/', async (req, res) => {
   const result = await pool.query(
-    'SELECT id, username, avatar, weight, height, activity_level, goal_type, goal_kcal, goal_protein, goal_carbs, goal_satfat, goal_salt, goal_fiber, goal_sugar FROM users WHERE id = $1',
+    'SELECT id, username, avatar, weight, height, activity_level, goal_type, goal_kcal, goal_protein, goal_carbs, goal_satfat, goal_salt, goal_fiber, goal_sugar, takes_supplements FROM users WHERE id = $1',
     [req.user.id]
   )
   res.json(result.rows[0] || {})
@@ -23,6 +23,17 @@ router.put('/goal-kcal', async (req, res) => {
   const { goal_kcal } = req.body
   await pool.query('UPDATE users SET goal_kcal = $1 WHERE id = $2', [goal_kcal, req.user.id])
   res.json({ ok: true })
+})
+
+// Mostrar u ocultar la subpestaña de suplementos en Entreno
+router.put('/supplements', async (req, res) => {
+  try {
+    await pool.query('UPDATE users SET takes_supplements = $1 WHERE id = $2', [req.body.takes === true, req.user.id])
+    res.json({ ok: true })
+  } catch (err) {
+    console.error('Error en PUT /profile/supplements:', err)
+    res.status(500).json({ error: err.message })
+  }
 })
 
 // Guardar objetivos del usuario

@@ -41,7 +41,7 @@ function Ansiedad({ C }) {
 }
 
 // Tarjetas propias de cada usuario, guardadas en el servidor.
-function CardsSection({ section, emptyText, API, getHeaders, C, inputStyle, canImport }) {
+export function CardsSection({ section, emptyText, API, getHeaders, C, inputStyle, canImport }) {
   const [cards, setCards] = useState([])
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState('')
@@ -115,8 +115,16 @@ function CardsSection({ section, emptyText, API, getHeaders, C, inputStyle, canI
   async function doImport() {
     try {
       const parsed = JSON.parse(importText)
-      const list = Array.isArray(parsed) ? parsed : parsed.cards
-      await request('/content/import', 'POST', { section, cards: list })
+      if (!Array.isArray(parsed) && parsed.sections) {
+        // Fichero con varias secciones a la vez: solo se cargan las que aún estén vacías
+        const res = await request('/content/import-all', 'POST', { sections: parsed.sections })
+        const out = await res.json()
+        const done = Object.entries(out.imported).map(([n, c]) => `${n} (${c})`).join(', ') || 'ninguna'
+        alert(`Importadas: ${done}.${out.skipped.length ? ` Saltadas por tener ya contenido: ${out.skipped.join(', ')}.` : ''}`)
+      } else {
+        const list = Array.isArray(parsed) ? parsed : parsed.cards
+        await request('/content/import', 'POST', { section, cards: list })
+      }
       setImportText('')
       setShowImport(false)
       await load()

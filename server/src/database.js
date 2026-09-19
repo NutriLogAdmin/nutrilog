@@ -100,6 +100,22 @@ async function initDB() {
       created_at TIMESTAMP DEFAULT NOW()
     );
 
+    -- Seguimiento de peso y medidas: un registro por usuario y fecha (si se repite la fecha,
+    -- se actualiza). Todas las medidas son opcionales salvo la fecha.
+    CREATE TABLE IF NOT EXISTS body_measurements (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      date TEXT NOT NULL,
+      weight REAL,
+      waist REAL,
+      chest REAL,
+      under_chest REAL,
+      arm REAL,
+      note TEXT DEFAULT '',
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(user_id, date)
+    );
+
     -- Recetas: cada una es de su autor, y solo la ven otros si is_public es TRUE.
     -- Los pasos van en un solo texto, uno por línea.
     CREATE TABLE IF NOT EXISTS recipes (
@@ -148,6 +164,7 @@ async function migrateDB() {
     await pool.query(`ALTER TABLE activity_log ADD COLUMN IF NOT EXISTS elevation_m REAL DEFAULT NULL`)
     await pool.query(`ALTER TABLE activity_sessions ADD COLUMN IF NOT EXISTS duration_min REAL DEFAULT NULL`)
     await pool.query(`ALTER TABLE recipes ADD COLUMN IF NOT EXISTS macros TEXT DEFAULT ''`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS takes_supplements BOOLEAN DEFAULT FALSE`)
     console.log('Migración OK')
   } catch (err) {
     console.error('Error en migración:', err)

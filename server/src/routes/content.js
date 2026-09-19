@@ -3,7 +3,7 @@ const router = express.Router()
 const pool = require('../database')
 
 // Secciones que admiten tarjetas propias. Se amplía cuando se añada una nueva pantalla.
-const SECTIONS = ['horarios']
+const SECTIONS = ['horarios', 'ejercicio', 'pesas', 'piernas', 'tabla', 'suplementos']
 const COLORS = ['green', 'blue', 'amber', 'red', 'purple', 'gray']
 
 function cleanCard(c) {
@@ -55,6 +55,48 @@ router.post('/import', async (req, res) => {
     res.status(201).json({ ok: true, imported: clean.length })
   } catch (err) {
     console.error('Error en POST /content/import:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Importar varias secciones a la vez: { sections: { horarios: [...], pesas: [...] } }.
+// Cada sección solo se importa si está vacía; las que ya tienen tarjetas se saltan.
+router.post('/import-all', async (req, res) => {
+  const { sections } = req.body
+  if (!sections || typeof sections !== 'object' || Array.isArray(sections)) {
+    return res.status(400).json({ error: 'sections debe ser un objeto {sección: [tarjetas]}' })
+  }
+  const names = Object.keys(sections)
+  if (names.length === 0 || names.some(n => !SECTIONS.includes(n))) {
+    return res.status(400).json({ error: `secciones válidas: ${SECTIONS.join(', ')}` })
+  }
+  const prepared = {}
+  for (const name of names) {
+    const list = sections[name]
+    if (!Array.isArray(list) || list.length === 0 || list.length > 200) {
+      return res.status(400).json({ error: `«${name}» debe ser una lista de 1 a 200 tarjetas` })
+    }
+    prepared[name] = list.map(cleanCard)
+    if (prepared[name].some(c => !c.title)) return res.status(400).json({ error: `«${name}»: todas las tarjetas necesitan título` })
+  }
+  try {
+    const imported = {}
+    const skipped = []
+    for (const name of names) {
+      const existing = await pool.query('SELECT 1 FROM content_cards WHERE user_id = $1 AND section = $2 LIMIT 1', [req.user.id, name])
+      if (existing.rows.length > 0) { skipped.push(name); continue }
+      for (let i = 0; i < prepared[name].length; i++) {
+        const c = prepared[name][i]
+        await pool.query(`
+          INSERT INTO content_cards (user_id, section, position, color, time_label, title, body)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `, [req.user.id, name, i, c.color, c.time_label, c.title, c.body])
+      }
+      imported[name] = prepared[name].length
+    }
+    res.status(201).json({ ok: true, imported, skipped })
+  } catch (err) {
+    console.error('Error en POST /content/import-all:', err)
     res.status(500).json({ error: err.message })
   }
 })

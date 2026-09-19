@@ -9,6 +9,7 @@ const activityRouter = require('./routes/activity')
 const contentRouter = require('./routes/content')
 const shoppingRouter = require('./routes/shopping')
 const recipesRouter = require('./routes/recipes')
+const progressRouter = require('./routes/progress')
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -32,6 +33,7 @@ app.use('/api/activity', authMiddleware, activityRouter)
 app.use('/api/content', authMiddleware, contentRouter)
 app.use('/api/shopping', authMiddleware, shoppingRouter)
 app.use('/api/recipes', authMiddleware, recipesRouter)
+app.use('/api/progress', authMiddleware, progressRouter)
 
 app.listen(PORT, () => {
   console.log(`Servidor NutriLog arrancado en http://localhost:${PORT}`)

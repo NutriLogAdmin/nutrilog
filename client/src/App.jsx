@@ -5,7 +5,8 @@ import Profile from './Profile'
 import Onboarding from './Onboarding'
 import { exportDayPDF, exportWeekPDF } from './PdfExport'
 import WhatsNew from './WhatsNew'
-import Consejos from './Consejos'
+import Consejos, { CardsSection } from './Consejos'
+import Progreso from './Progreso'
 import Compra from './Compra'
 import Recetas from './Recetas'
 import { unseenEntries, LATEST_VERSION } from './changelog'
@@ -105,6 +106,16 @@ const EXERCISE_SUGGESTIONS = {
 // Tipos de sesión que se miden entera (varios ejercicios, un solo dato de reloj para todo):
 // llevan un resumen aparte en vez de repetir kcal/FC/esfuerzo en cada ejercicio.
 const SUMMARY_SESSION_TYPES = ['torso', 'piernas', 'core']
+
+// Subpestañas de Entreno. Todas menos «registro» son tarjetas propias de cada usuario.
+const ENTRENO_TABS = [['registro', '📝 Registro'], ['ejercicio', '🏃 Ejercicio'], ['pesas', '💪 Pesas'], ['piernas', '🦵 Piernas'], ['tabla', '📋 Tabla']]
+const ENTRENO_EMPTY = {
+  ejercicio: 'Aún no tienes nada aquí. Pulsa «+ Añadir» para crear tu plan de ejercicio (cardio, estiramientos, movilidad…).',
+  pesas: 'Aún no tienes nada aquí. Pulsa «+ Añadir» para crear tu rutina de pesas.',
+  piernas: 'Aún no tienes nada aquí. Pulsa «+ Añadir» para crear tu rutina de piernas.',
+  tabla: 'Aún no tienes nada aquí. Pulsa «+ Añadir» para crear tu tabla de ejercicios.',
+  suplementos: 'Aún no tienes nada aquí. Pulsa «+ Añadir» para apuntar los suplementos que tomas y cuándo.',
+}
 
 const CATEGORIES = [
   { key: 'todos', label: '🔍 Todos', emoji: '🔍' },
@@ -290,6 +301,8 @@ export default function App() {
   const [planToday, setPlanToday] = useState(null)
   const [activityLog, setActivityLog] = useState([])
   const [activitySessions, setActivitySessions] = useState([])
+  const [entrenoTab, setEntrenoTab] = useState('registro')
+  const [takesSupp, setTakesSupp] = useState(false)
   const [summaryType, setSummaryType] = useState('torso')
   const [sessionForm, setSessionForm] = useState({ duration_min: '', kcal_active: '', kcal_total: '', hr_avg: '', effort: '' })
   const [showSessionSummary, setShowSessionSummary] = useState(false)
@@ -342,7 +355,20 @@ export default function App() {
   }
 
   const canSeePlan = PLAN_USERS.includes(username)
-  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo'], ['entreno', '🏋️ Entreno'], ['consejos', '💡 Consejos'], ['compra', '🛒 Compra'], ['recetas', '🍳 Recetas'], ...(canSeePlan ? [['plan', 'Mi Plan']] : [])]
+  const tabs = [['registro', 'Registro'], ['catalogo', 'Catálogo'], ['entreno', '🏋️ Entreno'], ['consejos', '💡 Consejos'], ['compra', '🛒 Compra'], ['recetas', '🍳 Recetas'], ['progreso', '📈 Progreso'], ...(canSeePlan ? [['plan', 'Mi Plan']] : [])]
+
+  const entrenoPills = takesSupp ? [...ENTRENO_TABS, ['suplementos', '🥤 Suplementos']] : ENTRENO_TABS
+
+  async function changeSupplements(on) {
+    try {
+      const res = await fetch(`${API}/profile/supplements`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify({ takes: on }) })
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.status)
+      setTakesSupp(on)
+      setEntrenoTab(on ? 'suplementos' : 'registro')
+    } catch (err) {
+      alert(`No se pudo cambiar: ${err.message}`)
+    }
+  }
 
   function handleLogin(tkn, user) { setToken(tkn); setUsername(user) }
   function handleLogout() {
@@ -378,6 +404,7 @@ export default function App() {
       const res = await fetch(`${API}/profile`, { headers: getHeaders() })
       const data = await res.json()
       if (data.avatar) setAvatarData(data.avatar)
+      setTakesSupp(data.takes_supplements === true)
       if (data.goal_kcal) {
         // goal_sugar es un campo nuevo: si el usuario ya tenía objetivos guardados de antes,
         // aún no lo tiene en la BD (queda null) hasta que visite Perfil y lo guarde una vez.
@@ -981,6 +1008,28 @@ export default function App() {
               {/* Vista Entreno */}
               {view === 'entreno' && (
                 <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+                    {entrenoPills.map(([key, name]) => (
+                      <button key={key} onClick={() => setEntrenoTab(key)}
+                        style={{ padding: '7px 14px', borderRadius: 20, border: entrenoTab === key ? 'none' : `1px solid ${C.border}`, cursor: 'pointer', background: entrenoTab === key ? C.accent : C.white, color: entrenoTab === key ? '#fff' : C.muted, fontSize: 12, fontWeight: 700 }}>
+                        {name}
+                      </button>
+                    ))}
+                    {!takesSupp && (
+                      <button onClick={() => changeSupplements(true)} style={{ padding: '7px 14px', borderRadius: 20, border: `1px dashed ${C.border}`, cursor: 'pointer', background: 'transparent', color: C.muted, fontSize: 12, fontWeight: 700 }}>＋ Suplementos</button>
+                    )}
+                  </div>
+
+                  {entrenoTab !== 'registro' && (
+                    <>
+                      <CardsSection key={entrenoTab} section={entrenoTab} emptyText={ENTRENO_EMPTY[entrenoTab]} API={API} getHeaders={getHeaders} C={C} inputStyle={inputStyle} canImport={canSeePlan} />
+                      {entrenoTab === 'suplementos' && (
+                        <button onClick={() => changeSupplements(false)} style={{ marginTop: 16, border: 'none', background: 'transparent', color: C.muted, fontSize: 12, textDecoration: 'underline', cursor: 'pointer' }}>Dejar de mostrar Suplementos (no borra tus tarjetas)</button>
+                      )}
+                    </>
+                  )}
+
+                  {entrenoTab === 'registro' && (<>
                   <button onClick={() => setShowActivityForm(!showActivityForm)} style={{ width: '100%', padding: '13px', background: showActivityForm ? C.bg : C.accent, color: showActivityForm ? C.muted : '#fff', border: showActivityForm ? `1px solid ${C.border}` : 'none', borderRadius: 16, fontWeight: 700, fontSize: 13, cursor: 'pointer', marginBottom: 12 }}>
                     {showActivityForm ? '✕ Cancelar' : '+ Añadir actividad'}
                   </button>
@@ -1176,6 +1225,7 @@ export default function App() {
                       )
                     })
                   }
+                  </>)}
                 </div>
               )}
 
@@ -1197,6 +1247,13 @@ export default function App() {
               {view === 'recetas' && (
                 <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
                   <Recetas API={API} getHeaders={getHeaders} C={C} inputStyle={inputStyle} canImport={canSeePlan} />
+                </div>
+              )}
+
+              {/* Vista Progreso */}
+              {view === 'progreso' && (
+                <div style={{ padding: isDesktop ? '0' : '12px 16px 0' }}>
+                  <Progreso API={API} getHeaders={getHeaders} C={C} inputStyle={inputStyle} canImport={canSeePlan} />
                 </div>
               )}
 

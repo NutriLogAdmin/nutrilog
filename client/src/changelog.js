@@ -6,6 +6,14 @@
 
 export const CHANGELOG = [
   {
+    version: '1.14.0',
+    date: '2026-09-19',
+    changes: [
+      'Entreno ahora tiene subpestañas: Registro, Ejercicio, Pesas, Piernas, Tabla y (si los tomas) Suplementos, con tus propias rutinas y notas.',
+      'Nueva pestaña "📈 Progreso": apunta tu peso y medidas cuando quieras y ve tu cambio de peso, IMC y evolución calculados automáticamente.',
+    ],
+  },
+  {
     version: '1.13.0',
     date: '2026-09-19',
     changes: [
